@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25a24a"/><stop offset="1" stop-color="#0e5a28"/></linearGradient>
+<radialGradient id="bb" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#eceeea"/><stop offset="1" stop-color="#8e9592"/></radialGradient>
+<radialGradient id="bs" cx="36%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+<clipPath id="bc"><circle cx="256" cy="262" r="150"/></clipPath>
+<clipPath id="sq"><rect width="512" height="512" rx="112"/></clipPath>
+</defs>
+<g clip-path="url(#sq)">
+<rect width="512" height="512" fill="url(#bg)"/>
+<g fill="#000" opacity=".08"><rect y="0" width="512" height="64"/><rect y="128" width="512" height="64"/><rect y="256" width="512" height="64"/><rect y="384" width="512" height="64"/></g>
+<g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="10"><line x1="0" y1="262" x2="512" y2="262"/><circle cx="256" cy="262" r="196"/><rect x="156" y="-10" width="200" height="70"/><rect x="156" y="462" width="200" height="70"/></g>
+<ellipse cx="270" cy="430" rx="120" ry="22" fill="#000" opacity=".28"/>
+<circle cx="256" cy="262" r="150" fill="url(#bb)"/>
+<g clip-path="url(#bc)"><path d="M256.0 219.6 L256.0 182.1 M296.4 248.9 L332.0 237.3 M281.0 296.3 L303.0 326.7 M231.0 296.3 L209.0 326.7 M215.6 248.9 L180.0 237.3" stroke="#6b716e" stroke-width="6" fill="none"/><path d="M256.0 219.6 L296.4 248.9 L281.0 296.3 L231.0 296.3 L215.6 248.9 Z M256.0 182.1 L215.6 152.7 L231.0 105.3 L281.0 105.3 L296.4 152.7 Z M332.0 237.3 L347.5 189.8 L397.4 189.8 L412.8 237.3 L372.4 266.6 Z M303.0 326.7 L352.9 326.7 L368.3 374.1 L327.9 403.5 L287.6 374.1 Z M209.0 326.7 L224.4 374.1 L184.1 403.5 L143.7 374.1 L159.1 326.7 Z M180.0 237.3 L139.6 266.6 L99.2 237.3 L114.6 189.8 L164.5 189.8 Z" fill="#1c1f24" stroke="#1c1f24" stroke-width="4" stroke-linejoin="round"/><circle cx="256" cy="262" r="150" fill="url(#bs)"/></g>
+<circle cx="256" cy="262" r="150" fill="none" stroke="#141619" stroke-width="12"/>
+</g>
+</svg>
