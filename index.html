@@ -5,172 +5,230 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0b1510">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Picado Arcade</title>
+<title>Fulbito App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b1510;--card:#13251b;--card2:#1b3326;--acc:#ffd23f;--red:#e63946;--blue:#2457d6;--txt:#f1f5ef;--mut:#9fb3a6}
+:root{--bg:#06110b;--card:rgba(18,38,27,.78);--card2:rgba(255,255,255,.06);--line:rgba(255,255,255,.09);--acc:#ffd23f;--acc2:#ff9f1c;--grn:#2fbf71;--red:#e63946;--blue:#3b82f6;--txt:#f3f7f1;--mut:#9db5a6;--r:20px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;overflow:hidden;overscroll-behavior:none}
 body.playing{touch-action:none;user-select:none;-webkit-user-select:none}
-button{font-family:inherit;cursor:pointer}
+button{font-family:inherit;cursor:pointer;color:inherit}
 #cv{position:fixed;inset:0;display:block;touch-action:none}
-.screen{position:fixed;inset:0;display:none;overflow-y:auto;z-index:20;padding:max(18px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 28px max(14px,env(safe-area-inset-left));
- background:radial-gradient(1200px 600px at 50% -10%,#1f4a30 0%,#0b1510 60%),#0b1510}
+.screen{position:fixed;inset:0;display:none;overflow-y:auto;z-index:20;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(120px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+ background:radial-gradient(900px 520px at 50% -160px,rgba(255,210,63,.20),transparent 70%),repeating-linear-gradient(180deg,rgba(255,255,255,.028) 0 70px,transparent 70px 140px),linear-gradient(180deg,#0f2d1d 0%,#081a10 55%,#06110b 100%)}
 .screen.on{display:block}
-.screen.overlay{background:rgba(5,12,8,.78);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center}
+.screen:not(.overlay)::before{content:'';position:fixed;left:50%;top:46%;width:min(120vw,640px);aspect-ratio:1;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.045);border-radius:50%;pointer-events:none}
+.screen:not(.overlay)::after{content:'';position:fixed;left:0;right:0;top:46%;border-top:2px solid rgba(255,255,255,.045);pointer-events:none}
+.screen.overlay{background:rgba(3,10,6,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center}
 .screen.overlay.on{display:flex}
-.wrap{max-width:780px;margin:0 auto}
-.logo{font-family:Bungee,Impact,sans-serif;text-align:center;line-height:.9;margin:18px 0 6px;font-size:clamp(46px,13vw,96px);color:#fff;text-shadow:0 5px 0 #0a3d1d,0 9px 18px rgba(0,0,0,.5)}
-.logo .b{display:block;color:var(--acc);font-size:.62em;letter-spacing:.06em}
-.tag{text-align:center;color:var(--mut);margin:6px 0 22px}
-.lbl{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:16px 0 8px}
-input{font:inherit;font-size:18px;width:100%;padding:13px 14px;border-radius:12px;border:2px solid #2c4a39;background:#0f1e16;color:#fff;outline:none}
-input:focus{border-color:var(--acc)}
-.menu{display:grid;gap:10px;margin-top:16px}
-.big{font-size:19px;font-weight:900;padding:15px 18px;border-radius:14px;border:0;background:var(--acc);color:#1b1500;box-shadow:0 4px 0 #b38f12;width:100%}
-.big:active{transform:translateY(2px);box-shadow:0 2px 0 #b38f12}
-.big.alt{background:#2fbf71;color:#03210f;box-shadow:0 4px 0 #1d7d48}
-.big.alt2{background:#4c8dff;color:#fff;box-shadow:0 4px 0 #2b5bb5;width:auto;white-space:nowrap}
-.big:disabled{opacity:.45}
-.joinrow{display:flex;gap:10px}
-.joinrow input{text-transform:uppercase;letter-spacing:.3em;font-weight:900;text-align:center}
-.small{font-size:14px;font-weight:800;padding:10px 14px;border-radius:10px;border:0;background:var(--card2);color:#fff}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
-.top{display:flex;align-items:center;gap:10px}
-.top h2{margin:0;font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;font-size:24px}
-.back{background:none;border:0;color:var(--mut);font-size:16px;font-weight:800;padding:8px 4px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.card{background:var(--card);border:3px solid transparent;border-radius:14px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:#fff}
-.card.sel{border-color:var(--acc)}
-.card .th{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#222}
-.card .ti{padding:7px 9px 9px}
-.card b{display:block;font-size:14px}
-.card small{color:var(--mut);font-size:12px}
-.card .fmt{float:right;background:#0007;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900;color:var(--acc)}
-.ro .card{cursor:default}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{padding:9px 13px;border-radius:999px;background:var(--card2);border:0;color:#fff;font-weight:800;font-size:14px}
-.chip.sel{background:var(--acc);color:#1b1500}
-.kitrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border-radius:12px;padding:8px 10px;margin-bottom:8px}
-.kitrow .tn{min-width:78px;font-weight:900}
-.kopt{background:none;border:3px solid transparent;border-radius:10px;padding:2px;line-height:0}
-.kopt.sel{border-color:var(--acc)}
+.wrap{max-width:820px;margin:0 auto;position:relative;z-index:1}
+.wrap.narrow{max-width:460px}
+.brand{text-align:center;margin:22px 0 22px}
+.ballico{width:64px;height:64px;margin:0 auto 6px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(14deg)}}
+.logo{font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;margin:0;line-height:.88;font-size:clamp(52px,15vw,92px);letter-spacing:.01em;
+ background:linear-gradient(180deg,#fff6c9 0%,#ffd23f 45%,#ff9f1c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 #0a3d1d) drop-shadow(0 12px 18px rgba(0,0,0,.45))}
+.logo em{display:inline-block;font-style:normal;font-family:Inter,sans-serif;font-weight:900;font-size:.26em;letter-spacing:.32em;color:#06110b;background:var(--acc);-webkit-text-fill-color:#06110b;padding:.28em .5em .28em .8em;border-radius:999px;vertical-align:middle;transform:translateY(-.4em);filter:none}
+.tag{color:var(--mut);margin:12px 0 0;font-weight:600}
+.ver{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--acc);border:1px solid rgba(255,210,63,.4);border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.lbl{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
+.field{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.28);border:2px solid rgba(255,255,255,.08);border-radius:14px;padding:0 12px;transition:border-color .15s}
+.field:focus-within{border-color:var(--acc)}
+.field .ico{font-size:18px;opacity:.8}
+input{font:inherit;font-size:18px;font-weight:700;width:100%;padding:13px 0;border:0;background:transparent;color:#fff;outline:none}
+input::placeholder{color:#6f877a;font-weight:600}
+.cta{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:0;border-radius:16px;padding:15px 18px;margin-top:14px;font-size:19px;font-weight:900;color:#1b1300;
+ background:linear-gradient(180deg,#ffe066,#ffc21a);box-shadow:0 5px 0 #b3830f,0 14px 24px rgba(255,190,30,.25);transition:transform .08s}
+.cta:active{transform:translateY(3px);box-shadow:0 2px 0 #b3830f}
+.cta small{display:block;font-size:12px;font-weight:700;opacity:.7}
+.cta .ci{width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:16px}
+.cta>span:last-child{text-align:left;line-height:1.15}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.tile{border:0;border-radius:16px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:118px;position:relative;overflow:hidden}
+.tile b{font-size:17px;font-weight:900}.tile small{font-size:12px;opacity:.85;font-weight:600}
+.tile .tico{font-size:22px;margin-bottom:auto}
+.tile.green{background:linear-gradient(160deg,#36d07f,#1c8f53);box-shadow:0 5px 0 #146a3c;color:#03210f}
+.tile.blue{background:linear-gradient(160deg,#4f8dff,#2a5fd0);box-shadow:0 5px 0 #1e4499;color:#fff}
+.tile.green:active{transform:translateY(3px);box-shadow:0 2px 0 #146a3c}
+.tile.join input{background:rgba(0,0,0,.22);border-radius:10px;padding:8px 6px;text-align:center;text-transform:uppercase;letter-spacing:.35em;font-weight:900;font-size:18px;margin-top:4px}
+.tile.join input::placeholder{color:rgba(255,255,255,.55);letter-spacing:.2em}
+.tile.join button{margin-top:6px;border:0;border-radius:10px;padding:8px;font-weight:900;background:#fff;color:#1e4499}
+.invite{background:rgba(47,191,113,.16);border:1px solid rgba(47,191,113,.7);border-radius:14px;padding:11px 13px;font-weight:700;margin-bottom:12px}
+.err{background:rgba(230,57,70,.16);border:1px solid var(--red);border-radius:14px;padding:11px 13px;margin-top:12px;font-weight:700;display:none}
+.help{margin-top:14px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:16px;padding:12px 16px;color:#d5e2d9;font-size:14px;line-height:1.55}
+.help summary{font-weight:800;cursor:pointer;list-style:none}.help summary::before{content:'❔ '}
+.help kbd{background:rgba(255,255,255,.1);border-radius:6px;padding:1px 6px;font-family:inherit;font-weight:800}
+.foot{text-align:center;color:#5f7a6b;font-size:12px;font-weight:700;margin-top:22px}
+.topbar{display:flex;align-items:center;gap:12px;margin:4px 0 16px}
+.back{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:var(--card2);font-size:22px;font-weight:900;flex:none}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.topbar h2{margin:0;font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;font-size:24px;line-height:1.1}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sech{display:flex;align-items:center;gap:10px;font-weight:900;font-size:16px;margin-bottom:12px}
+.sech .n{width:26px;height:26px;border-radius:50%;background:var(--acc);color:#1b1300;display:flex;align-items:center;justify-content:center;font-size:13px}
+.sech small{margin-left:auto;color:var(--mut);font-weight:600;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+.card{background:rgba(0,0,0,.25);border:2px solid transparent;border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:#fff;transition:transform .12s,border-color .12s}
+.card:hover{transform:translateY(-2px)}
+.card.sel{border-color:var(--acc);box-shadow:0 0 0 4px rgba(255,210,63,.18),0 10px 24px rgba(0,0,0,.35)}
+.thw{position:relative;background:radial-gradient(circle at 50% 40%,#173b27,#0a1d12);padding:8px 8px 4px}
+.card .th{width:100%;aspect-ratio:5/8;object-fit:contain;display:block;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}
+.card .fmt{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.65);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:900;color:var(--acc)}
+.card.sel .fmt{background:var(--acc);color:#1b1300}
+.card .ti{padding:8px 10px 10px}
+.card b{display:block;font-size:13px;line-height:1.2}
+.card small{color:var(--mut);font-size:11px;line-height:1.25;display:block;margin-top:2px}
+.ro .card{cursor:default}.ro .card:hover{transform:none}
+.ro .cards{grid-template-columns:minmax(118px,150px)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;background:rgba(0,0,0,.25);padding:4px;border-radius:14px;width:max-content;max-width:100%}
+.chip{padding:9px 14px;border-radius:10px;background:transparent;border:0;color:#cfe0d6;font-weight:800;font-size:14px}
+.chip.sel{background:var(--acc);color:#1b1300;box-shadow:0 2px 8px rgba(255,210,63,.3)}
+.chip:disabled{opacity:1}
+.optrow{display:flex;gap:18px;flex-wrap:wrap}
+.optrow>div{min-width:0}
+.kitrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(0,0,0,.22);border-radius:14px;padding:10px;margin-bottom:8px}
+.kitrow .tn{min-width:92px;font-weight:900;line-height:1.15}
+.kitrow .tn small{display:block;color:var(--mut);font-weight:600;font-size:12px}
+.kopt{background:rgba(255,255,255,.04);border:2px solid transparent;border-radius:12px;padding:3px;line-height:0}
+.kopt.sel{border-color:var(--acc);background:rgba(255,210,63,.1)}
 .kopt svg{width:40px;height:46px}
-.kopt:disabled{opacity:.25}
-.hint{color:var(--mut);font-size:13px;margin:6px 0}
-.help{background:var(--card);border-radius:12px;padding:10px 14px;margin-top:18px;color:#d5e2d9;font-size:14px;line-height:1.5}
-.help summary{font-weight:800;cursor:pointer}
-.help kbd{background:#0006;border-radius:5px;padding:1px 6px;font-family:inherit;font-weight:800}
-.invite{background:#2fbf7133;border:2px solid #2fbf71;border-radius:12px;padding:10px 12px;font-weight:700}
-.codebox{background:var(--card);border-radius:16px;padding:12px 14px;margin:12px 0;text-align:center}
-.code{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:54px;letter-spacing:.14em;color:var(--acc);line-height:1.1}
+.kopt:disabled{opacity:.22}
+.ro .kopt:disabled{opacity:.22}.ro .kopt.sel:disabled{opacity:1}
+.side{margin-left:auto;border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:8px 12px;font-weight:800;font-size:13px}
+.side.sel{background:var(--grn);color:#03210f;border-color:transparent}
+.hint{color:var(--mut);font-size:13px;margin:6px 2px;line-height:1.4}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px max(16px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:linear-gradient(180deg,transparent,rgba(6,17,11,.92) 35%)}
+.dock>*{max-width:820px;margin-left:auto;margin-right:auto}
+.dock .cta{margin-top:0}
+.codecard{text-align:center;background:linear-gradient(160deg,rgba(255,210,63,.14),rgba(18,38,27,.8));border:1px solid rgba(255,210,63,.3);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.code{display:flex;justify-content:center;gap:8px;margin:6px 0 12px}
+.code span{width:58px;height:70px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:36px;color:var(--acc);box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}
+.pill{border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:10px 16px;font-weight:800;font-size:14px}
+.pill.y{background:var(--acc);color:#1b1300;border-color:transparent}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.row.center{justify-content:center}
 .teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.team{background:var(--card);border-radius:14px;padding:10px;min-height:120px}
-.team h3{margin:0 0 6px;font-size:15px;display:flex;align-items:center;gap:8px}
-.team ul{list-style:none;margin:0;padding:0}
-.team li{padding:6px 8px;border-radius:8px;background:#0003;margin:4px 0;font-weight:700;display:flex;justify-content:space-between}
+.team{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.team h3{margin:0;padding:12px;font-size:15px;display:flex;align-items:center;gap:8px}
+.team .cap{margin-left:auto;font-size:12px;font-weight:800;background:rgba(0,0,0,.35);border-radius:999px;padding:2px 8px}
+.team ul{list-style:none;margin:0;padding:8px}
+.team li{padding:8px;border-radius:12px;background:rgba(255,255,255,.05);margin:4px 0;font-weight:700;display:flex;align-items:center;gap:10px}
 .team li.me{outline:2px solid var(--acc)}
-.team li .tagh{font-size:11px;color:var(--acc)}
-.team .cap{color:var(--mut);font-size:12px;font-weight:600}
-.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:2px solid #fff8;flex:none}
-#hud{position:fixed;top:0;left:0;right:0;display:none;justify-content:center;pointer-events:none;z-index:5;padding-top:max(6px,env(safe-area-inset-top))}
-.score{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.62);padding:5px 12px;border-radius:12px;font-weight:900;font-size:16px}
-.score .num{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:20px;min-width:16px;text-align:center}
-#clock{margin-left:8px;color:var(--acc);font-variant-numeric:tabular-nums}
-#banner{position:fixed;top:30%;left:0;right:0;text-align:center;pointer-events:none;z-index:6;display:none}
-#bannerT{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:clamp(34px,9vw,92px);color:var(--acc);text-shadow:0 5px 0 #000,0 0 30px #000}
-#bannerT.sm{font-size:clamp(20px,5vw,40px);color:#fff}
-#bannerS{font-weight:900;font-size:clamp(15px,3vw,24px);text-shadow:0 2px 6px #000}
-#mini{position:fixed;left:max(10px,env(safe-area-inset-left));top:calc(54px + env(safe-area-inset-top));z-index:5;display:none;border-radius:6px;pointer-events:none;opacity:.9}
-#pauseBtn{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:7;display:none;width:40px;height:40px;border-radius:10px;border:0;background:rgba(0,0,0,.55);color:#fff;font-weight:900;font-size:16px}
+.team li .av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex:none;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.team li .tagh{margin-left:auto;font-size:10px;font-weight:900;letter-spacing:.06em;color:#1b1300;background:var(--acc);border-radius:6px;padding:2px 6px}
+.team li.bot{opacity:.55;font-weight:600;background:transparent;border:1px dashed rgba(255,255,255,.15)}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:2px solid rgba(255,255,255,.6);flex:none}
+#hud{position:fixed;top:0;left:0;right:0;display:none;justify-content:center;pointer-events:none;z-index:5;padding-top:max(8px,env(safe-area-inset-top))}
+.score{display:flex;align-items:stretch;border-radius:12px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.45);font-weight:900;font-size:14px;background:rgba(8,14,10,.88);border:1px solid rgba(255,255,255,.1)}
+.score>span{display:flex;align-items:center;padding:6px 8px}
+.score .sw{width:6px;height:auto;border:0;border-radius:0;padding:0}
+.score .num{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:20px;min-width:28px;justify-content:center;background:rgba(255,255,255,.08)}
+.score .dash{padding:0 2px;color:var(--mut)}
+#clock{color:#1b1300;background:var(--acc);font-variant-numeric:tabular-nums;padding:6px 10px}
+#banner{position:fixed;top:30%;left:0;right:0;text-align:center;pointer-events:none;z-index:6;display:none;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+#bannerT{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:clamp(40px,11vw,96px);background:linear-gradient(180deg,#fff6c9,#ffd23f 50%,#ff9f1c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 #000) drop-shadow(0 0 24px rgba(0,0,0,.6))}
+#bannerT.sm{font-size:clamp(20px,5vw,38px);background:none;color:#fff;-webkit-text-fill-color:#fff}
+#bannerS{display:inline-block;margin-top:6px;font-weight:900;font-size:clamp(14px,3vw,22px);background:rgba(0,0,0,.6);padding:4px 14px;border-radius:999px}
+#bannerS:empty{display:none}
+#mini{position:fixed;left:max(10px,env(safe-area-inset-left));top:calc(56px + env(safe-area-inset-top));z-index:5;display:none;border-radius:8px;pointer-events:none;opacity:.92;box-shadow:0 6px 14px rgba(0,0,0,.4)}
+#pauseBtn{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:7;display:none;width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,14,10,.8);color:#fff;font-weight:900;font-size:15px}
 #touch{position:fixed;inset:0;z-index:4;display:none;touch-action:none}
-#joy{position:absolute;width:130px;height:130px;margin:-65px 0 0 -65px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.07);display:none;pointer-events:none}
-#knob{position:absolute;left:40px;top:40px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.55)}
-.tbtn{position:absolute;border-radius:50%;border:3px solid rgba(255,255,255,.55);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.04em;text-shadow:0 1px 3px #000;user-select:none;-webkit-user-select:none}
-.tbtn.on{filter:brightness(1.5);transform:scale(.95)}
-#bKick{right:calc(22px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));width:100px;height:100px;background:rgba(230,57,70,.5)}
-#bPass{right:calc(134px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));width:78px;height:78px;background:rgba(36,87,214,.55)}
-#rotHint{position:fixed;bottom:130px;left:0;right:0;text-align:center;z-index:6;display:none;pointer-events:none;font-weight:800;text-shadow:0 2px 4px #000}
-.panel{background:var(--card);border-radius:18px;padding:20px;max-width:420px;width:calc(100% - 28px);text-align:center;box-shadow:0 20px 50px #000a}
-.panel h2{font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;margin:0 0 10px}
-.panel .big{margin-top:10px}
-.final{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:44px;margin:8px 0}
-.final small{display:block;font-family:Inter;font-size:15px;font-weight:800;color:var(--mut)}
-#toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:40;background:#000d;padding:10px 16px;border-radius:12px;font-weight:700;display:none;max-width:90vw;text-align:center}
-.err{background:#e6394633;border:2px solid var(--red);border-radius:12px;padding:10px 12px;margin-top:12px;font-weight:700;display:none}
-@media (max-width:520px){.code{font-size:44px}.teams{grid-template-columns:1fr}}
+#joy{position:absolute;width:130px;height:130px;margin:-65px 0 0 -65px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,.03));display:none;pointer-events:none}
+#knob{position:absolute;left:40px;top:40px;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#cfd8d3);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.tbtn{position:absolute;border-radius:50%;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.05em;text-shadow:0 1px 3px #000;user-select:none;-webkit-user-select:none;border:2px solid rgba(255,255,255,.45);box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.35)}
+.tbtn.on{filter:brightness(1.4);transform:scale(.94)}
+#bKick{right:calc(22px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));width:100px;height:100px;background:radial-gradient(circle at 40% 30%,rgba(255,110,120,.75),rgba(200,30,45,.65))}
+#bPass{right:calc(134px + env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));width:78px;height:78px;background:radial-gradient(circle at 40% 30%,rgba(120,170,255,.75),rgba(30,80,210,.65))}
+#rotHint{display:none}
+.panel{background:linear-gradient(170deg,#173525,#0c1d14);border:1px solid var(--line);border-radius:24px;padding:22px;max-width:420px;width:calc(100% - 28px);text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.6);animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+.panel h2{font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;margin:0 0 6px;font-size:28px}
+.big{display:block;width:100%;font-size:17px;font-weight:900;padding:14px;border-radius:14px;border:0;margin-top:10px;background:linear-gradient(180deg,#ffe066,#ffc21a);color:#1b1300;box-shadow:0 4px 0 #b3830f}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 #b3830f}
+.big.alt2{background:rgba(255,255,255,.08);color:#fff;box-shadow:none;border:1px solid var(--line)}
+.big.danger{background:linear-gradient(180deg,#ff6b76,#e63946);color:#fff;box-shadow:0 4px 0 #8f1f28}
+.final{font-family:Bungee,Impact,'Arial Black',sans-serif;font-size:56px;margin:4px 0 2px;line-height:1}
+.final small{display:block;font-family:Inter,sans-serif;font-size:14px;font-weight:800;color:var(--mut);margin-top:8px}
+#endMsg{font-weight:900;font-size:18px;margin:10px 0 6px}
+#toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:40;background:rgba(8,14,10,.94);border:1px solid var(--line);padding:11px 16px;border-radius:14px;font-weight:700;display:none;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+@media (max-width:520px){.code span{width:50px;height:60px;font-size:30px}.teams{grid-template-columns:1fr}.optrow{gap:10px}}
 </style>
 </head>
 <body>
 <canvas id="cv"></canvas>
-<div id="hud"><div class="score"><span class="sw" id="swA"></span><span id="nA">LOC</span><span class="num" id="sA">0</span><span>-</span><span class="num" id="sB">0</span><span id="nB">VIS</span><span class="sw" id="swB"></span><span id="clock">3:00</span></div></div>
+<div id="hud"><div class="score"><span class="sw" id="swA"></span><span id="nA">LOC</span><span class="num" id="sA">0</span><span class="dash">:</span><span class="num" id="sB">0</span><span id="nB">VIS</span><span class="sw" id="swB"></span><span id="clock">3:00</span></div></div>
 <div id="banner"><div id="bannerT"></div><div id="bannerS"></div></div>
 <canvas id="mini"></canvas>
-<button id="pauseBtn" aria-label="Menú">II</button>
+<button id="pauseBtn" aria-label="Menú">❚❚</button>
 <div id="touch"><div id="joy"><div id="knob"></div></div><div class="tbtn" id="bPass">PASE</div><div class="tbtn" id="bKick">PATEAR</div></div>
-<div id="rotHint">Girá el celu para ver mejor la cancha ↻</div>
+<div id="rotHint"></div>
 <div id="toast"></div>
 
 <section class="screen on" id="sHome">
- <div class="wrap">
-  <div class="logo">PICADO<span class="b">ARCADE</span></div>
-  <p class="tag">Fútbol de patio y de club · solo o con amigos</p>
+ <div class="wrap narrow">
+  <header class="brand">
+   <svg class="ballico" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#fafafa" stroke="#1d1d1d" stroke-width="3"/><path d="M32 20l10 7-4 12H26l-4-12z" fill="#1d1d1d"/><path d="M32 3v17M42 27l17-4M38 39l9 15M26 39l-9 15M22 27L5 23" stroke="#1d1d1d" stroke-width="3" fill="none"/></svg>
+   <h1 class="logo">FULBITO <em>APP</em></h1>
+   <p class="tag">Fútbol arcade de patio y de club · solo o con amigos</p>
+  </header>
   <div id="invite" class="invite" style="display:none"></div>
-  <div class="lbl">Tu nombre</div>
-  <input id="nameIn" maxlength="14" placeholder="Ej: Tomi" autocomplete="off" enterkeyhint="done">
-  <div class="menu">
-   <button class="big" id="bSolo">⚽ Jugar solo</button>
-   <button class="big alt" id="bCreate">🏟️ Crear sala</button>
-   <div class="joinrow"><input id="codeIn" maxlength="4" placeholder="CÓDIGO" autocomplete="off" autocapitalize="characters"><button class="big alt2" id="bJoin">Unirme</button></div>
+  <div class="pcard">
+   <div class="lbl">Tu nombre</div>
+   <div class="field"><span class="ico">👤</span><input id="nameIn" maxlength="14" placeholder="Ej: Tomi" autocomplete="off" enterkeyhint="done"></div>
+   <button class="cta" id="bSolo"><span class="ci">▶</span><span>Jugar solo<small>Contra la máquina</small></span></button>
+   <div class="grid2">
+    <button class="tile green" id="bCreate"><span class="tico">🏟️</span><b>Crear sala</b><small>Invitá a tus amigos con un código</small></button>
+    <div class="tile blue join"><b>Unirme</b><small>Código de la sala</small><input id="codeIn" maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters"><button id="bJoin">Entrar</button></div>
+   </div>
   </div>
   <div class="err" id="homeErr"></div>
   <details class="help"><summary>Cómo se juega</summary>
-   <p><b>Celular:</b> joystick con el dedo izquierdo (en cualquier lado de la mitad izquierda). <b>PATEAR</b>: mantené apretado para cargar el tiro y soltá. <b>PASE</b>: pase al compañero que tengas adelante.</p>
+   <p><b>Celular:</b> joystick con el dedo izquierdo (en cualquier parte de la mitad izquierda). <b>PATEAR</b>: mantené apretado para cargar el tiro y soltá. <b>PASE</b>: pase al compañero que tengas adelante.</p>
    <p><b>Sin la pelota:</b> PATEAR = barrida, PASE = cambiar de jugador (o pedírsela al compañero que la tiene).</p>
-   <p><b>Teclado:</b> flechas o <kbd>WASD</kbd> para moverte, <kbd>Espacio</kbd>/<kbd>K</kbd> patear, <kbd>X</kbd>/<kbd>J</kbd> pase, <kbd>Esc</kbd> menú. También anda con joystick de consola.</p>
-   <p><b>Online:</b> uno crea la sala y pasa el código. Los demás ponen su nombre, el código y entran. Los lugares libres los juega la máquina. El que crea la sala tiene que dejar la pantalla prendida, porque el partido corre en su celu o compu.</p>
+   <p><b>Gambeta:</b> el que lleva la pelota corre un poco más. De frente te la sacan fácil; girá rápido para esquivar.</p>
+   <p><b>Teclado:</b> flechas o <kbd>WASD</kbd>, <kbd>Espacio</kbd>/<kbd>K</kbd> patear, <kbd>X</kbd>/<kbd>J</kbd> pase, <kbd>Esc</kbd> menú. También anda con joystick de consola.</p>
+   <p><b>Online:</b> uno crea la sala y pasa el código; los demás ponen su nombre y entran. Los lugares libres los juega la máquina. El que crea la sala tiene que dejar la pantalla prendida.</p>
   </details>
+  <footer class="foot">Fulbito App <span class="ver" id="verHome"></span></footer>
  </div>
 </section>
 
 <section class="screen" id="sSetup">
  <div class="wrap">
-  <div class="top"><button class="back" id="bSetupBack">‹ Volver</button><h2>Partido solo</h2></div>
+  <div class="topbar"><button class="back" id="bSetupBack" aria-label="Volver">‹</button><div><div class="eyebrow">Modo solo</div><h2>Armá el partido</h2></div></div>
   <div id="soloSettings"></div>
-  <div style="height:14px"></div>
-  <button class="big" id="bPlaySolo">¡A la cancha!</button>
  </div>
+ <div class="dock"><button class="cta" id="bPlaySolo"><span class="ci">▶</span><span>¡A la cancha!</span></button></div>
 </section>
 
 <section class="screen" id="sLobby">
  <div class="wrap">
-  <div class="top"><button class="back" id="bLeaveLobby">‹ Salir</button><h2>Sala</h2></div>
-  <div class="codebox"><div class="lbl" style="margin-top:0">Código de la sala</div><div class="code" id="lobCode">----</div>
-   <div class="row" style="justify-content:center"><button class="small" id="bShare">📲 Compartir link</button></div>
-   <div class="hint">Tus amigos abren esta misma página, ponen su nombre y este código.</div></div>
+  <div class="topbar"><button class="back" id="bLeaveLobby" aria-label="Salir">‹</button><div><div class="eyebrow">Sala online</div><h2>Esperando jugadores</h2></div></div>
+  <div class="codecard"><div class="lbl">Código de la sala</div><div class="code" id="lobCode"></div>
+   <button class="pill y" id="bShare">📲 Compartir link</button>
+   <div class="hint" style="margin-top:10px">Tus amigos abren esta misma página, ponen su nombre y este código.</div></div>
   <div class="teams" id="lobTeams"></div>
-  <div class="row"><button class="small" id="bSwap">⇄ Cambiarme de equipo</button><button class="small" id="bShuffle">🎲 Mezclar equipos</button></div>
+  <div class="row center"><button class="pill" id="bSwap">⇄ Cambiarme de equipo</button><button class="pill" id="bShuffle">🎲 Mezclar equipos</button></div>
   <div id="lobSettings"></div>
-  <div style="height:14px"></div>
-  <button class="big" id="bStart">¡Empezar partido!</button>
-  <div class="hint" id="lobWait" style="text-align:center">Esperando a que el que creó la sala empiece el partido…</div>
  </div>
+ <div class="dock"><button class="cta" id="bStart"><span class="ci">▶</span><span>¡Empezar partido!</span></button><div class="hint" id="lobWait" style="text-align:center;font-weight:700">⏳ Esperando a que el que creó la sala empiece el partido…</div></div>
 </section>
 
 <section class="screen overlay" id="sPause">
  <div class="panel"><h2>Pausa</h2>
   <div class="hint" id="pauseNote"></div>
   <button class="big" id="bResume">Seguir jugando</button>
-  <button class="big alt2" id="bFull" style="width:100%">Pantalla completa</button>
-  <button class="big alt" id="bQuit" style="background:#e63946;color:#fff;box-shadow:0 4px 0 #8f1f28">Salir</button>
+  <button class="big alt2" id="bFull">⛶ Pantalla completa</button>
+  <button class="big danger" id="bQuit">Salir</button>
+  <div class="foot" style="margin-top:14px">Fulbito App <span class="ver" id="verPause"></span></div>
  </div>
 </section>
 
 <section class="screen overlay" id="sEnd">
- <div class="panel"><div class="lbl" style="margin-top:0">Final del partido</div>
+ <div class="panel"><div class="lbl">Final del partido</div>
   <div class="final" id="endScore"></div>
-  <div id="endMsg" style="font-weight:800"></div>
+  <div id="endMsg"></div>
   <div id="endBtns"></div>
  </div>
 </section>
@@ -179,12 +237,13 @@ input:focus{border-color:var(--acc)}
 <script>
 'use strict';
 /* =========================================================
-   PICADO ARCADE — fútbol arcade cenital, solo u online
+   FULBITO APP — fútbol arcade cenital, solo u online
    Online: el que crea la sala corre la simulación (host
    autoritativo) y se conecta con los demás por WebRTC (PeerJS).
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
+const VERSION='1.2.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -202,18 +261,18 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'maria',name:'María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:30,W:17,goalW:3,goalH:2,walls:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,
+ {id:'maria',name:'María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:30,W:17,goalW:3,goalH:2,walls:true,dArea:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,
   localKit:{id:'ima',name:'María Auxiliadora',short:'IMA',shirt:'#0f5a45',sleeve:'#0f5a45',shorts:'#1b1e26',socks:'#1b1e26',badge:'#e3c41b',collar:true},
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'sanfran',name:'San Francisco',sub:'Patio del cole',fmt:5,L:28,W:16,goalW:3,goalH:2,walls:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,
+ {id:'sanfran',name:'San Fra',sub:'Patio del colegio',fmt:5,L:28,W:16,goalW:3,goalH:2,walls:true,dArea:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'marianista',name:'Marianista',sub:'Patio del colegio',fmt:5,L:32,W:18,goalW:3,goalH:2,walls:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,basket:true,
+ {id:'marianista',name:'Marianista',sub:'Patio del colegio',fmt:5,L:32,W:18,goalW:3,goalH:2,walls:true,dArea:true,surf:'cement',kit:'pechera',cR:3,box:{d:5,w:11},netD:1,basket:true,
   th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
  {id:'ita11',name:'Club Italiano · Cancha 2',sub:'Sintético · Fútbol 11',fmt:11,L:100,W:64,goalW:7.32,goalH:2.44,walls:false,surf:'grass',kit:'club',cR:9.15,box:{d:16.5,w:40.3},sbox:{d:5.5,w:18.32},spot:11,netD:2,gkSpot:5.5,
   th:{g1:'#2f8f3a',g2:'#2a8234',run:'#226a2b',line:'#f4f4f4',banner:true}},
- {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:36,W:22,goalW:3,goalH:2,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:6,w:12},sbox:{d:2.5,w:7},spot:6,netD:1,gkSpot:3,
+ {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:false,dArea:true,surf:'grass',kit:'infantil',cR:3,box:{d:5.5,w:15},spot:6,netD:1.1,gkSpot:3,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
- {id:'prelide',name:'Club Italiano · Prelide',sub:'3 canchitas infantiles juntas · Fútbol 9',fmt:9,L:66,W:36,goalW:5,goalH:2,walls:false,surf:'grass',kit:'infantil',cR:6,box:{d:10,w:22},sbox:{d:4,w:11},spot:8,netD:1.3,gkSpot:4,under:true,
+ {id:'prelide',name:'Club Italiano · Prelide',sub:'3 canchitas infantiles juntas · Fútbol 9',fmt:9,L:60,W:32,goalW:6,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:6,box:{d:9,w:21},sbox:{d:3.5,w:11},spot:8,netD:1.3,gkSpot:4,under:true,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff',uline:'rgba(255,236,120,.15)'}},
 ];
 const mapById=id=>MAPS.find(m=>m.id===id)||MAPS[0];
@@ -623,15 +682,15 @@ function fieldLines(g,M,col,lw){
  g.strokeRect(-hl,-hw,M.L,M.W);g.beginPath();g.moveTo(0,-hw);g.lineTo(0,hw);g.stroke();
  g.beginPath();g.arc(0,0,M.cR,0,TAU);g.stroke();g.beginPath();g.arc(0,0,.15,0,TAU);g.fill();
  for(const s of[-1,1]){const x0=s*hl;
-  if(M.walls){const d=M.box.d;g.beginPath();
+  if(M.dArea){const d=M.box.d;g.beginPath();
    if(s<0){g.arc(x0,-gw,d,-Math.PI/2,0,false);g.lineTo(x0+d,gw);g.arc(x0,gw,d,0,Math.PI/2,false);}
    else{g.arc(x0,-gw,d,-Math.PI/2,-Math.PI,true);g.lineTo(x0-d,gw);g.arc(x0,gw,d,Math.PI,Math.PI/2,true);}
    g.stroke();g.beginPath();g.arc(x0-s*6,0,.13,0,TAU);g.fill();g.beginPath();g.arc(x0-s*10,0,.13,0,TAU);g.fill();}
   else{const b=M.box;g.strokeRect(s<0?x0:x0-b.d,-b.w/2,b.d,b.w);
    if(M.sbox)g.strokeRect(s<0?x0:x0-M.sbox.d,-M.sbox.w/2,M.sbox.d,M.sbox.w);
    const sp=M.spot||b.d*.65;g.beginPath();g.arc(x0-s*sp,0,.14,0,TAU);g.fill();
-   if(M.fmt===11){const a=Math.acos((b.d-sp)/9.15);g.beginPath();if(s<0)g.arc(x0+sp,0,9.15,-a,a);else g.arc(x0-sp,0,9.15,Math.PI-a,Math.PI+a);g.stroke();}
-   const cr=M.fmt===11?1:.5;for(const sy of[-1,1]){g.beginPath();g.arc(x0,sy*hw,cr,s<0?(sy<0?0:-Math.PI/2):(sy<0?Math.PI/2:Math.PI),s<0?(sy<0?Math.PI/2:0):(sy<0?Math.PI:Math.PI*1.5));g.stroke();}}
+   if(M.fmt===11){const a=Math.acos((b.d-sp)/9.15);g.beginPath();if(s<0)g.arc(x0+sp,0,9.15,-a,a);else g.arc(x0-sp,0,9.15,Math.PI-a,Math.PI+a);g.stroke();}}
+  if(!M.walls){const cr=M.fmt===11?1:.5;for(const sy of[-1,1]){g.beginPath();g.arc(x0,sy*hw,cr,s<0?(sy<0?0:-Math.PI/2):(sy<0?Math.PI/2:Math.PI),s<0?(sy<0?Math.PI/2:0):(sy<0?Math.PI:Math.PI*1.5));g.stroke();}}
  }
 }
 function drawGoalsStatic(g,M,back){
@@ -663,8 +722,8 @@ function drawGrass(g,M,mg,R){
   const cw=M.L/3;g.strokeStyle=th.uline;g.fillStyle=th.uline;g.lineWidth=.1;
   for(let i=0;i<3;i++){const cx=-hl+cw*(i+.5);g.strokeRect(cx-cw/2,-hw,cw,M.W);g.beginPath();g.moveTo(cx-cw/2,0);g.lineTo(cx+cw/2,0);g.stroke();
    g.beginPath();g.arc(cx,0,3,0,TAU);g.stroke();
-   for(const sy of[-1,1]){g.beginPath();g.arc(cx,sy*hw,6,sy<0?0:Math.PI,sy<0?Math.PI:TAU);g.stroke();
-    g.strokeStyle='rgba(255,255,255,.18)';g.lineWidth=.08;g.strokeRect(cx-1.5,sy<0?-hw-1:hw,3,1);g.strokeStyle=th.uline;g.lineWidth=.1;}}
+   for(const sy of[-1,1]){g.beginPath();g.arc(cx,sy*hw,5.5,sy<0?0:Math.PI,sy<0?Math.PI:TAU);g.stroke();
+    g.strokeStyle='rgba(255,255,255,.18)';g.lineWidth=.08;g.strokeRect(cx-2,sy<0?-hw-1:hw,4,1);g.strokeStyle=th.uline;g.lineWidth=.1;}}
  }
  fieldLines(g,M,th.line,.12);
  drawGoalsStatic(g,M,'rgba(0,0,0,.22)');
@@ -1015,7 +1074,9 @@ function toast(t,ms){const el=$('#toast');el.textContent=t;el.style.display='blo
 function hideToast(){$('#toast').style.display='none';}
 function shake(sel){const el=$(sel);el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:260});el.focus();}
 const THUMBS={};
-function thumb(M){if(THUMBS[M.id])return THUMBS[M.id];const f=buildField(M,Math.min(9,700/(M.L+fieldMargin(M)*2)));try{THUMBS[M.id]=f.img.toDataURL('image/jpeg',.82);}catch(e){THUMBS[M.id]='';}return THUMBS[M.id];}
+function thumb(M){if(THUMBS[M.id])return THUMBS[M.id];const f=buildField(M,Math.min(10,620/(M.L+fieldMargin(M)*2)));
+ const c=document.createElement('canvas');c.width=f.img.height;c.height=f.img.width;const g=c.getContext('2d');g.translate(0,c.height);g.rotate(-Math.PI/2);g.drawImage(f.img,0,0);
+ try{THUMBS[M.id]=c.toDataURL('image/png');}catch(e){THUMBS[M.id]='';}return THUMBS[M.id];}
 function kitSVG(k){return`<svg viewBox="0 0 40 46"><path d="M10 4 L16 2 Q20 6 24 2 L30 4 L38 12 L33 17 L30 14 L30 28 L10 28 L10 14 L7 17 L2 12 Z" fill="${k.shirt}" stroke="#0006" stroke-width="1.2"/>`+
  (k.bib?`<path d="M2 12 L7 17 L10 14 L10 6 Z M38 12 L33 17 L30 14 L30 6 Z" fill="${k.sleeve}"/>`:'')+
 (k.badge?`<circle cx="25.5" cy="11" r="3" fill="none" stroke="${k.badge}" stroke-width="1.3"/>`:'')+(k.collar?`<path d="M16 2 Q20 6.5 24 2" fill="none" stroke="#fff" stroke-width="2.2"/><path d="M16 2 Q20 6.5 24 2" fill="none" stroke="#e3c41b" stroke-width="1"/>`:'')+
@@ -1024,20 +1085,21 @@ function kitSVG(k){return`<svg viewBox="0 0 40 46"><path d="M10 4 L16 2 Q20 6 24
 function renderSettings(el,ro){
  const st=S.settings,M=mapById(st.map);defaultKits(st);
  const chip=(k,val,label)=>`<button class="chip ${st[k]==val?'sel':''}" data-k="${k}" data-v="${val}" ${ro?'disabled':''}>${label}</button>`;
- let h=`<div class="${ro?'ro':''}"><div class="lbl">Cancha</div><div class="cards">`;
- for(const m of MAPS){if(ro&&m.id!==st.map)continue;h+=`<button class="card ${m.id===st.map?'sel':''}" data-map="${m.id}" ${ro?'tabindex="-1"':''}><img class="th" src="${thumb(m)}" alt=""><div class="ti"><span class="fmt">F${m.fmt}</span><b>${esc(m.name)}</b><small>${esc(m.sub)}</small></div></button>`;}
- h+=`</div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div>`;
- if(S.mode==='solo'){h+=`<div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div>`;}
- h+=`<div class="lbl">Camisetas</div>`;
+ let h=`<div class="${ro?'ro':''}"><section class="sec"><div class="sech"><span class="n">1</span>Cancha${ro?'':'<small>Tocá para elegir</small>'}</div><div class="cards">`;
+ for(const m of MAPS){if(ro&&m.id!==st.map)continue;h+=`<button class="card ${m.id===st.map?'sel':''}" data-map="${m.id}" ${ro?'tabindex="-1"':''}><div class="thw"><img class="th" src="${thumb(m)}" alt=""><span class="fmt">F${m.fmt}</span></div><div class="ti"><b>${esc(m.name)}</b><small>${esc(m.sub)}</small></div></button>`;}
+ h+=`</div></section><section class="sec"><div class="sech"><span class="n">2</span>Partido</div><div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
+ if(S.mode==='solo'){h+=`<div><div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div></div>`;}
+ h+=`</div></section><section class="sec"><div class="sech"><span class="n">3</span>Camisetas</div>`;
  for(let t=0;t<2;t++){const opts=kitOptions(M,t),sel=t?st.kitB:st.kitA,other=t?st.kitA:st.kitB;const cur=kitById(M,t,sel);
-  h+=`<div class="kitrow"><span class="tn">${t?'Visitante':'Local'}<br><small style="color:var(--mut);font-weight:600">${esc(cur.name)}</small></span>`;
+  h+=`<div class="kitrow"><span class="tn">${t?'Visitante':'Local'}<small>${esc(cur.name)}</small></span>`;
   for(const k of opts){const dis=M.kit!=='club'&&k.id===other;h+=`<button class="kopt ${k.id===sel?'sel':''}" data-team="${t}" data-kit="${k.id}" ${ro||dis?'disabled':''} title="${esc(k.name)}">${kitSVG(k)}</button>`;}
-  if(S.mode==='solo')h+=`<button class="chip ${st.side===t?'sel':''}" data-side="${t}" style="margin-left:auto">${st.side===t?'✓ Tu equipo':'Jugar con este'}</button>`;
+  if(S.mode==='solo')h+=`<button class="side ${st.side===t?'sel':''}" data-side="${t}">${st.side===t?'✓ Tu equipo':'Jugar con este'}</button>`;
   h+=`</div>`;}
  if(M.localKit)h+=`<div class="hint">Local: chomba verde del colegio. El visitante juega con pechera.</div>`;
- else if(M.kit==='pechera')h+=`<div class="hint">En los patios se juega con pecheras arriba del uniforme del cole.</div>`;
+ else if(M.kit==='pechera')h+=`<div class="hint">En los patios se juega con pecheras arriba del uniforme del colegio.</div>`;
  if(M.kit==='club')h+=`<div class="hint">Local: remera roja con escudo, pantalón blanco y medias verdes.</div>`;
  if(M.kit==='infantil')h+=`<div class="hint">Infantiles: pantalón negro, remera y medias del mismo color.</div>`;
+ h+='</section>';
  h+='</div>';el.innerHTML=h;if(ro)return;
  el.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{st.map=b.dataset.map;store.set('picado.map',st.map);defaultKits(st);settingsChanged(el);});
  el.querySelectorAll('.chip[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;st[k]=k==='dur'?+b.dataset.v:b.dataset.v;store.set('picado.'+k,st[k]);settingsChanged(el);});
@@ -1048,21 +1110,22 @@ function settingsChanged(el){if(S.mode==='host'){broadcastLobby();}else renderSe
 function showLobby(){showScreen('sLobby');renderLobby();}
 function renderLobby(){
  const host=S.mode==='host',M=mapById(S.settings.map),cap=capOf(M);
- $('#lobCode').textContent=Net.code||'----';
+ $('#lobCode').innerHTML=(Net.code||'----').split('').map(c=>`<span>${esc(c)}</span>`).join('');
  let h='';for(let t=0;t<2;t++){const k=kitById(M,t,t?S.settings.kitB:S.settings.kitA);const pls=Lobby.players.filter(p=>p.team===t);
-  h+=`<div class="team"><h3><span class="sw" style="background:${k.shirt}"></span>${t?'Visitante':'Local'} · ${esc(k.name)} <span class="cap">${pls.length}/${cap}</span></h3><ul>`;
-  for(const p of pls)h+=`<li class="${p.hid===G.myHid?'me':''}"><span>${esc(p.name)}</span>${p.host?'<span class="tagh">ANFITRIÓN</span>':''}</li>`;
-  const free=cap-pls.length;h+=`<li style="opacity:.55;font-weight:600"><span>🤖 ${Math.max(0,free)} lugar${free===1?'':'es'} para la máquina</span></li></ul></div>`;}
+  const tc=colDist(k.shirt,'#f3f3f0')<60?'#1b1e26':'#fff';
+  h+=`<div class="team"><h3 style="background:linear-gradient(135deg,${k.shirt},${k.shirt}aa);color:${tc}"><span>${t?'Visitante':'Local'} · ${esc(k.name)}</span><span class="cap" style="color:#fff">${pls.length}/${cap}</span></h3><ul>`;
+  for(const p of pls)h+=`<li class="${p.hid===G.myHid?'me':''}"><span class="av" style="background:${k.shirt};color:${tc}">${esc(p.name.slice(0,1).toUpperCase())}</span><span>${esc(p.name)}${p.hid===G.myHid?' <small style="color:var(--mut)">(vos)</small>':''}</span>${p.host?'<span class="tagh">ANFITRIÓN</span>':''}</li>`;
+  const free=cap-pls.length;if(free>0)h+=`<li class="bot"><span class="av" style="background:#334">🤖</span><span>${free} lugar${free===1?'':'es'} para la máquina</span></li>`;h+=`</ul></div>`;}
  $('#lobTeams').innerHTML=h;
- $('#bShuffle').style.display=host?'':'none';$('#bStart').style.display=host?'':'none';$('#lobWait').style.display=host?'none':'';
+ $('#bShuffle').style.display=host?'':'none';$('#bStart').style.display=host?'flex':'none';$('#lobWait').style.display=host?'none':'';
  renderSettings($('#lobSettings'),!host);
 }
 $('#bSwap').onclick=()=>{if(S.mode==='host'){const me=Lobby.players.find(p=>p.hid===0);const o=1-me.team;if(teamCount(o)<capOf(mapById(S.settings.map))){me.team=o;broadcastLobby();}else toast('Ese equipo está completo');}
  else if(Net.hostConn)Net.hostConn.send({t:'team'});};
 $('#bShuffle').onclick=()=>{const cap=capOf(mapById(S.settings.map));const arr=[...Lobby.players].sort(()=>Math.random()-.5);arr.forEach((p,i)=>p.team=i%2);
  for(let t=0;t<2;t++){while(teamCount(t)>cap){const p=Lobby.players.find(q=>q.team===t);p.team=1-t;}}broadcastLobby();};
-$('#bShare').onclick=async()=>{const url=location.origin+location.pathname+'?sala='+Net.code;const text=`¡Vení a jugar al Picado Arcade! Sala ${Net.code}`;
- if(navigator.share){try{await navigator.share({title:'Picado Arcade',text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+$('#bShare').onclick=async()=>{const url=location.origin+location.pathname+'?sala='+Net.code;const text=`¡Vení a jugar a Fulbito App! Sala ${Net.code}`;
+ if(navigator.share){try{await navigator.share({title:'Fulbito App',text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}}
  try{await navigator.clipboard.writeText(text+' → '+url);toast('Link copiado. Pegalo en el grupo de WhatsApp.');}catch(e){toast(url,6000);}};
 $('#bLeaveLobby').onclick=()=>{leaveOnline(true);S.mode=null;showScreen('sHome');};
 $('#bStart').onclick=()=>{if(S.mode!=='host')return;hostStartMatch();};
@@ -1098,14 +1161,15 @@ function togglePause(force){const on=force!=null?force:!$('#sPause').classList.c
  $('#sPause').classList.toggle('on',on);if(G.mode==='solo')G.paused=on;
  $('#pauseNote').textContent=G.mode==='solo'?'':'El partido sigue corriendo para los demás.';
  $('#bQuit').textContent=G.mode==='solo'?'Salir al menú':(G.mode==='host'?'Cerrar la sala':'Salir de la sala');}
+$('#verHome').textContent='v'+VERSION;$('#verPause').textContent='v'+VERSION;
 $('#pauseBtn').onclick=()=>togglePause(true);$('#bResume').onclick=()=>togglePause(false);$('#bFull').onclick=()=>goFullscreen(true);
 $('#bQuit').onclick=()=>{const m=G.mode;exitGame();if(m!=='solo'){leaveOnline(true);S.mode=null;}showScreen('sHome');};
 function showEnd(sc){if(!G.mode)return;const k=G.kits;const el=$('#sEnd');
  $('#endScore').innerHTML=`<span style="color:${k[0].shirt==='#f3f3f0'?'#fff':k[0].shirt}">${sc[0]}</span> - <span style="color:${k[1].shirt}">${sc[1]}</span><small>${esc(k[0].name)} vs ${esc(k[1].name)}</small>`;
  const mine=G.myTeam!=null?G.myTeam:0;$('#endMsg').textContent=sc[0]===sc[1]?'¡Empate! 🤝':(sc[mine]>sc[1-mine]?'¡Ganaste! 🏆':'Esta vez no se dio 😅')+(sc[0]!==sc[1]?' Ganó '+k[sc[0]>sc[1]?0:1].name+'.':'');
- let b='';if(G.mode==='solo')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" style="width:100%;margin-top:10px" id="bMenu">Menú</button>`;
- else if(G.mode==='host')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" style="width:100%;margin-top:10px" id="bToLobby">Volver a la sala</button>`;
- else b=`<div class="hint" style="margin-top:12px">Esperando al que creó la sala…</div><button class="big alt2" style="width:100%;margin-top:10px" id="bMenu">Salir</button>`;
+ let b='';if(G.mode==='solo')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" id="bMenu">Menú</button>`;
+ else if(G.mode==='host')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" id="bToLobby">Volver a la sala</button>`;
+ else b=`<div class="hint" style="margin-top:12px">Esperando al que creó la sala…</div><button class="big alt2" id="bMenu">Salir</button>`;
  $('#endBtns').innerHTML=b;el.classList.add('on');
  const a=$('#bAgain');if(a)a.onclick=()=>{el.classList.remove('on');if(G.mode==='solo')startSolo();else hostStartMatch();};
  const m=$('#bMenu');if(m)m.onclick=()=>{const md=G.mode;exitGame();if(md==='client'){leaveOnline(true);S.mode=null;}showScreen('sHome');};
