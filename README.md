@@ -4,7 +4,7 @@ Fútbol arcade cenital (estilo Tehkan World Cup) para jugar solo contra la máqu
 
 - Un solo archivo: `index.html` (sin build).
 - Online por WebRTC con PeerJS: el que crea la sala corre el partido y los demás se conectan directo.
-- Canchas: patios de María Auxiliadora, San Fra y Marianista (F5), y Club Italiano: Cancha 2 (F11), Infantil (F5) y Prelide (F9).
+- Modos: Fulbito en el Cole (patios de María Auxiliadora, San Fra y Marianista), Club Italiano (Semillitas, Cebollitas e Infantiles en el sintético de 5) y LIDE · Italiano Blanco (fútbol 11, de local en la Cancha 2 o de visitante).
 
 ## Deploy en Cloudflare Pages
 - Framework preset: **None**
