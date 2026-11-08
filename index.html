@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.16.3';
+const VERSION='1.16.4';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -701,7 +701,7 @@ class Match{
    if(p.role!=='gk'){if(inp.x&&!prev.x&&p.charge<0&&p.pch<0)p.xch=0;
     if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.55);
     if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;
-     if(c<.2&&p.lock<=0)this.knockOn(p,p.dir);else this.aimPass(p,c);return;}}// toque cortito: se la adelanta
+     if(c<.28&&p.lock<=0)this.knockOn(p,p.dir);else this.aimPass(p,c);return;}}// toque cortito: se la adelanta
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
   }else{
@@ -761,7 +761,7 @@ class Match{
   let ang=H&&len(H.inp.mx,H.inp.my)>.3?Math.atan2(H.inp.my,H.inp.mx):Math.atan2(-p.y,gx-p.x);
   this.ballTo(p);p.dir=ang;this.shoot(p,.9,true,ang);b.vz=Math.min(b.vz,2.5);p.down=.7;p.stun=Math.max(p.stun,.8);p.cool=.6;this.ev.push({k:'chilena'});}
  knockOn(p,ang){const b=this.ball,v=len(p.vx,p.vy);this.release(p);b.at=null;p.cool=.24;
-  const sp=Math.max(7.5,v+3);b.knock=1;p.boost=1;
+  const sp=Math.max(9.5,v+5.1);b.knock=1.2;p.boost=1.2;
   for(const q of this.players){if(q.team===p.team)continue;const dx=q.x-p.x,dy=q.y-p.y,dd=len(dx,dy);if(dd<3.2&&(Math.cos(ang)*dx+Math.sin(ang)*dy)/(dd||1)>-.2){q.stun=Math.max(q.stun,.9);q.vx*=.2;q.vy*=.2;}}// el que marca queda pagando
   b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.vz=0;b.z=0;b.passTo=this.idx(p);this.ev.push({k:'kick',v:.25});}
  gkThrow(p){// arquero: saca con la mano, por el piso y preciso
