@@ -162,6 +162,10 @@ input::placeholder{color:#6f877a;font-weight:600}
 .zx{display:flex;gap:8px}
 .kart .kc{color:#fff!important;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .kl{font-size:12px;font-weight:800;color:#cfe0d6}
+.kfifa{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px 0 12px}
+.kfrow{display:flex;align-items:center;gap:6px}.kfrow small{font-size:11.5px;font-weight:700;color:#cfe0d6;margin-right:8px}
+.kc.wide{min-width:70px}
+.panel{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto}
 .khint{font-size:12.5px;color:#cfe0d6;line-height:1.6;text-align:center}
 .klist{text-align:left;background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:13px;line-height:2;color:#d8e6dd}
 .panel{background:linear-gradient(170deg,#173525,#0c1d14);border:1px solid var(--line);border-radius:24px;padding:22px;max-width:420px;width:calc(100% - 28px);text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.6);animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
@@ -262,7 +266,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    <p>🕹️ <b>Moverte:</b> joystick con el dedo izquierdo (o flechas).</p>
    <p>🔴 <b>Patear:</b> mantené para cargar y soltá. Sin la pelota, es barrida.</p>
    <p>🔵 <b>Pase:</b> al compañero que tenés adelante. Sin la pelota, cambiás de jugador.</p>
-   <p>⌨️ <b>En la compu:</b> flechas o WASD · <kbd>Z</kbd>/<kbd>J</kbd> patear · <kbd>X</kbd>/<kbd>K</kbd> pase · <kbd>Esc</kbd> pausa.</p>
+   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> o <kbd>S</kbd> pase · <kbd>X</kbd> o <kbd>D</kbd> tiro · <kbd>A</kbd> centro · <kbd>W</kbd> profundidad · <kbd>Shift</kbd> correr.</p>
    <p>👥 <b>Con amigos:</b> uno crea la sala y pasa el código de 4 números.</p>
   </details>
   <footer class="foot">Fulbito App <span class="ver" id="verHome"></span></footer>
@@ -331,7 +335,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.10.0';
+const VERSION='1.11.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -507,7 +511,7 @@ class Match{
   this.players=[];
   this.forms=cfg.forms||[null,null];
   for(let t=0;t<2;t++)buildForm(this.np,this.forms[t]).forEach((fm,i)=>this.players.push({team:t,i,role:fm[0],ha:fm[1],hy:fm[2],x:0,y:0,vx:0,vy:0,dvx:0,dvy:0,dir:t?Math.PI:0,face:null,
-   ctrl:null,cool:0,stun:0,slide:0,recv:0,charge:-1,pch:-1,run:0,aiT:Math.random()*.3,hold:0,lock:0,req:null,aiHold:0}));
+   ctrl:null,cool:0,stun:0,slide:0,recv:0,charge:-1,pch:-1,cch:-1,run:0,aiT:Math.random()*.3,hold:0,lock:0,req:null,aiHold:0}));
   this.ball={x:0,y:0,z:0,vx:0,vy:0,vz:0,owner:-1,last:-1,lastTeam:-1,gkRoll:-1,passTo:-1};
   this.score=[0,0];this.time=cfg.dur*60;this.phase='kickoff';this.phaseT=1.5;
   this.humans=new Map();this.ev=[];this.restart=null;this.chaser=[null,null];this.second=[null,null];
@@ -517,7 +521,7 @@ class Match{
  }
  dirOf(t){return t===0?1:-1;}
  idx(p){return this.players.indexOf(p);}
- addHuman(h,noRe){this.humans.set(h.id,{id:h.id,name:h.name,team:h.team,slot:h.slot!=null?h.slot:null,home:-1,pi:-1,inp:{mx:0,my:0,k:0,p:0},prev:{mx:0,my:0,k:0,p:0},q:[],swCd:0});if(!noRe)this.reassign();}
+ addHuman(h,noRe){this.humans.set(h.id,{id:h.id,name:h.name,team:h.team,slot:h.slot!=null?h.slot:null,home:-1,pi:-1,inp:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0},prev:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0},q:[],swCd:0,stam:2.5});if(!noRe)this.reassign();}
  removeHuman(id){this.humans.delete(id);this.reassign();}
  teamHumans(t){const r=[];for(const h of this.humans.values())if(h.team===t)r.push(h);return r;}
  reassign(){
@@ -649,18 +653,23 @@ class Match{
   if(best&&best!==cur){this.switchTo(H,best);H.swCd=.6;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
-  const m=len(inp.mx,inp.my),sp=this.spd*(own?1.1:1);
+  const m=len(inp.mx,inp.my);let sp=this.spd*(own?1.1:1);
+  if(inp.s&&H.stam>0&&m>.15){sp*=1.16;H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
   if(own&&p.role==='gk'){p.gkT=(p.gkT||0)+dt;if(p.gkT>7&&p.charge<0){p.gkT=0;this.gkDistribute(p);return;}}
   if(own){
    if(inp.k&&!prev.k)p.charge=0;
    if(inp.k&&p.charge>=0)p.charge=Math.min(1,p.charge+dt/.55);
    if(!inp.k&&prev.k&&p.charge>=0){if(p.face!=null)p.dir=p.face;this.shoot(p,p.charge,true);p.charge=-1;}
+   else if(inp.t&&!prev.t&&p.charge<0){if(p.face!=null&&m>.15)p.dir=p.face;this.throughBall(p);return;}
+   else if(inp.c&&!prev.c&&p.charge<0&&p.pch<0)p.cch=0;
    else if(inp.p&&!prev.p&&p.charge<0)p.pch=0;
+   if(inp.c&&p.cch>=0){p.cch=Math.min(1,p.cch+dt/.75);p.pch=.7+.3*p.cch;}
+   if(!inp.c&&prev.c&&p.cch>=0){const c=.7+.3*p.cch;p.cch=-1;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);return;}
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
   }else{
-   p.charge=-1;p.pch=-1;
+   p.charge=-1;p.pch=-1;p.cch=-1;
    if(inp.k&&!prev.k){const d=len(b.x-p.x,b.y-p.y);
     if(b.owner<0&&d<1.5&&b.z<1.5&&p.cool<=0&&p.stun<=0){this.ballTo(p);if(p.face!=null)p.dir=p.face;this.shoot(p,.6,true);}
     else if(p.slide<=0&&p.stun<=0)this.slideTackle(p);}
@@ -689,12 +698,18 @@ class Match{
   const b=this.ball,dx=tx-p.x,dy=ty-p.y,d=len(dx,dy)||1;
   this.release(p);p.dir=Math.atan2(dy,dx);
   if(lob){const T=clamp(.5+d*.03,.8,1.8)*(power>1.2?1.3:1);b.vz=9.8*T/2;const v=d*.8/T;b.vx=dx/d*v;b.vy=dy/d*v;b.z=.1;}
-  else{const v=Math.min(clamp(5+d*.9,8,this.shotMax*.8)*power,this.shotMax*.95);b.vx=dx/d*v;b.vy=dy/d*v;b.vz=0;b.z=0;}
+  else{const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95);b.vx=dx/d*v;b.vy=dy/d*v;b.vz=0;b.z=0;}
   this.ev.push({k:'kick',v:.35});
  }
  passTo(p,m,power=1,cross=false){const lead=cross?.6:.35,tx=m.x+m.vx*lead,ty=m.y+m.vy*lead,d=len(tx-p.x,ty-p.y);
   const bl=this.blocked(p,tx,ty);this.kickTo(p,tx,ty,cross||d>28||(bl<.8&&d>12)||(p.role==='gk'&&bl<1.6&&d>6),cross?1.3:power);this.ball.passTo=this.idx(m);m.req=null;}
  blockedLob(p){return p.role==='gk';}
+ throughBall(p){const d=this.dirOf(p.team),f=this.map.fmt,lead=f>=11?9:f>=9?7:4.5;let best=null,bs=-1e9;
+  for(const m of this.players){if(m.team!==p.team||m===p||m.role==='gk')continue;const dx=m.x-p.x,dy=m.y-p.y,dd=len(dx,dy);if(dd<3)continue;
+   const ang=Math.abs(angDiff(p.dir,Math.atan2(dy,dx)));if(ang>1.1)continue;const sc=(m.x-p.x)*d*.4-ang*8-Math.abs(dd-lead*2)*.1;if(sc>bs){bs=sc;best=m;}}
+  let tx,ty;if(best){tx=best.x+d*lead+best.vx*.4;ty=best.y+best.vy*.4;}else{tx=p.x+Math.cos(p.dir)*lead*2.2;ty=p.y+Math.sin(p.dir)*lead*2.2;}
+  tx=clamp(tx,-this.hl+1,this.hl-1);ty=clamp(ty,-this.hw+1,this.hw-1);
+  this.kickTo(p,tx,ty,false,1.05);if(best){this.ball.passTo=this.idx(best);best.req=null;}}
  blocked(p,tx,ty){let o=99;for(const q of this.players)if(q.team!==p.team)o=Math.min(o,segDist(q.x,q.y,p.x,p.y,tx,ty));return o;}
  passBest(p,human,c=0){
   const cross=c>=.7,power=c<.25?1:1+(Math.min(c,.7)-.25)/.45*.45,f=this.map.fmt;
@@ -712,7 +727,7 @@ class Match{
    if(s>bs){bs=s;best=m;}}
   if(best){this.passTo(p,best,power,cross);if(cross)this.ev.push({k:'cross'});return true;}
   if(cross){this.kickTo(p,p.x+Math.cos(p.dir)*16,p.y+Math.sin(p.dir)*16,true,1.3);this.ev.push({k:'cross'});return true;}
-  const v=13*power;this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*v;b.vy=Math.sin(p.dir)*v;b.vz=0;this.ev.push({k:'kick',v:.3});return true;
+  const v=15*power;this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*v;b.vy=Math.sin(p.dir)*v;b.vz=0;this.ev.push({k:'kick',v:.3});return true;
  }
  passScore(p,m){
   const d=this.dirOf(p.team),dx=m.x-p.x,dy=m.y-p.y,dist=len(dx,dy);
@@ -1056,14 +1071,17 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
 }
-const KEYS_KB=`<span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> o <kbd>WASD</kbd> moverse</span><span class="sep">|</span><span><kbd>Z</kbd> o <kbd>J</kbd> patear</span><span class="sep">|</span><span><kbd>X</kbd> o <kbd>K</kbd> pase</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
-const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>B</kbd> patear</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
+const KEYS_KB=`<span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> moverse</span><span class="sep">|</span><span><kbd>S</kbd>/<kbd>Z</kbd> pase</span><span class="sep">|</span><span><kbd>D</kbd>/<kbd>X</kbd> tiro</span><span class="sep">|</span><span><kbd>A</kbd> centro</span><span class="sep">|</span><span><kbd>W</kbd> profundidad</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
+const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro</span><span class="sep">|</span><span><kbd>X</kbd> centro</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:KEYS_KB;
  const pk=$('#pauseKeys');if(isTouch&&!G.pad){pk.style.display='none';return;}pk.style.display='';
- pk.innerHTML=G.pad?'🕹️ Palanca: moverse<br><kbd>B</kbd> patear (mantené para cargar) · <kbd>A</kbd> pase<br><kbd>Start</kbd> pausa'
+ pk.innerHTML=G.pad?'🕹️ Palanca: moverse<br><kbd>A</kbd> pase · <kbd>B</kbd> tiro (mantené para cargar) · <kbd>X</kbd> centro · <kbd>Y</kbd> profundidad<br><kbd>RT</kbd> correr · <kbd>Start</kbd> pausa'
   :`<div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">▲</span><i></i><span class="kc">◀</span><span class="kc">▼</span><span class="kc">▶</span></div><div class="kl">Moverte</div></div>
-   <div class="kgrp"><div class="zx"><span class="kc big red">Z</span><span class="kc big blue">X</span></div><div class="kl"><b style="color:#fca5a5">Patear</b> · <b style="color:#93c5fd">Pase</b></div></div></div>
-   <div class="khint">Mantené apretado para cargar: el pase sale más fuerte y, al máximo, es un <b>centro</b>. El tiro sale con más potencia.<br>Sin la pelota: <b>X</b> cambia de jugador o pide el pase y <b>Z</b> es barrida. <span class="kc sm">Esc</span> pausa.</div>`;}
+   <div class="kgrp"><div class="zx"><span class="kc big blue">Z</span><span class="kc big red">X</span></div><div class="kl"><b style="color:#93c5fd">Pase</b> · <b style="color:#fca5a5">Tiro</b></div></div></div>
+   <div class="kfifa"><div class="kl" style="margin-bottom:6px">Estilo FIFA</div><div class="kfrow"><span class="kc">W</span><small>Profundidad</small></div>
+    <div class="kfrow"><span class="kc">A</span><small>Centro</small><span class="kc blue">S</span><small>Pase</small><span class="kc red">D</span><small>Tiro</small></div>
+    <div class="kfrow"><span class="kc wide">Shift</span><small>Correr (o E)</small></div></div>
+   <div class="khint">Mantené apretado para cargar: el pase sale más fuerte (al máximo, centro) y el tiro con más potencia.<br>Sin la pelota: <b>pase</b> cambia de jugador o pide la pelota y <b>tiro</b> es barrida. <span class="kc sm">Esc</span> pausa.</div>`;}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
 function setupView(cfg,roster){
@@ -1239,23 +1257,25 @@ function handleEvents(ev){for(const e of ev){
 /* =========================================================
    ENTRADA (teclado, táctil, joystick)
    ========================================================= */
-const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false};let localInp={mx:0,my:0,k:0,p:0};
-const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code])latch[e.code]=true;keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
+const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false};let localInp={mx:0,my:0,k:0,p:0,c:0,t:0,s:0};
+const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code])latch[e.code]=true;keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){let mx=0,my=0;
- if(keys.ArrowLeft||keys.KeyA)mx-=1;if(keys.ArrowRight||keys.KeyD)mx+=1;if(keys.ArrowUp||keys.KeyW)my-=1;if(keys.ArrowDown||keys.KeyS)my+=1;
- const kd=c=>keys[c]||latch[c];let k=kd('KeyZ')||kd('KeyJ')||kd('Space'),p=kd('KeyX')||kd('KeyK');for(const c in latch)delete latch[c];
- if(mx===0&&my===0){if(kd('ArrowLeft')||kd('KeyA'))mx-=1;if(kd('ArrowRight')||kd('KeyD'))mx+=1;if(kd('ArrowUp')||kd('KeyW'))my-=1;if(kd('ArrowDown')||kd('KeyS'))my+=1;}
+ const kd=c=>keys[c]||latch[c];
+ if(kd('ArrowLeft'))mx-=1;if(kd('ArrowRight'))mx+=1;if(kd('ArrowUp'))my-=1;if(kd('ArrowDown'))my+=1;
+ // estilo FIFA: S pase · D tiro · A centro · W profundidad · E/Shift correr — y Z pase / X tiro
+ let k=kd('KeyD')||kd('KeyX')||kd('Space'),p=kd('KeyS')||kd('KeyZ'),c=kd('KeyA'),t=kd('KeyW'),sp=kd('KeyE')||kd('ShiftLeft')||kd('ShiftRight');
+ for(const q in latch)delete latch[q];
  const gps=navigator.getGamepads?navigator.getGamepads():[];for(const gp of gps){if(!gp)continue;const ax=gp.axes[0]||0,ay=gp.axes[1]||0;if(Math.abs(ax)>.2||Math.abs(ay)>.2){mx=ax;my=ay;}
   const bt=gp.buttons;if(bt[14]&&bt[14].pressed)mx=-1;if(bt[15]&&bt[15].pressed)mx=1;if(bt[12]&&bt[12].pressed)my=-1;if(bt[13]&&bt[13].pressed)my=1;
-  const bk=(bt[1]&&bt[1].pressed)||(bt[2]&&bt[2].pressed),bp=(bt[0]&&bt[0].pressed)||(bt[3]&&bt[3].pressed),bs=bt[9]&&bt[9].pressed;
+  const pr=i=>!!(bt[i]&&bt[i].pressed),bk=pr(1),bp=pr(0),bc=pr(2),bt3=pr(3),bsp=pr(7)||pr(5),bs=pr(9);
   if(bk||bp||Math.abs(ax)>.2||Math.abs(ay)>.2){if(!G.pad){G.pad=true;updateKeysLegend();}}
   if(bs&&!G.padStart&&G.mode)togglePause();G.padStart=bs;
-  k=k||bk;p=p||bp;break;}
+  k=k||bk;p=p||bp;c=c||bc;t=t||bt3;sp=sp||bsp;break;}
  mx+=touch.mx;my+=touch.my;k=k||touch.k||touch.lk;p=p||touch.p||touch.lp;touch.lk=touch.lp=0;const l=len(mx,my);if(l>1){mx/=l;my/=l;}
- if(mx||my||k||p)G.lastAct=performance.now();
- const f=G.flip?-1:1;localInp={mx:Math.round(-my*f*100)/100,my:Math.round(mx*f*100)/100,k:k?1:0,p:p?1:0};}
+ if(mx||my||k||p||c||t)G.lastAct=performance.now();
+ const f=G.flip?-1:1;localInp={mx:Math.round(-my*f*100)/100,my:Math.round(mx*f*100)/100,k:k?1:0,p:p?1:0,c:c?1:0,t:t?1:0,s:sp?1:0};}
 (function setupTouch(){const T=$('#touch'),joy=$('#joy'),knob=$('#knob');const btn={};
  const setBtn=(id,on)=>{const el=$(id);el.classList.toggle('on',on);if(id==='#bKick'){touch.k=on?1:0;if(on)touch.lk=1;}else{touch.p=on?1:0;if(on)touch.lp=1;}};
  T.addEventListener('pointerdown',e=>{e.preventDefault();SFX.init();touch.used=true;const t=e.target;
@@ -1313,7 +1333,7 @@ function hostData(conn,d){if(!d||typeof d!=='object')return;
   if(Lobby.state==='game'&&G.match){G.match.addHuman({id:hid,name:pl.name,team:pl.team});G.names[hid]=pl.name;conn.send(startMsg());broadcast({t:'roster',names:G.names,pnames:G.match.pnames,homes:G.match.homes});toast(pl.name+' se sumó al partido');}
   broadcastLobby();return;}
  const hid=conn.hid;if(hid==null)return;
- if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push({mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0});}
+ if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push({mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0,c:d.c?1:0,t:d.t?1:0,s:d.s?1:0});}
  else if(d.t==='team'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;movePlayer(pl);broadcastLobby();}
  else if(d.t==='slot'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;setSlot(pl,d.v==null?null:d.v);broadcastLobby();}
 }
@@ -1350,10 +1370,10 @@ function clientData(d){if(!d||typeof d!=='object')return;
   case's':if(G.mode!=='client')return;{const v=decodeSnap(d);G.snaps.push({t:performance.now(),v});if(G.snaps.length>12)G.snaps.shift();if(d.ev&&d.ev.length)handleEvents(d.ev);}break;
   case'full':showErr('La sala está llena.');leaveOnline(true);break;
  }}
-let lastSent={mx:0,my:0,k:0,p:0};
+let lastSent={mx:0,my:0,k:0,p:0,c:0,t:0,s:0};
 function sendInput(){if(!Net.hostConn||!Net.hostConn.open)return;const i=localInp,now=performance.now(),dt=now-Net.lastSend;
- const btn=i.k!==lastSent.k||i.p!==lastSent.p,axis=i.mx!==lastSent.mx||i.my!==lastSent.my;
- if(btn||(axis&&dt>33)||dt>150){lastSent={...i};Net.lastSend=now;try{Net.hostConn.send({t:'in',mx:i.mx,my:i.my,k:i.k,p:i.p});}catch(e){}}}
+ const btn=i.k!==lastSent.k||i.p!==lastSent.p||i.c!==lastSent.c||i.t!==lastSent.t||i.s!==lastSent.s,axis=i.mx!==lastSent.mx||i.my!==lastSent.my;
+ if(btn||(axis&&dt>33)||dt>150){lastSent={...i};Net.lastSend=now;try{Net.hostConn.send({t:'in',mx:i.mx,my:i.my,k:i.k,p:i.p,c:i.c,t:i.t,s:i.s});}catch(e){}}}
 function leaveOnline(silent){Net.leaving=true;try{if(Net.hostConn)Net.hostConn.close();}catch(e){}for(const c of Net.conns.values())try{c.close();}catch(e){}
  Net.conns.clear();Net.hostConn=null;try{if(Net.peer)Net.peer.destroy();}catch(e){}Net.peer=null;Net.opened=false;Net.joined=false;}
 
