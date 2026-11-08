@@ -267,7 +267,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    <p>🕹️ <b>Moverte:</b> joystick con el dedo izquierdo (o flechas).</p>
    <p>🔴 <b>Patear:</b> mantené para cargar y soltá. Sin la pelota, es barrida.</p>
    <p>🔵 <b>Pase:</b> al compañero que tenés adelante. Sin la pelota, cambiás de jugador.</p>
-   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> pase (mantené: fuerte o centro) · <kbd>X</kbd> pase al espacio (sin pelota: empujón) · <kbd>C</kbd> tiro (sin pelota: barrida) · <kbd>Shift</kbd> correr.</p>
+   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> pase (mantené: fuerte o centro) · <kbd>X</kbd> toque: te la adelantás · cargada: pase al espacio (sin pelota: empujón) · <kbd>C</kbd> tiro (sin pelota: barrida) · <kbd>Shift</kbd> correr.</p>
    <p>✌️ <b>Empujar en el celu:</b> apretá los dos botones a la vez. Ojo, puede ser falta.</p>
    <p>👥 <b>Con amigos:</b> uno crea la sala y pasa el código de 4 números.</p>
   </details>
@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.16.2';
+const VERSION='1.16.3';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -700,7 +700,8 @@ class Match{
    // X: pase al espacio, como un tiro: sale hacia donde apuntás (mantené para más fuerza)
    if(p.role!=='gk'){if(inp.x&&!prev.x&&p.charge<0&&p.pch<0)p.xch=0;
     if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.55);
-    if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.aimPass(p,c);return;}}
+    if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;
+     if(c<.2&&p.lock<=0)this.knockOn(p,p.dir);else this.aimPass(p,c);return;}}// toque cortito: se la adelanta
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
   }else{
@@ -1219,7 +1220,7 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
 }
-const KEYS_KB=`<span><kbd>↑</kbd><kbd>↓</kbd> mover</span><span class="sep">|</span><span><kbd>Z</kbd> pase / centro</span><span class="sep">|</span><span><kbd>X</kbd> al espacio · empujón</span><span class="sep">|</span><span><kbd>C</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
+const KEYS_KB=`<span><kbd>↑</kbd><kbd>↓</kbd> mover</span><span class="sep">|</span><span><kbd>Z</kbd> pase / centro</span><span class="sep">|</span><span><kbd>X</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>C</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro</span><span class="sep">|</span><span><kbd>X</kbd> centro</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd>/<kbd>RB</kbd> empujar</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:KEYS_KB;
  const pk=$('#pauseKeys');if(isTouch&&!G.pad){pk.style.display='none';return;}pk.style.display='';
@@ -1227,7 +1228,7 @@ function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:KEYS
   :`<div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">▲</span><i></i><span class="kc">◀</span><span class="kc">▼</span><span class="kc">▶</span></div><div class="kl">Moverte</div></div>
    <div class="kgrp"><div class="zx"><span class="kc big blue">Z</span><span class="kc big">X</span><span class="kc big red">C</span></div><div class="kl"><b style="color:#93c5fd">Pase / centro</b> · Pase al espacio · <b style="color:#fca5a5">Tiro</b></div></div></div>
    <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small></div></div>
-   <div class="khint"><span class="kc sm">Z</span> busca al compañero (mantené: más fuerte; al máximo, centro). <span class="kc sm">X</span> la pasa hacia donde apuntás, al espacio vacío. <span class="kc sm">C</span> tiro, cabezazo, palomita o chilena.<br>Sin la pelota: <span class="kc sm">Z</span> cambiás de jugador o pedís la pelota · <span class="kc sm">X</span> empujón (puede ser falta; en el área, ¡penal!) · <span class="kc sm">C</span> barrida.<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás. En el saque del medio, cualquier botón es un pase.<br><b>Arquero:</b> <span class="kc sm">Z</span> pase (al máximo, por arriba) · <span class="kc sm">X</span> saca con la mano · <span class="kc sm">C</span> patea con todo. <span class="kc sm">Esc</span> pausa.</div>`;}
+   <div class="khint"><span class="kc sm">Z</span> busca al compañero (mantené: más fuerte; al máximo, centro). <span class="kc sm">X</span> tocada apenas, te la adelantás (pasa entre los rivales); cargada, la pasa hacia donde apuntás, al espacio vacío. <span class="kc sm">C</span> tiro, cabezazo, palomita o chilena.<br>Sin la pelota: <span class="kc sm">Z</span> cambiás de jugador o pedís la pelota · <span class="kc sm">X</span> empujón (puede ser falta; en el área, ¡penal!) · <span class="kc sm">C</span> barrida.<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás. En el saque del medio, cualquier botón es un pase.<br><b>Arquero:</b> <span class="kc sm">Z</span> pase (al máximo, por arriba) · <span class="kc sm">X</span> saca con la mano · <span class="kc sm">C</span> patea con todo. <span class="kc sm">Esc</span> pausa.</div>`;}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
 function setupView(cfg,roster){
