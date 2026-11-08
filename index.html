@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.15.2';
+const VERSION='1.15.3';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1410,8 +1410,8 @@ function handleEvents(ev){for(const e of ev){
    ENTRADA (teclado, táctil, joystick)
    ========================================================= */
 const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false,kAt:0,pAt:0,combo:false};let localInp={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0};const KN={c:'',t:0};
-const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KN.c===e.code&&n-KN.t<280){G.knock=1;KN.c='';}else{KN.c=e.code;KN.t=n;}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
-addEventListener('keyup',e=>{keys[e.code]=false;});
+const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KN.c===e.code&&n-KN.t<260){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
+addEventListener('keyup',e=>{keys[e.code]=false;if(e.code.startsWith('Arrow')){KN.c=e.code;KN.t=performance.now();}});// doble toque: soltar y volver a apretar rápido la misma flecha
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){let mx=0,my=0;
  const kd=c=>keys[c]||latch[c];
