@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.15.0';
+const VERSION='1.15.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -676,6 +676,9 @@ class Match{
    if(anyB(inp)&&p.charge>=0)p.charge=Math.min(1,p.charge+dt/.55);
    if(!anyB(inp)&&anyB(prev)&&p.charge>=0){if(p.face!=null)p.dir=p.face;this.shoot(p,Math.max(.35,p.charge),true);p.charge=-1;this.penHold=false;}
    return;}
+  if(own&&p.role==='gk'){// el arquero no puede patear para su propio arco: si apunta para atrás, no pasa nada
+   const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(inp.t&&!prev.t)||(inp.e&&!prev.e);
+   if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;return;}}
   if(own&&p.role==='gk'&&inp.e&&!prev.e){if(p.face!=null&&m>.15)p.dir=p.face;this.gkThrow(p);return;}
   if(own&&inp.kn&&!prev.kn&&m>.15&&p.role!=='gk'&&p.lock<=0){this.knockOn(p,Math.atan2(inp.my,inp.mx));return;}
   if(!own&&inp.e&&!prev.e){this.push(p);return;}
@@ -719,15 +722,15 @@ class Match{
  kickTo(p,tx,ty,lob,power=1,minT=0){
   const b=this.ball,dx=tx-p.x,dy=ty-p.y,d=len(dx,dy)||1;
   this.release(p);p.dir=Math.atan2(dy,dx);
-  if(lob){let T=clamp(.5+d*.03,.8,1.8)*(power>1.2?1.3:1);if(p.role==='gk')T=Math.max(T,minT||1.75);b.vz=9.8*T/2;const v=d*.8/T;b.vx=dx/d*v;b.vy=dy/d*v;b.z=.1;}
+  if(lob){let T=clamp(.5+d*.03,.8,1.8)*(power>1.2?1.3:1);if(p.role==='gk'){T=Math.max(T,minT||1.75);b.lift=.5;}b.vz=9.8*T/2;const v=d*.8/T;b.vx=dx/d*v;b.vy=dy/d*v;b.z=.1;}
   else{const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95);b.vx=dx/d*v;b.vy=dy/d*v;b.vz=0;b.z=0;}
   this.ev.push({k:'kick',v:.35});
  }
  passTo(p,m,power=1,cross=false){let tx=m.x+m.vx*.6,ty=m.y+m.vy*.6,d=len(tx-p.x,ty-p.y);
   if(!cross)for(let i=0;i<3;i++){const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95),t=clamp(d/(v*.82),.12,1.4);tx=m.x+m.vx*t;ty=m.y+m.vy*t;d=len(tx-p.x,ty-p.y);}
   tx=clamp(tx,-this.hl+.6,this.hl-.6);ty=clamp(ty,-this.hw+.6,this.hw-.6);
-  const bl=this.blocked(p,tx,ty),gkLob=p.role==='gk'&&d>5&&(bl<2.2||this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<7));
-  this.kickTo(p,tx,ty,cross||d>28||(bl<.8&&d>12)||gkLob,cross?1.3:power);this.ball.passTo=this.idx(m);m.req=null;}
+  const bl=this.blocked(p,tx,ty),gkLob=p.role==='gk'&&p.ctrl==null&&d>5&&(bl<2.2||this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<7));
+  const gkH=p.role==='gk'&&p.ctrl!=null;this.kickTo(p,tx,ty,cross||(!gkH&&(d>28||(bl<.8&&d>12)))||gkLob,cross?1.3:power);this.ball.passTo=this.idx(m);m.req=null;}
  blockedLob(p){return p.role==='gk';}
  oneBtn(p,H,dt,own,m){const inp=H.inp,prev=H.prev,f=inp.k||inp.p||inp.c||inp.t,pf=prev.k||prev.p||prev.c||prev.t;
   if(own){if(f&&!pf)p.obT=0;
@@ -838,7 +841,7 @@ class Match{
   if(best&&(bs>minScore||(force&&bs>-99))){this.passTo(p,best);return true;}return false;}
  slideTackle(p){const b=this.ball;if(p.ctrl==null)p.dir=Math.atan2(b.y-p.y,b.x-p.x);else if(p.face!=null)p.dir=p.face;
   p.slide=.38;p.slChk=0;p.vx=Math.cos(p.dir)*9.5;p.vy=Math.sin(p.dir)*9.5;this.ev.push({k:'slide'});}
- ballTo(p){const b=this.ball;b.gkLong=null;p.recv=.3;b.owner=this.idx(p);b.last=b.owner;b.lastTeam=p.team;b.passTo=-1;b.gkRoll=-1;p.slide=0;p.req=null;}
+ ballTo(p){const b=this.ball;b.gkLong=null;b.lift=0;p.recv=.3;b.owner=this.idx(p);b.last=b.owner;b.lastTeam=p.team;b.passTo=-1;b.gkRoll=-1;p.slide=0;p.req=null;}
 
  /* ---- IA ---- */
  computeChasers(){
@@ -937,6 +940,7 @@ class Match{
   for(const p of P){
    if(M.walls){p.x=clamp(p.x,-hl+.35,hl-.35);p.y=clamp(p.y,-hw+.35,hw-.35);}
    else{p.x=clamp(p.x,-hl-3,hl+3);p.y=clamp(p.y,-hw-3,hw+3);}
+   if(p.role==='gk'&&this.ball.owner===this.idx(p)){const d=this.dirOf(p.team),gx=-d*hl;if((p.x-gx)*d<.35)p.x=gx+d*.35;}
    if(p.role==='gk'&&this.ball.owner===this.idx(p)&&(p.hold>0||p.lock>0)){const z=M.sbox||M.box,d=this.dirOf(p.team),gx=-d*hl;
     p.x=gx+d*clamp((p.x-gx)*d,.3,z.d);p.y=clamp(p.y,-z.w/2,z.w/2);}
    else if(p.role==='gk'&&this.ball.owner!==this.idx(p)){const gx=-this.dirOf(p.team)*hl;const lim=M.box.d+2;
@@ -947,10 +951,11 @@ class Match{
  positionOwnedBall(){const b=this.ball;if(b.owner<0)return;const o=this.players[b.owner];
   const hands=o.role==='gk'&&o.hold>0;const off=hands?.32:.5+.1*Math.sin(o.run*3.2);
   b.x=o.x+Math.cos(o.dir)*off;b.y=o.y+Math.sin(o.dir)*off;b.z=hands?.9:0;b.vx=o.vx;b.vy=o.vy;b.vz=0;
+  if(o.role==='gk'){const d=this.dirOf(o.team),gx=-d*this.hl;if((b.x-gx)*d<.15)b.x=gx+d*.15;}
   if(this.map.walls){b.y=clamp(b.y,-this.hw+.12,this.hw-.12);if(Math.abs(b.y)>this.gw)b.x=clamp(b.x,-this.hl+.12,this.hl-.12);}}
  ballPhysics(dt){
   const b=this.ball;if(b.owner>=0&&!this.looseOwned())return;
-  const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;
+  const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;if(b.lift>0)b.lift-=dt;
   if(b.z>0||b.vz>0){b.vz-=9.8*dt;b.z+=b.vz*dt;if(b.z<=0){b.z=0;b.gkLong=null;if(b.vz<-2.2){b.vz=-b.vz*this.bounceK;b.vx*=.72;b.vy*=.72;this.ev.push({k:'bounce'});}else b.vz=0;}const f=1-this.airK*dt;b.vx*=f;b.vy*=f;}
   else{const v=len(b.vx,b.vy);if(v>0){const nv=Math.max(0,v-(this.fr0+this.fr1*v)*dt);b.vx*=nv/v;b.vy*=nv/v;}}
   const ox=b.x;b.x+=b.vx*dt;b.y+=b.vy*dt;
@@ -984,7 +989,8 @@ class Match{
       if(Math.random()<ch){this.ballTo(q);o.stun=q.slide>0?.85:.35;o.cool=.5;o.charge=-1;this.ev.push({k:'steal'});break;}}}}
    if(this.looseOwned())this.looseDribble(o);else this.positionOwnedBall();return;}
   // cabezazos y palomitas
-  if(b.z>=.45&&b.z<=2.3)for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(p.role==='gk'&&this.inOwnBox(p))continue;
+  if(b.z>=.45&&b.z<=2.3)for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(b.lift>0&&p.team!==b.lastTeam)continue;// el saque alto del arquero pasa por arriba de los que están pegados al área
+if(p.role==='gk'&&this.inOwnBox(p))continue;
    const dd=len(p.x-b.x,p.y-b.y);if((p.dive&&dd<1&&b.z<1.8)||(b.z>=.85&&dd<.6)){this.header(p);return;}}
   let best=null,bd=1e9,bestGK=false;
   for(const p of this.players){if(p.cool>0||p.stun>0)continue;
