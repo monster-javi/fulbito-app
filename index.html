@@ -267,7 +267,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    <p>🕹️ <b>Moverte:</b> joystick con el dedo izquierdo (o flechas).</p>
    <p>🔴 <b>Patear:</b> mantené para cargar y soltá. Sin la pelota, es barrida.</p>
    <p>🔵 <b>Pase:</b> al compañero que tenés adelante. Sin la pelota, cambiás de jugador.</p>
-   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> pase (mantené: fuerte o centro) · <kbd>X</kbd> tiro · <kbd>C</kbd> empujar · <kbd>Shift</kbd> correr · doble <kbd>↑</kbd> te la adelantás.</p>
+   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> pase (mantené: fuerte o centro) · <kbd>X</kbd> pase al espacio (sin pelota: empujón) · <kbd>C</kbd> tiro (sin pelota: barrida) · <kbd>Shift</kbd> correr · doble <kbd>↑</kbd> te la adelantás.</p>
    <p>✌️ <b>Empujar en el celu:</b> apretá los dos botones a la vez. Ojo, puede ser falta.</p>
    <p>👥 <b>Con amigos:</b> uno crea la sala y pasa el código de 4 números.</p>
   </details>
@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.15.3';
+const VERSION='1.16.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -356,15 +356,15 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'sanfran',school:'sfr',name:'Colegio San Francisco',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
+ {id:'sanfran',school:'sfr',name:'Colegio San Francisco',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
+ {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,basket:true,
+ {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,basket:true,
   th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
- {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
+ {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
- {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:32,W:20,goalW:4,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:4.5,w:9},noSpot:true,netD:1.1,gkSpot:3,
+ {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:26,W:16,goalW:3,goalH:2,walls:false,surf:'grass',kit:'infantil',cR:1.8,box:{d:4,w:8},spot:5,netD:1.5,gkSpot:2.5,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
  {id:'prelide',name:'Club Italiano · Prelide',sub:'3 canchitas infantiles juntas · Fútbol 9',fmt:9,L:60,W:32,goalW:6,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:6,box:{d:9,w:21},sbox:{d:3.5,w:11},spot:8,netD:1.3,gkSpot:4,under:true,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff',uline:'rgba(255,236,120,.15)'}},
@@ -527,7 +527,7 @@ class Match{
  }
  dirOf(t){return t===0?1:-1;}
  idx(p){return this.players.indexOf(p);}
- addHuman(h,noRe){this.humans.set(h.id,{id:h.id,name:h.name,team:h.team,onebtn:false,slot:h.slot!=null?h.slot:null,home:-1,pi:-1,inp:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0},prev:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0},q:[],swCd:0,stam:2.5});if(!noRe)this.reassign();}
+ addHuman(h,noRe){this.humans.set(h.id,{id:h.id,name:h.name,team:h.team,onebtn:false,slot:h.slot!=null?h.slot:null,home:-1,pi:-1,inp:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0},prev:{mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0},q:[],swCd:0,stam:2.5});if(!noRe)this.reassign();}
  removeHuman(id){this.humans.delete(id);this.reassign();}
  teamHumans(t){const r=[];for(const h of this.humans.values())if(h.team===t)r.push(h);return r;}
  reassign(){
@@ -666,11 +666,11 @@ class Match{
   if(best&&best!==cur){this.switchTo(H,best);H.swCd=.6;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
-  const m=len(inp.mx,inp.my);let sp=this.spd*(own?1.1:1);
+  const m=len(inp.mx,inp.my);let sp=this.spd*(own?1.1:1)*(p.boost>0?1.22:1);
   if(inp.s&&H.stam>0&&m>.15){sp*=1.16;H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
-  if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;}
-  const anyB=i=>i.k||i.p||i.t||i.c||i.e;
+  if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;}
+  const anyB=i=>i.k||i.p||i.t||i.c||i.e||i.x;
   if(own&&this.koHold){// saque del medio: siempre es un pase a un compañero
    if(anyB(inp)&&!anyB(prev)){this.kickoffPass(p,m>.15?p.face:p.dir);this.koHold=false;}return;}
   if(own&&this.penHold){// penal: cualquier botón patea (mantené para más fuerza), las flechas apuntan
@@ -679,11 +679,11 @@ class Match{
    if(!anyB(inp)&&anyB(prev)&&p.charge>=0){if(p.face!=null)p.dir=p.face;this.shoot(p,Math.max(.35,p.charge),true);p.charge=-1;this.penHold=false;}
    return;}
   if(own&&p.role==='gk'){// el arquero no puede patear para su propio arco: si apunta para atrás, no pasa nada
-   const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(inp.t&&!prev.t)||(inp.e&&!prev.e);
-   if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;return;}}
-  if(own&&p.role==='gk'&&inp.e&&!prev.e){if(p.face!=null&&m>.15)p.dir=p.face;this.gkThrow(p);return;}
+   const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(inp.t&&!prev.t)||(inp.e&&!prev.e)||(!inp.x&&prev.x);
+   if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;return;}}
+  if(own&&p.role==='gk'&&((inp.e&&!prev.e)||(!inp.x&&prev.x))){if(p.face!=null&&m>.15)p.dir=p.face;p.xch=-1;this.gkThrow(p);return;}
   if(own&&inp.kn&&!prev.kn&&m>.15&&p.role!=='gk'&&p.lock<=0){this.knockOn(p,Math.atan2(inp.my,inp.mx));return;}
-  if(!own&&inp.e&&!prev.e){this.push(p);return;}
+  if(!own&&((inp.e&&!prev.e)||(inp.x&&!prev.x))){this.push(p);return;}
   if(H.onebtn){if(own&&p.role==='gk'){p.gkT=(p.gkT||0)+dt;if(p.gkT>7&&p.obT<0){p.gkT=0;this.gkDistribute(p);return;}}this.oneBtn(p,H,dt,own,m);return;}
   if(own&&p.role==='gk'){p.gkT=(p.gkT||0)+dt;if(p.gkT>7&&p.charge<0){p.gkT=0;this.gkDistribute(p);return;}}
   if(own){
@@ -695,10 +695,14 @@ class Match{
    else if(inp.p&&!prev.p&&p.charge<0)p.pch=0;
    if(inp.c&&p.cch>=0){p.cch=Math.min(1,p.cch+dt/.75);p.pch=.7+.3*p.cch;}
    if(!inp.c&&prev.c&&p.cch>=0){const c=.7+.3*p.cch;p.cch=-1;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);return;}
+   // X: pase al espacio, como un tiro: sale hacia donde apuntás (mantené para más fuerza)
+   if(p.role!=='gk'){if(inp.x&&!prev.x&&p.charge<0&&p.pch<0)p.xch=0;
+    if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.6);
+    if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.aimPass(p,c);return;}}
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
   }else{
-   p.charge=-1;p.pch=-1;p.cch=-1;
+   p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;
    if(inp.k&&!prev.k)this.fireNoBall(p);
    if(inp.p&&!prev.p){const o=b.owner>=0?this.players[b.owner]:null;
     if(o&&o.team===p.team&&o.ctrl==null){const dd=len(o.x-p.x,o.y-p.y),rng=this.map.fmt>=9?38:18;
@@ -747,8 +751,15 @@ class Match{
   if(best){p.dir=Math.atan2(best.y-p.y,best.x-p.x);this.passTo(p,best,1);}}
  penShot(p){const d=this.dirOf(p.team),gx=d*this.hl,side=Math.random()<.5?-1:1,diff=this.aiFactor(p.team);
   const aimY=side*this.gw*rnd(.35,.85)+rnd(-1,1)*diff.err*this.gw*.6;this.shoot(p,rnd(.55,.9),false,Math.atan2(aimY-p.y,gx-p.x));}
+ aimPass(p,c){const b=this.ball,v=10+c*(this.shotMax*.78-10);this.release(p);const a=p.dir;
+  b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.z=0;b.vz=c>.8?(c-.8)*12:0;if(b.vz>0)b.z=.05;this.ev.push({k:'kick',v:.3+c*.4});}
+ chilena(p){const b=this.ball,d=this.dirOf(p.team),gx=d*this.hl,H=p.ctrl!=null?this.humans.get(p.ctrl):null;
+  let ang=H&&len(H.inp.mx,H.inp.my)>.3?Math.atan2(H.inp.my,H.inp.mx):Math.atan2(-p.y,gx-p.x);
+  this.ballTo(p);p.dir=ang;this.shoot(p,.9,true,ang);b.vz=Math.min(b.vz,2.5);p.down=.7;p.stun=Math.max(p.stun,.8);p.cool=.6;this.ev.push({k:'chilena'});}
  knockOn(p,ang){const b=this.ball,v=len(p.vx,p.vy);this.release(p);b.at=null;p.cool=.24;
-  const sp=Math.max(7,v+2.8);b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.vz=0;b.z=0;b.passTo=this.idx(p);this.ev.push({k:'kick',v:.25});}
+  const sp=Math.max(7.5,v+3);b.knock=1;p.boost=1;
+  for(const q of this.players){if(q.team===p.team)continue;const dx=q.x-p.x,dy=q.y-p.y,dd=len(dx,dy);if(dd<3.2&&(Math.cos(ang)*dx+Math.sin(ang)*dy)/(dd||1)>-.2){q.stun=Math.max(q.stun,.9);q.vx*=.2;q.vy*=.2;}}// el que marca queda pagando
+  b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.vz=0;b.z=0;b.passTo=this.idx(p);this.ev.push({k:'kick',v:.25});}
  gkThrow(p){// arquero: saca con la mano, por el piso y preciso
   let best=null,bs=-1e9;for(const m of this.players){if(m.team!==p.team||m===p)continue;const dx=m.x-p.x,dy=m.y-p.y,d=len(dx,dy);if(d<2)continue;
    const ang=Math.abs(angDiff(p.dir,Math.atan2(dy,dx)));if(ang>1)continue;const s=-ang*12-d*.25-(this.blocked(p,m.x,m.y)<1?6:0);if(s>bs){bs=s;best=m;}}
@@ -787,6 +798,7 @@ class Match{
   this.phase='restart';this.phaseT=1.6;this.restart={team:t,taker:this.idx(taker),kind:'penal'};
   this.ev.push({k:'restart',kind:'penal',sub:who?'Falta de '+who:''});}
  fireNoBall(p){const b=this.ball,d=len(b.x-p.x,b.y-p.y);
+  if(b.owner<0&&b.z>=1.05&&b.z<2.3&&d<1.35&&p.cool<=0&&p.stun<=0&&p.role!=='gk'){this.chilena(p);return;}
   if(b.owner<0&&b.z>=.45&&b.z<1.8&&d<2.8&&d>.4&&p.stun<=0&&p.slide<=0){this.dive(p);return;}
   if(b.owner<0&&d<1.5&&b.z<1.5&&p.cool<=0&&p.stun<=0){this.ballTo(p);if(p.face!=null)p.dir=p.face;this.shoot(p,.6,true);return;}
   if(p.slide<=0&&p.stun<=0)this.slideTackle(p);}
@@ -848,7 +860,7 @@ class Match{
   if(best&&(bs>minScore||(force&&bs>-99))){this.passTo(p,best);return true;}return false;}
  slideTackle(p){const b=this.ball;if(p.ctrl==null)p.dir=Math.atan2(b.y-p.y,b.x-p.x);else if(p.face!=null)p.dir=p.face;
   p.slide=.38;p.slChk=0;p.vx=Math.cos(p.dir)*9.5;p.vy=Math.sin(p.dir)*9.5;this.ev.push({k:'slide'});}
- ballTo(p){const b=this.ball;b.gkLong=null;b.lift=0;p.recv=.3;b.owner=this.idx(p);b.last=b.owner;b.lastTeam=p.team;b.passTo=-1;b.gkRoll=-1;p.slide=0;p.req=null;}
+ ballTo(p){const b=this.ball;b.gkLong=null;b.lift=0;b.knock=0;p.recv=.3;b.owner=this.idx(p);b.last=b.owner;b.lastTeam=p.team;b.passTo=-1;b.gkRoll=-1;p.slide=0;p.req=null;}
 
  /* ---- IA ---- */
  computeChasers(){
@@ -928,7 +940,7 @@ class Match{
   const M=this.map,hl=this.hl,hw=this.hw;
   for(const p of this.players){
    if(this.koHold||this.penHold){p.vx=p.vy=p.dvx=p.dvy=0;p.slide=0;p.kb=0;}
-   p.pushCd=Math.max(0,(p.pushCd||0)-dt);p.push=Math.max(0,(p.push||0)-dt);if(p.down>0){p.down-=dt;p.dvx=p.dvy=0;}p.cool=Math.max(0,p.cool-dt);p.stun=Math.max(0,p.stun-dt);p.recv=Math.max(0,p.recv-dt);
+   p.pushCd=Math.max(0,(p.pushCd||0)-dt);p.push=Math.max(0,(p.push||0)-dt);p.boost=Math.max(0,(p.boost||0)-dt);if(p.down>0){p.down-=dt;p.dvx=p.dvy=0;}p.cool=Math.max(0,p.cool-dt);p.stun=Math.max(0,p.stun-dt);p.recv=Math.max(0,p.recv-dt);
    if(p.lock>0){p.lock-=dt;if(!(p.role==='gk'&&this.ball.owner===this.idx(p)&&p.ctrl!=null))p.dvx=p.dvy=0;if(p.lock<=0&&this.ball.owner===this.idx(p)&&p.ctrl!=null){p.lock=0;}}
    if(p.kb>0){p.kb-=dt;p.vx*=.9;p.vy*=.9;}
    else if(p.slide>0){p.slide-=dt;p.vx*=this.slideK;p.vy*=this.slideK;if(p.slide<=0){p.stun=Math.max(p.stun,.25);p.dive=false;}}
@@ -942,7 +954,7 @@ class Match{
    p.run+=sp*dt;
   }
   const P=this.players;
-  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],c=P[j];const dx=c.x-a.x,dy=c.y-a.y,d=len(dx,dy);
+  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],c=P[j];if((a.boost>0||c.boost>0)&&a.team!==c.team)continue;/* se la adelantó: pasa al lado del rival */const dx=c.x-a.x,dy=c.y-a.y,d=len(dx,dy);
    if(d<.78&&d>1e-4){const o=(.78-d)/2,nx=dx/d,ny=dy/d;a.x-=nx*o;a.y-=ny*o;c.x+=nx*o;c.y+=ny*o;}}
   for(const p of P){
    if(M.walls){p.x=clamp(p.x,-hl+.35,hl-.35);p.y=clamp(p.y,-hw+.35,hw-.35);}
@@ -962,7 +974,7 @@ class Match{
   if(this.map.walls){b.y=clamp(b.y,-this.hw+.12,this.hw-.12);if(Math.abs(b.y)>this.gw)b.x=clamp(b.x,-this.hl+.12,this.hl-.12);}}
  ballPhysics(dt){
   const b=this.ball;if(b.owner>=0&&!this.looseOwned())return;
-  const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;if(b.lift>0)b.lift-=dt;
+  const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;if(b.lift>0)b.lift-=dt;if(b.knock>0)b.knock-=dt;
   if(b.z>0||b.vz>0){b.vz-=9.8*dt;b.z+=b.vz*dt;if(b.z<=0){b.z=0;b.gkLong=null;if(b.vz<-2.2){b.vz=-b.vz*this.bounceK;b.vx*=.72;b.vy*=.72;this.ev.push({k:'bounce'});}else b.vz=0;}const f=1-this.airK*dt;b.vx*=f;b.vy*=f;}
   else{const v=len(b.vx,b.vy);if(v>0){const nv=Math.max(0,v-(this.fr0+this.fr1*v)*dt);b.vx*=nv/v;b.vy*=nv/v;}}
   const ox=b.x;b.x+=b.vx*dt;b.y+=b.vy*dt;
@@ -1000,7 +1012,7 @@ class Match{
 if(p.role==='gk'&&this.inOwnBox(p))continue;
    const dd=len(p.x-b.x,p.y-b.y);if((p.dive&&dd<1&&b.z<1.8)||(b.z>=.85&&dd<.6)){this.header(p);return;}}
   let best=null,bd=1e9,bestGK=false;
-  for(const p of this.players){if(p.cool>0||p.stun>0)continue;
+  for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(b.knock>0&&p.team!==b.lastTeam)continue;// se la adelantó: pasa entre los rivales
    const gk=p.role==='gk'&&this.inOwnBox(p)&&b.last!==this.idx(p);const d=len(p.x-b.x,p.y-b.y);
    const reach=gk?1.15:(p.slide>0?.9:.72),zmax=gk?2.7:.9;
    if(d<reach&&b.z<zmax&&d<bd){best=p;bd=d;bestGK=gk;}}
@@ -1200,15 +1212,15 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
 }
-const KEYS_KB=`<span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> moverse</span><span class="sep">|</span><span><kbd>Z</kbd> pase / centro</span><span class="sep">|</span><span><kbd>X</kbd> tiro</span><span class="sep">|</span><span><kbd>C</kbd> empujar</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>↑</kbd><kbd>↑</kbd> adelantarla</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
+const KEYS_KB=`<span><kbd>↑</kbd><kbd>↓</kbd> mover</span><span class="sep">|</span><span><kbd>Z</kbd> pase / centro</span><span class="sep">|</span><span><kbd>X</kbd> al espacio · empujón</span><span class="sep">|</span><span><kbd>C</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>↑</kbd><kbd>↑</kbd> adelantar</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro</span><span class="sep">|</span><span><kbd>X</kbd> centro</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd>/<kbd>RB</kbd> empujar</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:KEYS_KB;
  const pk=$('#pauseKeys');if(isTouch&&!G.pad){pk.style.display='none';return;}pk.style.display='';
  pk.innerHTML=G.pad?'🕹️ Palanca: moverse<br><kbd>A</kbd> pase · <kbd>B</kbd> tiro (mantené para cargar) · <kbd>X</kbd> centro · <kbd>Y</kbd> profundidad<br><kbd>LB</kbd>/<kbd>RB</kbd> empujar (arquero: saca con la mano) · <kbd>RT</kbd> correr · <kbd>Start</kbd> pausa'
   :`<div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">▲</span><i></i><span class="kc">◀</span><span class="kc">▼</span><span class="kc">▶</span></div><div class="kl">Moverte</div></div>
-   <div class="kgrp"><div class="zx"><span class="kc big blue">Z</span><span class="kc big red">X</span><span class="kc big">C</span></div><div class="kl"><b style="color:#93c5fd">Pase / centro</b> · <b style="color:#fca5a5">Tiro</b> · Empujar</div></div></div>
+   <div class="kgrp"><div class="zx"><span class="kc big blue">Z</span><span class="kc big">X</span><span class="kc big red">C</span></div><div class="kl"><b style="color:#93c5fd">Pase / centro</b> · Pase al espacio · <b style="color:#fca5a5">Tiro</b></div></div></div>
    <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small></div><div class="kfrow"><span class="kc">▲</span><span class="kc">▲</span><small>Doble toque hacia donde corrés: te la adelantás</small></div></div>
-   <div class="khint">Mantené apretado para cargar: el pase sale más fuerte (al máximo, centro) y el tiro con más potencia.<br>Sin la pelota: <b>pase</b> cambia de jugador o pide la pelota y <b>tiro</b> es barrida (o palomita si la pelota viene alta).<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás.<br><b>Empujar</b> puede ser falta (en el área, ¡penal!). En el saque del medio, cualquier botón es un pase.<br><b>Arquero:</b> <span class="kc sm">C</span> saca con la mano · <span class="kc sm">Z</span> pase por arriba · <span class="kc sm">X</span> patea con todo. <span class="kc sm">Esc</span> pausa.</div>`;}
+   <div class="khint"><span class="kc sm">Z</span> busca al compañero (mantené: más fuerte; al máximo, centro). <span class="kc sm">X</span> la pasa hacia donde apuntás, al espacio vacío. <span class="kc sm">C</span> tiro, cabezazo, palomita o chilena.<br>Sin la pelota: <span class="kc sm">Z</span> cambiás de jugador o pedís la pelota · <span class="kc sm">X</span> empujón (puede ser falta; en el área, ¡penal!) · <span class="kc sm">C</span> barrida.<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás. En el saque del medio, cualquier botón es un pase.<br><b>Arquero:</b> <span class="kc sm">Z</span> pase (al máximo, por arriba) · <span class="kc sm">X</span> saca con la mano · <span class="kc sm">C</span> patea con todo. <span class="kc sm">Esc</span> pausa.</div>`;}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
 function setupView(cfg,roster){
@@ -1230,10 +1242,10 @@ function setupView(cfg,roster){
 function rosterFor(np){const r=[];for(let t=0;t<2;t++)buildForm(np).forEach((f,i)=>r.push({team:t,role:f[0],i}));return r;}
 function viewFromMatch(m){
  const b=m.ball;return{ph:m.phase,tm:m.time,sc:m.score,b:{x:b.x,y:b.y,z:b.z},
-  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0,push:p.push>0,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge,pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
+  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0,push:p.push>0,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge,pch:p.pch>=0?p.pch:(p.xch>=0?p.xch:-1),ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
 }
 function encodeSnap(m,ev){const P=[];const b=m.ball;
- m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0?8:0)|(p.push>0?16:0),p.charge>=0?Math.round(p.charge*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
+ m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0?8:0)|(p.push>0?16:0),p.charge>=0?Math.round(p.charge*20):p.pch>=0?21+Math.round(p.pch*20):p.xch>=0?21+Math.round(p.xch*20):-1);});
  const C=[];for(const H of m.humans.values())if(H.pi>=0)C.push(H.pi,H.id);
  return{t:'s',ph:m.phase,tm:Math.round(m.time*10),sc:m.score,b:[Math.round(b.x*50),Math.round(b.y*50),Math.round(b.z*50)],p:P,c:C,ev};}
 function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),push:!!(s.p[i+3]&16),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
@@ -1403,21 +1415,22 @@ function handleEvents(ev){for(const e of ev){
  if(e.k==='kick')SFX.play('kick',e.v);else if(e.k==='goal'){SFX.play('goal');SFX.play('whistle',1);const kit=G.kits[e.team];banner('¡GOOOL!',e.own?'En contra · '+kit.name:(e.name?e.name+' · ':'')+kit.name,false,2600);if(navigator.vibrate)try{navigator.vibrate(120)}catch(_){}}
  else if(e.k==='restart'){banner(e.kind==='lateral'?'LATERAL':e.kind==='corner'?'CÓRNER':e.kind==='libre'?'TIRO LIBRE':e.kind==='penal'?'¡PENAL!':'SAQUE DE ARCO',e.sub||'',!e.sub,e.kind==='penal'?1800:e.sub?1500:1000);SFX.play('whistle',e.kind==='penal'||e.kind==='libre'?2:1);}
  else if(e.k==='whistle')SFX.play('whistle',e.n||1);
+ else if(e.k==='chilena'){SFX.play('header');banner('¡CHILENA!','',true,900);}
  else if(e.k==='end'){SFX.play('whistle',3);setTimeout(()=>showEnd(e.sc),900);}
  else SFX.play(e.k);}}
 
 /* =========================================================
    ENTRADA (teclado, táctil, joystick)
    ========================================================= */
-const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false,kAt:0,pAt:0,combo:false};let localInp={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0};const KN={c:'',t:0};
-const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KN.c===e.code&&n-KN.t<260){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
+const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false,kAt:0,pAt:0,combo:false};let localInp={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0};const KN={c:'',t:0};
+const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KN.c===e.code&&n-KN.t<420){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code.startsWith('Arrow')){KN.c=e.code;KN.t=performance.now();}});// doble toque: soltar y volver a apretar rápido la misma flecha
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){let mx=0,my=0;
  const kd=c=>keys[c]||latch[c];
  if(kd('ArrowLeft'))mx-=1;if(kd('ArrowRight'))mx+=1;if(kd('ArrowUp'))my-=1;if(kd('ArrowDown'))my+=1;
- // teclado: Z pase (cargado = fuerte, al máximo = centro) · X tiro · C empujar · Shift correr · doble flecha = adelantarla
- let k=kd('KeyX')||kd('Space'),p=kd('KeyZ'),c=0,t=0,e=kd('KeyC'),kn=G.knock?1:0,sp=kd('ShiftLeft')||kd('ShiftRight');G.knock=0;
+ // teclado: Z pase inteligente (cargado = fuerte, al máximo = centro) · X pase al espacio (sin pelota: empujón) · C tiro (sin pelota: barrida) · Shift correr · doble flecha = adelantarla
+ let k=kd('KeyC')||kd('Space'),p=kd('KeyZ'),c=0,t=0,e=0,x=kd('KeyX'),kn=G.knock?1:0,sp=kd('ShiftLeft')||kd('ShiftRight');G.knock=0;
  for(const q in latch)delete latch[q];
  const gps=navigator.getGamepads?navigator.getGamepads():[];for(const gp of gps){if(!gp)continue;const ax=gp.axes[0]||0,ay=gp.axes[1]||0;if(Math.abs(ax)>.2||Math.abs(ay)>.2){mx=ax;my=ay;}
   const bt=gp.buttons;if(bt[14]&&bt[14].pressed)mx=-1;if(bt[15]&&bt[15].pressed)mx=1;if(bt[12]&&bt[12].pressed)my=-1;if(bt[13]&&bt[13].pressed)my=1;
@@ -1431,8 +1444,8 @@ function pollInput(){let mx=0,my=0;
   if(touch.combo){if(!touch.k&&!touch.p)touch.combo=false;else e=1;touch.lk=touch.lp=0;}
   else{const wk=touch.k&&n-touch.kAt<70,wp=touch.p&&n-touch.pAt<70;
    if(!wk){k=k||touch.k||touch.lk;touch.lk=0;}if(!wp){p=p||touch.p||touch.lp;touch.lp=0;}}}const l=len(mx,my);if(l>1){mx/=l;my/=l;}
- if(mx||my||k||p||c||t||e)G.lastAct=performance.now();
- const f=G.flip?-1:1;localInp={mx:Math.round(-my*f*100)/100,my:Math.round(mx*f*100)/100,k:k?1:0,p:p?1:0,c:c?1:0,t:t?1:0,s:sp?1:0,e:e?1:0,kn:kn};}
+ if(mx||my||k||p||c||t||e||x)G.lastAct=performance.now();
+ const f=G.flip?-1:1;localInp={mx:Math.round(-my*f*100)/100,my:Math.round(mx*f*100)/100,k:k?1:0,p:p?1:0,c:c?1:0,t:t?1:0,s:sp?1:0,e:e?1:0,kn:kn,x:x?1:0};}
 (function setupTouch(){const T=$('#touch'),joy=$('#joy'),knob=$('#knob');const btn={};
  const setBtn=(id,on)=>{const el=$(id);el.classList.toggle('on',on);if(id==='#bKick'){touch.k=on?1:0;if(on){touch.lk=1;touch.kAt=performance.now();}}else{touch.p=on?1:0;if(on){touch.lp=1;touch.pAt=performance.now();}}};
  T.addEventListener('pointerdown',e=>{e.preventDefault();SFX.init();touch.used=true;const t=e.target;
@@ -1490,7 +1503,7 @@ function hostData(conn,d){if(!d||typeof d!=='object')return;
   if(Lobby.state==='game'&&G.match){G.match.addHuman({id:hid,name:pl.name,team:pl.team});G.names[hid]=pl.name;conn.send(startMsg());broadcast({t:'roster',names:G.names,pnames:G.match.pnames,homes:G.match.homes});toast(pl.name+' se sumó al partido');}
   broadcastLobby();return;}
  const hid=conn.hid;if(hid==null)return;
- if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push({mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0,c:d.c?1:0,t:d.t?1:0,s:d.s?1:0,e:d.e?1:0,kn:d.kn?1:0});}
+ if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push({mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0,c:d.c?1:0,t:d.t?1:0,s:d.s?1:0,e:d.e?1:0,kn:d.kn?1:0,x:d.x?1:0});}
  else if(d.t==='team'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;movePlayer(pl);broadcastLobby();}
  else if(d.t==='opt'){const pl=Lobby.players.find(p=>p.hid===hid);if(pl)pl.onebtn=!!d.onebtn;const H=G.match&&G.match.humans.get(hid);if(H)H.onebtn=!!d.onebtn;}
  else if(d.t==='slot'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;setSlot(pl,d.v==null?null:d.v);broadcastLobby();}
@@ -1528,10 +1541,10 @@ function clientData(d){if(!d||typeof d!=='object')return;
   case's':if(G.mode!=='client')return;{const v=decodeSnap(d);G.snaps.push({t:performance.now(),v});if(G.snaps.length>12)G.snaps.shift();if(d.ev&&d.ev.length)handleEvents(d.ev);}break;
   case'full':showErr('La sala está llena.');leaveOnline(true);break;
  }}
-let lastSent={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0};
+let lastSent={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0};
 function sendInput(){if(!Net.hostConn||!Net.hostConn.open)return;const i=localInp,now=performance.now(),dt=now-Net.lastSend;
- const btn=i.k!==lastSent.k||i.p!==lastSent.p||i.c!==lastSent.c||i.t!==lastSent.t||i.s!==lastSent.s||i.e!==lastSent.e||i.kn!==lastSent.kn,axis=i.mx!==lastSent.mx||i.my!==lastSent.my;
- if(btn||(axis&&dt>33)||dt>150){lastSent={...i};Net.lastSend=now;try{Net.hostConn.send({t:'in',mx:i.mx,my:i.my,k:i.k,p:i.p,c:i.c,t:i.t,s:i.s,e:i.e,kn:i.kn});}catch(e){}}}
+ const btn=i.k!==lastSent.k||i.p!==lastSent.p||i.c!==lastSent.c||i.t!==lastSent.t||i.s!==lastSent.s||i.e!==lastSent.e||i.kn!==lastSent.kn||i.x!==lastSent.x,axis=i.mx!==lastSent.mx||i.my!==lastSent.my;
+ if(btn||(axis&&dt>33)||dt>150){lastSent={...i};Net.lastSend=now;try{Net.hostConn.send({t:'in',mx:i.mx,my:i.my,k:i.k,p:i.p,c:i.c,t:i.t,s:i.s,e:i.e,kn:i.kn,x:i.x});}catch(e){}}}
 function leaveOnline(silent){Net.leaving=true;try{if(Net.hostConn)Net.hostConn.close();}catch(e){}for(const c of Net.conns.values())try{c.close();}catch(e){}
  Net.conns.clear();Net.hostConn=null;try{if(Net.peer)Net.peer.destroy();}catch(e){}Net.peer=null;Net.opened=false;Net.joined=false;}
 
