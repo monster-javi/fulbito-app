@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.16.1';
+const VERSION='1.16.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -581,6 +581,8 @@ class Match{
   taker.x=x-ix*.55;taker.y=y-iy*.55;taker.dir=taker.face=Math.atan2(iy,ix);taker.vx=taker.vy=0;taker.charge=-1;
   const R=this.map.fmt===11?6:3.5;
   for(const p of this.players)if(p.team!==team){const dx=p.x-x,dy=p.y-y,d=len(dx,dy);if(d<R){const k=R/(d||1);p.x=x+(dx||.1)*k;p.y=y+dy*k;}p.vx=p.vy=0;}
+  if(kind==='arco'){const M=this.map,z=M.fmt>=11?M.box:(M.sbox||M.box),d=this.dirOf(team),gx=-d*this.hl;// rivales afuera del área en el saque de arco
+   for(const p of this.players)if(p.team!==team&&(p.x-gx)*d<z.d+.5&&Math.abs(p.y)<z.w/2+.5)p.x=gx+d*(z.d+.8);}
   this.phase='restart';this.phaseT=1.0;this.restart={team,taker:this.idx(taker),kind};
   this.ev.push({k:'restart',kind,sub:sub||''});
  }
@@ -697,7 +699,7 @@ class Match{
    if(!inp.c&&prev.c&&p.cch>=0){const c=.7+.3*p.cch;p.cch=-1;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);return;}
    // X: pase al espacio, como un tiro: sale hacia donde apuntás (mantené para más fuerza)
    if(p.role!=='gk'){if(inp.x&&!prev.x&&p.charge<0&&p.pch<0)p.xch=0;
-    if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.6);
+    if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.55);
     if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.aimPass(p,c);return;}}
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
@@ -751,8 +753,9 @@ class Match{
   if(best){p.dir=Math.atan2(best.y-p.y,best.x-p.x);this.passTo(p,best,1);}}
  penShot(p){const d=this.dirOf(p.team),gx=d*this.hl,side=Math.random()<.5?-1:1,diff=this.aiFactor(p.team);
   const aimY=side*this.gw*rnd(.35,.85)+rnd(-1,1)*diff.err*this.gw*.6;this.shoot(p,rnd(.55,.9),false,Math.atan2(aimY-p.y,gx-p.x));}
- aimPass(p,c){const b=this.ball,v=10+c*(this.shotMax*.78-10);this.release(p);const a=p.dir;
-  b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.z=0;b.vz=c>.8?(c-.8)*12:0;if(b.vz>0)b.z=.05;this.ev.push({k:'kick',v:.3+c*.4});}
+ aimPass(p,c){// como el tiro (misma carga y potencia) pero por abajo, hacia donde apuntás
+  const b=this.ball,v=this.shotMax*(.45+.55*c);this.release(p);const a=p.dir;
+  b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.z=0;b.vz=0;this.ev.push({k:'kick',v:.3+c*.4});}
  chilena(p){const b=this.ball,d=this.dirOf(p.team),gx=d*this.hl,H=p.ctrl!=null?this.humans.get(p.ctrl):null;
   let ang=H&&len(H.inp.mx,H.inp.my)>.3?Math.atan2(H.inp.my,H.inp.mx):Math.atan2(-p.y,gx-p.x);
   this.ballTo(p);p.dir=ang;this.shoot(p,.9,true,ang);b.vz=Math.min(b.vz,2.5);p.down=.7;p.stun=Math.max(p.stun,.8);p.cool=.6;this.ev.push({k:'chilena'});}
@@ -1030,7 +1033,11 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
   this.ballTo(best);
  }
  gkClear(){const b=this.ball;if(b.owner<0)return;const g=this.players[b.owner];if(g.role!=='gk'||!(g.hold>0||g.lock>0))return;
-  const M=this.map,z=g.gkKick?M.box:(M.sbox||M.box),d=this.dirOf(g.team),gx=-d*this.hl;
+  const M=this.map;
+  // F11 (reglamento): en el saque de arco los rivales tienen que estar fuera del área grande hasta que la pelota está en juego;
+  // con la pelota en las manos los rivales pueden estar adentro (pero no le pueden sacar la pelota). Los compañeros, siempre libres.
+  if(M.fmt>=11&&!g.gkKick)return;
+  const z=g.gkKick?M.box:(M.sbox||M.box),d=this.dirOf(g.team),gx=-d*this.hl;
   for(const q of this.players){if(q.team===g.team)continue;if((q.x-gx)*d<z.d+.5&&Math.abs(q.y)<z.w/2+.5)q.x=gx+d*(z.d+.5);}}
  gkDistribute(p){const d=this.dirOf(p.team),club=this.cfg.mode==='club';
   if(this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<6)){// lo apuran: la tira lejos, por arriba, al compañero más adelantado
@@ -1242,10 +1249,10 @@ function setupView(cfg,roster){
 function rosterFor(np){const r=[];for(let t=0;t<2;t++)buildForm(np).forEach((f,i)=>r.push({team:t,role:f[0],i}));return r;}
 function viewFromMatch(m){
  const b=m.ball;return{ph:m.phase,tm:m.time,sc:m.score,b:{x:b.x,y:b.y,z:b.z},
-  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0,push:p.push>0,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge,pch:p.pch>=0?p.pch:(p.xch>=0?p.xch:-1),ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
+  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0,push:p.push>0,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
 }
 function encodeSnap(m,ev){const P=[];const b=m.ball;
- m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0?8:0)|(p.push>0?16:0),p.charge>=0?Math.round(p.charge*20):p.pch>=0?21+Math.round(p.pch*20):p.xch>=0?21+Math.round(p.xch*20):-1);});
+ m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0?8:0)|(p.push>0?16:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
  const C=[];for(const H of m.humans.values())if(H.pi>=0)C.push(H.pi,H.id);
  return{t:'s',ph:m.phase,tm:Math.round(m.time*10),sc:m.score,b:[Math.round(b.x*50),Math.round(b.y*50),Math.round(b.z*50)],p:P,c:C,ev};}
 function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),push:!!(s.p[i+3]&16),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
