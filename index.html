@@ -338,7 +338,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.17.0';
+const VERSION='1.17.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1224,7 +1224,7 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const fitW=VW/(M.W+mg*2),fitAll=Math.min(fitW,VH/(M.L+mg*2));
  let ppm;
  if(M.fmt<=6)ppm=Math.max(Math.min(VW/13,VH/20),fitAll);// cancha chica: mismo zoom en celu que en compu
- else{const minL=M.fmt===9?30:38;ppm=Math.max(Math.min(fitW,VH/minL),M.fmt===11?17:14,fitAll);}
+ else{const minL=M.fmt===9?30:38;ppm=Math.max(Math.min(fitW,VH/minL),M.fmt===11?17:14,fitAll);if(M.fmt===11&&isTouch)ppm*=1.15;}// celu: F11 (LIDE) un 15% más cerca
  G.ppm=ppm;
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
