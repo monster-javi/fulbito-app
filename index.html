@@ -267,7 +267,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    <p>🕹️ <b>Moverte:</b> joystick con el dedo izquierdo (o flechas).</p>
    <p>🔴 <b>Patear:</b> mantené para cargar y soltá. Sin la pelota, es barrida.</p>
    <p>🔵 <b>Pase:</b> al compañero que tenés adelante. Sin la pelota, cambiás de jugador.</p>
-   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> o <kbd>S</kbd> pase · <kbd>X</kbd> o <kbd>D</kbd> tiro · <kbd>A</kbd> centro · <kbd>W</kbd> profundidad · <kbd>Shift</kbd> correr.</p>
+   <p>⌨️ <b>En la compu:</b> flechas para moverte · <kbd>Z</kbd> centro · <kbd>X</kbd> pase · <kbd>C</kbd> tiro · <kbd>Shift</kbd> correr.</p>
    <p>👥 <b>Con amigos:</b> uno crea la sala y pasa el código de 4 números.</p>
   </details>
   <footer class="foot">Fulbito App <span class="ver" id="verHome"></span></footer>
@@ -337,7 +337,7 @@ input::placeholder{color:#6f877a;font-weight:600}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.12.0';
+const VERSION='1.13.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -510,7 +510,7 @@ class Match{
   this.shootRange=f===11?25:f===9?17:11.5;
   this.fr0=M.surf==='grass'?2.3:1.9;this.fr1=M.surf==='grass'?.62:.55;
   {const bp=(BALLS[cfg.ball]||BALLS.comun).phys;this.shotMax*=bp[0];this.airK=.15*bp[1];this.bounceK=bp[2];this.fr0*=bp[3];this.fr1*=bp[3];}
-  this.loose=!!cfg.loose;this.weather=cfg.weather||'seca';this.accK=1;this.slideK=.975;
+  this.loose=false;this.weather=cfg.weather||'seca';this.accK=1;this.slideK=.975;
   if(this.weather==='mojada'){this.fr0*=.62;this.fr1*=.75;this.bounceK*=.75;this.accK=.72;this.slideK=.988;}
   else if(this.weather==='barro'){this.fr0*=1.5;this.fr1*=1.4;this.bounceK*=.45;this.spd*=.92;this.accK=.85;this.slideK=.955;}
   this.players=[];
@@ -1105,16 +1105,14 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
 }
-const KEYS_KB=`<span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> moverse</span><span class="sep">|</span><span><kbd>S</kbd>/<kbd>Z</kbd> pase</span><span class="sep">|</span><span><kbd>D</kbd>/<kbd>X</kbd> tiro</span><span class="sep">|</span><span><kbd>A</kbd> centro</span><span class="sep">|</span><span><kbd>W</kbd> profundidad</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
+const KEYS_KB=`<span><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd> moverse</span><span class="sep">|</span><span><kbd>Z</kbd> centro</span><span class="sep">|</span><span><kbd>X</kbd> pase</span><span class="sep">|</span><span><kbd>C</kbd> tiro</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro</span><span class="sep">|</span><span><kbd>X</kbd> centro</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:KEYS_KB;
  const pk=$('#pauseKeys');if(isTouch&&!G.pad){pk.style.display='none';return;}pk.style.display='';
  pk.innerHTML=G.pad?'🕹️ Palanca: moverse<br><kbd>A</kbd> pase · <kbd>B</kbd> tiro (mantené para cargar) · <kbd>X</kbd> centro · <kbd>Y</kbd> profundidad<br><kbd>RT</kbd> correr · <kbd>Start</kbd> pausa'
   :`<div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">▲</span><i></i><span class="kc">◀</span><span class="kc">▼</span><span class="kc">▶</span></div><div class="kl">Moverte</div></div>
-   <div class="kgrp"><div class="zx"><span class="kc big blue">Z</span><span class="kc big red">X</span></div><div class="kl"><b style="color:#93c5fd">Pase</b> · <b style="color:#fca5a5">Tiro</b></div></div></div>
-   <div class="kfifa"><div class="kl" style="margin-bottom:6px">Estilo FIFA</div><div class="kfrow"><span class="kc">W</span><small>Profundidad</small></div>
-    <div class="kfrow"><span class="kc">A</span><small>Centro</small><span class="kc blue">S</span><small>Pase</small><span class="kc red">D</span><small>Tiro</small></div>
-    <div class="kfrow"><span class="kc wide">Shift</span><small>Correr (o E)</small></div></div>
+   <div class="kgrp"><div class="zx"><span class="kc big">Z</span><span class="kc big blue">X</span><span class="kc big red">C</span></div><div class="kl">Centro · <b style="color:#93c5fd">Pase</b> · <b style="color:#fca5a5">Tiro</b></div></div></div>
+   <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small><span class="kc">V</span><small>Pase en profundidad</small></div></div>
    <div class="khint">Mantené apretado para cargar: el pase sale más fuerte (al máximo, centro) y el tiro con más potencia.<br>Sin la pelota: <b>pase</b> cambia de jugador o pide la pelota y <b>tiro</b> es barrida (o palomita si la pelota viene alta).<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás. <span class="kc sm">Esc</span> pausa.</div>`;}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
@@ -1309,8 +1307,8 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){let mx=0,my=0;
  const kd=c=>keys[c]||latch[c];
  if(kd('ArrowLeft'))mx-=1;if(kd('ArrowRight'))mx+=1;if(kd('ArrowUp'))my-=1;if(kd('ArrowDown'))my+=1;
- // estilo FIFA: S pase · D tiro · A centro · W profundidad · E/Shift correr — y Z pase / X tiro
- let k=kd('KeyD')||kd('KeyX')||kd('Space'),p=kd('KeyS')||kd('KeyZ'),c=kd('KeyA'),t=kd('KeyW'),sp=kd('KeyE')||kd('ShiftLeft')||kd('ShiftRight');
+ // teclado: Z centro · X pase · C tiro · Shift correr · V profundidad
+ let k=kd('KeyC')||kd('Space'),p=kd('KeyX'),c=kd('KeyZ'),t=kd('KeyV'),sp=kd('ShiftLeft')||kd('ShiftRight');
  for(const q in latch)delete latch[q];
  const gps=navigator.getGamepads?navigator.getGamepads():[];for(const gp of gps){if(!gp)continue;const ax=gp.axes[0]||0,ay=gp.axes[1]||0;if(Math.abs(ax)>.2||Math.abs(ay)>.2){mx=ax;my=ay;}
   const bt=gp.buttons;if(bt[14]&&bt[14].pressed)mx=-1;if(bt[15]&&bt[15].pressed)mx=1;if(bt[12]&&bt[12].pressed)my=-1;if(bt[13]&&bt[13].pressed)my=1;
@@ -1510,7 +1508,6 @@ function renderSettings(el,ro){
  h+=sec(n++,'Partido')+`<div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
  {const M=mapById(R.map),wo=M.surf==='cement'?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
   h+=`<div><div class="lbl">Cancha</div><div class="chips">${wo.map(([k,l])=>chip('weather',k,(k==='mojada'?'🌧️ ':k==='barro'?'🟫 ':'☀️ ')+l)).join('')}</div></div>`;
-  h+=`<div><div class="lbl">Pelota suelta</div><div class="chips">${chip('loose',0,'No')}${chip('loose',1,'Sí, estilo Sensible')}</div></div>`;
   if(S.mode==='solo')h+=`<div><div class="lbl">Botones</div><div class="chips">${chip('onebtn',0,'Normal')}${chip('onebtn',1,'Un botón')}</div></div>`;}
  if(S.mode==='solo')h+=`<div><div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div></div>`;
  if(st.mode==='cole')h+=`<div><div class="lbl">Pelota</div><div class="chips">${['comun','pulpo','goma'].map(k=>`<button class="chip ${(st.ballCole||'comun')===k?'sel':''}" data-k="ballCole" data-v="${k}" ${ro?'disabled':''}><span class="bdot" style="background:${BALLS[k].base}"></span>${BALLS[k].name}</button>`).join('')}</div></div>`;
@@ -1587,7 +1584,7 @@ function hostStartMatch(){
  validateSlots();
  const humans=Lobby.players.map(p=>({id:p.hid,name:(p.slot!=null&&st.lineupT[p.team][p.slot])||p.name,team:p.team,slot:p.slot,onebtn:p.hid===0?!!st.onebtn:!!p.onebtn}));
  G.names=Object.fromEntries(humans.map(h=>[h.id,h.name]));
- const cfg={map:R.map,np:R.np,ball:R.ball,loose:!!st.loose,weather:st.weather,dur:st.dur,diff:'normal',ctrl:st.ctrl,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:'normal',ctrl:st.ctrl,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
  Lobby.state='game';broadcastLobby();
  G.mode='host';G.match=new Match(cfg);G.myTeam=humans.find(h=>h.id===0).team;setupView(cfg,rosterFor(R.np));
  broadcast(startMsg());goFullscreen();
@@ -1598,7 +1595,7 @@ function startClientGame(d){
 }
 function startSolo(){
  const st=S.settings,R=normalizeSettings(st),me=st.me,nm=(me!=null&&st.lineup[me])||S.name||'Vos';
- const cfg={map:R.map,np:R.np,ball:R.ball,loose:!!st.loose,weather:st.weather,dur:st.dur,diff:st.diff,ctrl:st.ctrl,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:[{id:0,name:nm,team:st.side,slot:me,onebtn:!!st.onebtn}]};
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:st.diff,ctrl:st.ctrl,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:[{id:0,name:nm,team:st.side,slot:me,onebtn:!!st.onebtn}]};
  G.mode='solo';G.myHid=0;G.myTeam=st.side;G.names={0:nm};G.match=new Match(cfg);setupView(cfg,rosterFor(R.np));goFullscreen();
 }
 function showGameUI(on){
@@ -1614,11 +1611,10 @@ function renderPauseOpts(){const el=$('#pauseOpts');if(!G.mode){el.innerHTML='';
  const H=m&&m.humans.get(G.myHid);const ob=H?H.onebtn:!!G.myOneBtn,lo=m?m.loose:false,ct=m?m.cfg.ctrl:'libre';
  const ch=(g,v,l,on)=>`<button class="chip ${on?'sel':''}" data-po="${g}" data-v="${v}">${l}</button>`;
  let h=`<div class="kl" style="margin-bottom:6px">Modo de juego</div><div class="porow"><span>Botones</span><div class="chips">${ch('ob',0,'Normal',!ob)}${ch('ob',1,'Un botón',ob)}</div></div>`;
- if(canAll)h+=`<div class="porow"><span>Pelota suelta</span><div class="chips">${ch('lo',0,'No',!lo)}${ch('lo',1,'Sí',lo)}</div></div><div class="porow"><span>Control</span><div class="chips">${ch('ct','libre','Libre',ct!=='fijo')}${ch('ct','fijo','Fijo',ct==='fijo')}</div></div>`;
+ if(canAll)h+=`<div class="porow"><span>Control</span><div class="chips">${ch('ct','libre','Libre',ct!=='fijo')}${ch('ct','fijo','Fijo',ct==='fijo')}</div></div>`;
  el.innerHTML=h;
  el.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{const g=b.dataset.po,v=b.dataset.v;
   if(g==='ob'){const on=v==='1';if(H)H.onebtn=on;G.myOneBtn=on;if(G.mode==='client'&&Net.hostConn)Net.hostConn.send({t:'opt',onebtn:on});else{S.settings.onebtn=on?1:0;saveSettings();}}
-  else if(g==='lo'&&m){m.loose=v==='1';S.settings.loose=m.loose?1:0;saveSettings();}
   else if(g==='ct'&&m){m.cfg.ctrl=v;S.settings.ctrl=v;saveSettings();}
   renderPauseOpts();});}
 function togglePause(force){const on=force!=null?force:!$('#sPause').classList.contains('on');if(on)renderPauseOpts();
