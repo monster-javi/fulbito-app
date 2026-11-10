@@ -48,6 +48,15 @@ input::placeholder{color:#6f877a;font-weight:600}
  background:linear-gradient(180deg,#ffe066,#ffc21a);box-shadow:0 5px 0 #b3830f,0 14px 24px rgba(255,190,30,.25);transition:transform .08s}
 .cta:active{transform:translateY(3px);box-shadow:0 2px 0 #b3830f}
 .cta small{display:block;font-size:12px;font-weight:700;opacity:.7}
+.cta.two{background:linear-gradient(180deg,#7dd3fc,#38bdf8);margin-top:10px;font-size:17px;padding:12px 18px}
+.swrow{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-weight:800;font-size:14px;color:#cfe0d6;cursor:pointer}
+.swl{position:relative;display:inline-block;width:46px;height:26px;flex:none;cursor:pointer}.swl input{position:absolute;opacity:0;width:0;height:0}
+.swl i{position:absolute;inset:0;border-radius:99px;background:#3a4a43;transition:.15s}.swl i:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+.swl input:checked+i{background:#ffd23f}.swl input:checked+i:after{left:23px}
+.dtrow{display:flex;align-items:center;gap:8px;margin-top:10px}.dtrow input{flex:1;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:8px 10px;font:inherit;font-weight:700}
+.padart{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;align-items:center;margin:4px 0 2px}.padart .pb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:800;color:#cfe0d6}
+.padart .pb b{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.padart .pb b.sq{border-radius:9px;width:44px;font-size:12px;background:#4b5563}
 .cta .ci{width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:16px}
 .cta>span:last-child{text-align:left;line-height:1.15}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
@@ -259,6 +268,8 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    <div class="lbl">Tu nombre</div>
    <div class="field"><span class="ico">👤</span><input id="nameIn" maxlength="14" placeholder="Ej: Tomi" autocomplete="off" enterkeyhint="done"></div>
    <button class="cta" id="bSolo"><span class="ci">▶</span><span>Jugar solo<small>Contra la máquina</small></span></button>
+   <button class="cta two" id="bTwo"><span class="ci">👥</span><span>Jugar de a 2<small>En esta compu: teclado + joystick</small></span></button>
+   <label class="swrow"><span>✋ Zurdo</span><span class="swl"><input type="checkbox" id="zurdoSw"><i></i></span></label>
    <div class="grid2">
     <button class="tile green" id="bCreate"><span class="tico">🏟️</span><b>Crear sala</b><small>Invitá a tus amigos con un código</small></button>
     <div class="tile blue join"><b>Unirme</b><small>Código de la sala</small><input id="codeIn" maxlength="4" placeholder="1234" autocomplete="off" inputmode="numeric" pattern="[0-9]*"><button id="bJoin">Entrar</button></div>
@@ -341,7 +352,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.18.0';
+const VERSION='1.19.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -442,6 +453,25 @@ const LIDE_RIVALS=[
  {id:'maipu',name:'A.F. Villa Maipú',short:'VMA',shirt:'#18181b',sleeve:'#18181b',shorts:'#18181b',socks:'#18181b',field:'sint'},
  {id:'vilo',name:'Vilo "B"',short:'VIL',shirt:'#f3f3f0',sleeve:'#c8102e',shorts:'#c8102e',socks:'#169447',field:'nat'},
 ];
+const lr=(id,name,short,shirt,shorts,socks,x={})=>({id,name,short,shirt,sleeve:shirt,shorts,socks,field:'sint',...x});
+const RIVER=(id,apodo)=>({id,name:'River Plate "'+apodo+'"',short:'RIV',shirt:'#f3f3f0',sleeve:'#f3f3f0',sash:'#d7263d',shorts:'#18181b',socks:'#f3f3f0',field:'nat'});
+const LIDE_ZONES={blanco:LIDE_RIVALS,
+ rojo:[lr('harrodsc','Club Harrods Celeste','HAR','#6cc4f0','#1f3b7a','#6cc4f0',{field:'nat'}),RIVER('riverba','B. Alonso'),lr('cissabaz','Cissab Azul','CIS','#2457d6','#f3f3f0','#2457d6'),
+  lr('macabi','Macabi Azul','MAC','#1f3b9a','#f3f3f0','#1f3b9a'),lr('hebraica','Hebraica','HEB','#f3f3f0','#1f3b9a','#f3f3f0',{sleeve:'#1f3b9a'}),lr('sanfer','Club San Fernando Azul','SFE','#1f3b7a','#f3f3f0','#1f3b7a',{field:'nat'}),
+  lr('asturb','Centro Asturiano Blanco','AST','#f3f3f0','#1f5fbf','#f3f3f0'),lr('messina','Esc. Daniel Messina','EDM','#9aa0aa','#18181b','#9aa0aa'),lr('trovaz','Círculo Trovador Azul','TRO','#2457d6','#f7d21c','#2457d6'),
+  lr('bancon','Banco Ciudad Negro','BCN','#18181b','#18181b','#f3f3f0'),lr('libaz','Libertador F.C. Azul','LIB','#1f3b9a','#18181b','#1f3b9a')],
+ azul:[lr('argcb','Argentinos Jr. "C. Borghi"','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),lr('asturaz','Centro Asturiano Azul','AST','#1f5fbf','#f3f3f0','#1f5fbf'),lr('cissabna','Cissab Naranja','CIS','#f77f00','#18181b','#f77f00'),
+  lr('tiki','Tiki-Tiki F.C.','TIK','#18181b','#18181b','#2457d6',{sleeve:'#2457d6'}),lr('hacoaj','Náutico Hacoaj Azul','HAC','#2457d6','#f3f3f0','#2457d6',{field:'nat'}),lr('argsm','Argentinos Jr. San Martín','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),
+  lr('trovbl','Círculo Trovador Blanco','TRO','#f3f3f0','#2457d6','#f3f3f0'),lr('arqui','Arquitectura Rojo','ARQ','#c8102e','#18181b','#c8102e'),lr('vilod','Vilo "D"','VIL','#f3f3f0','#c8102e','#169447',{sleeve:'#c8102e',field:'nat'}),
+  lr('galicia','Centro Galicia Azul','GAL','#1f5fbf','#f3f3f0','#1f5fbf'),lr('bancob','Banco Ciudad Blanco','BCB','#f3f3f0','#18181b','#f3f3f0')],
+ verde:[lr('argjps','Argentinos Jr. "J.P. Sorín"','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),RIVER('riverrd','R. Díaz'),lr('libce','Libertador F.C. Celeste','LIB','#6cc4f0','#18181b','#6cc4f0'),
+  lr('asturam','Centro Asturiano Amarillo','AST','#f7d21c','#1f5fbf','#f7d21c'),lr('afalpv','Afalp','AFA','#169447','#f3f3f0','#169447'),lr('regrojo','Regatas Rojo','REG','#c8102e','#f3f3f0','#c8102e',{field:'nat'}),
+  lr('sitas','Sitas Verde','SIT','#169447','#f3f3f0','#169447',{field:'nat'}),lr('argng','Argentinos Jr. "N. González"','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),lr('molinos','Los Molinos','MOL','#1f3b9a','#1f3b9a','#c8102e',{sleeve:'#c8102e'}),
+  lr('bancoa','Banco Ciudad Azul','BCA','#2457d6','#18181b','#2457d6'),lr('banfield','C.A. Banfield Blanco','BAN','#f3f3f0','#f3f3f0','#138a3f',{sleeve:'#138a3f',field:'nat'})]};
+const LIDE_TEAMS=[['blanco','Italiano Blanco'],['rojo','Italiano Rojo'],['azul','Italiano Azul'],['verde','Italiano Verde']];
+const ALL_LIDE=Object.values(LIDE_ZONES).flat();
+const lideZone=st=>LIDE_ZONES[st.lideTeam]||LIDE_RIVALS;
+function itaLideKit(t){if(!t||t==='blanco')return ITA_BLANCO;const n=LIDE_TEAMS.find(x=>x[0]===t);return{...ITA_BLANCO,id:'ita-lide-'+t,name:n?n[1]:'Italiano',short:'ITA'};}// mismo conjunto: son distintas ligas
 const ROSTERS={};
 const POSN={def:'Def',med:'Med',del:'Del'};
 const MODES=[{id:'cole',name:'Fulbito en el Cole'},{id:'club',name:'Club Italiano'},{id:'lide',name:'LIDE'}];
@@ -452,12 +482,12 @@ function clashFix(fixed,k){if(colDist(fixed.shirt,k.shirt)>=120)return k;const l
 function rivalOptions(st){
  if(st.mode==='cole'){const me=mapById(st.school).school;return KITSETS.colegio.all.filter(k=>k.id!==me);}
  if(st.mode==='club'){const c=CATS[st.cat];return[...c.rivals.map(r=>CLUB_RIVALS[r]),...c.ita.filter(x=>x!==st.ita).map(italKit)];}
- return LIDE_RIVALS;}
+ return lideZone(st);}
 function resolveSetup(st){
  let map,A,B,itaTeam=0;
  if(st.mode==='cole'){map=st.school;const M=mapById(map);A=KITSETS.colegio.all.find(k=>k.id===M.school);const o=rivalOptions(st);B=o.find(k=>k.id===st.coleRival)||o[0];}
  else if(st.mode==='club'){map='itainf';A=italKit(st.ita);const o=rivalOptions(st);B=o.find(k=>k.id===st.clubRival)||o[0];}
- else{const rv=LIDE_RIVALS.find(r=>r.id===st.lideRival)||LIDE_RIVALS[0];if(st.venue==='away'){map='away:'+rv.id;A=rv;B=ITA_BLANCO;itaTeam=1;}else{map=st.venue==='home1'?'ita1':'ita11';A=ITA_BLANCO;B=rv;}}
+ else{const Z=lideZone(st),rv=Z.find(r=>r.id===st.lideRival)||Z[0],IK=itaLideKit(st.lideTeam);if(st.venue==='away'){map='away:'+rv.id;A=rv;B=IK;itaTeam=1;}else{map=st.venue==='home1'?'ita1':'ita11';A=IK;B=rv;}}
  if(itaTeam===0)B=clashFix(A,B);else A=clashFix(B,A); // si se parecen, cambia la del rival
  const ball=st.mode==='club'?'naranja':st.mode==='lide'?'blanca':(BALLS[st.ballCole]?st.ballCole:'comun');
  const kits=[A,B],np=st.mode==='club'?CATS[st.cat].np:st.mode==='cole'?(+st.coleNp===6?6:5):mapById(map).fmt;return{map,np,ball,kits,itaTeam,rosters:kits.map(k=>rosterOf(st,k))};}
@@ -467,10 +497,11 @@ function normalizeSettings(st){
  if(!CATS[st.cat])st.cat='infantiles';
  const c=CATS[st.cat];if(!c.ita.includes(st.ita))st.ita=c.ita.includes('rojo')?'rojo':c.ita[0];
  if(!['home1','home','away'].includes(st.venue))st.venue='home1';
+ if(!LIDE_ZONES[st.lideTeam])st.lideTeam='blanco';
  const key=st.mode+'Rival',opts=rivalOptions(st);if(!opts.find(k=>k.id===st[key]))st[key]=opts[0].id;
  if(st.play!=='rival')st.play='ita';if(st.ctrl!=='fijo')st.ctrl='libre';st.loose=+st.loose===1?1:0;st.onebtn=+st.onebtn===1?1:0;if(!['seca','mojada','barro'].includes(st.weather))st.weather='seca';
- const R=resolveSetup(st);st.map=R.map;st.np=R.np;if(st.weather==='barro'&&mapById(R.map).surf==='cement')st.weather='seca';st.side=st.play==='ita'?R.itaTeam:1-R.itaTeam;
- for(const k of['lineups','mes','forms'])if(!st[k]||typeof st[k]!=='object')st[k]={};
+ const R=resolveSetup(st);st.map=R.map;st.np=R.np;{const M0=mapById(R.map);if(st.weather==='barro'&&(M0.surf==='cement'||/Sintético/.test(M0.sub||'')))st.weather='seca';}st.side=st.play==='ita'?R.itaTeam:1-R.itaTeam;
+ for(const k of['lineups','mes','forms','dts'])if(!st[k]||typeof st[k]!=='object')st[k]={};
  st.coleNp=+st.coleNp===6?6:5;
  st.keyT=[0,1].map(t=>lineupKey(st,R.kits[t],R.np));
  st.lineupT=st.keyT.map(k=>{let L=st.lineups[k];if(!Array.isArray(L)||L.length!==R.np)L=st.lineups[k]=Array(R.np).fill('');return L;});
@@ -478,13 +509,14 @@ function normalizeSettings(st){
  const lk=st.lkey=st.keyT[st.side];st.lineup=st.lineupT[st.side];st.form=st.formT[st.side];
  let me=st.mes[lk];if(!(me>=1&&me<R.np))me=null;
  st.me=me;return R;}
+function dtField(st,key){return`<div class="dtrow"><span class="lbl" style="margin:0">DT</span><input class="dtIn" data-dtkey="${esc(key)}" maxlength="14" value="${esc((st.dts&&st.dts[key])||'')}" placeholder="Nombre del técnico"></div>`;}
 function lineupKey(st,kit,np){return st.mode+':'+(st.mode==='club'?st.cat+':':'')+kit.id+':'+np;}
 const AWAY_T={
  nat:{fmt:11,L:96,W:62,goalW:9,goalH:3,walls:false,surf:'grass',cR:9.15,box:{d:16.5,w:40.3},sbox:{d:5.5,w:18.32},spot:11,netD:2,gkSpot:5.5,th:{g1:'#4a8a35',g2:'#54943c',run:'#3d7a2c',line:'#ecebe2',banner:true,natural:true}},
  sint:{fmt:11,L:100,W:64,goalW:9,goalH:3,walls:false,surf:'grass',cR:9.15,box:{d:16.5,w:40.3},sbox:{d:5.5,w:18.32},spot:11,netD:2,gkSpot:5.5,th:{g1:'#2f8f3a',g2:'#2a8234',run:'#226a2b',line:'#f4f4f4',banner:true}}};
 const AWAYC={};
 function mapById(id){
- if(typeof id==='string'&&id.startsWith('away:')){if(AWAYC[id])return AWAYC[id];const R=LIDE_RIVALS.find(r=>r.id===id.slice(5))||LIDE_RIVALS[0],T=AWAY_T[R.field];
+ if(typeof id==='string'&&id.startsWith('away:')){if(AWAYC[id])return AWAYC[id];const R=ALL_LIDE.find(r=>r.id===id.slice(5))||LIDE_RIVALS[0],T=AWAY_T[R.field];
   return AWAYC[id]={...T,id,name:'Cancha de '+R.name,sub:(R.field==='nat'?'Pasto natural':'Sintético')+' · Fútbol 11',th:{...T.th,bannerText:R.name.toUpperCase().replace(/"/g,''),bannerCols:[R.shirt,'#f4f4f4',R.sash||R.shorts]}};}
  return MAPS.find(m=>m.id===id)||MAPS[0];}
 function hexRGB(h){const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255];}
@@ -728,7 +760,7 @@ class Match{
   }
  }
  /* ---- acciones ---- */
- release(p){p.gkKick=false;const b=this.ball;b.gkLong=p.role==='gk'&&this.cfg.mode==='club'?{team:p.team}:null;b.at=p.ctrl!=null?{h:p.ctrl,t:this.cfg.sensible?1.15:.55}:null;b.owner=-1;b.last=this.idx(p);b.lastTeam=p.team;b.gkRoll=-1;b.passTo=-1;p.cool=.3;p.hold=0;p.lock=0;p.charge=-1;}
+ release(p){p.gkKick=false;const b=this.ball;b.gkLong=p.role==='gk'&&this.cfg.mode==='club'?{team:p.team}:null;b.at=p.ctrl!=null?{h:p.ctrl,t:this.cfg.sensible?.95:.55}:null;b.owner=-1;b.last=this.idx(p);b.lastTeam=p.team;b.gkRoll=-1;b.passTo=-1;p.cool=.3;p.hold=0;p.lock=0;p.charge=-1;}
  shoot(p,charge,human,aim){
   const b=this.ball,d=this.dirOf(p.team),gx=d*this.hl;let ang=aim!=null?aim:p.dir;
   if(p.role==='gk'&&human){const f=this.map.fmt,[d0,d1]=f>=11?[28,58]:f>=9?[18,36]:[11,24],D=d1*(.88+.12*charge);
@@ -754,7 +786,7 @@ class Match{
   tx=clamp(tx,-this.hl+.6,this.hl-.6);ty=clamp(ty,-this.hw+.6,this.hw-.6);
   if(p.role==='gk'&&this.cfg.mode==='club'){const dd=this.dirOf(p.team);if(tx*dd>-.8)tx=-.8*dd;}
   const bl=this.blocked(p,tx,ty),gkLob=p.role==='gk'&&p.ctrl==null&&d>5&&(bl<2.2||this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<7));
-  const gkH=p.role==='gk'&&p.ctrl!=null;this.kickTo(p,tx,ty,cross||(!gkH&&(d>28||(bl<.8&&d>12)))||gkLob,cross?1.3:power);this.ball.passTo=this.idx(m);m.req=null;}
+  const gkH=p.role==='gk'&&p.ctrl!=null;this.kickTo(p,tx,ty,cross||(!gkH&&(d>28||(bl<.8&&d>12)))||gkLob,cross?1.3:power);if(this.ball.at)this.ball.at.pass=true;this.ball.passTo=this.idx(m);m.req=null;}
  blockedLob(p){return p.role==='gk';}
  oneBtn(p,H,dt,own,m){const inp=H.inp,prev=H.prev,f=inp.k||inp.p||inp.c||inp.t,pf=prev.k||prev.p||prev.c||prev.t;
   if(own){if(f&&!pf)p.obT=0;
@@ -769,7 +801,7 @@ class Match{
  penShot(p){const d=this.dirOf(p.team),gx=d*this.hl,side=Math.random()<.5?-1:1,diff=this.aiFactor(p.team);
   const aimY=side*this.gw*rnd(.35,.85)+rnd(-1,1)*diff.err*this.gw*.6;this.shoot(p,rnd(.55,.9),false,Math.atan2(aimY-p.y,gx-p.x));}
  aimPass(p,c){// como el tiro (misma carga y potencia) pero por abajo, hacia donde apuntás
-  const b=this.ball,v=this.shotMax*(.45+.55*c);this.release(p);const a=p.dir;
+  const b=this.ball,v=this.shotMax*(.45+.55*c);this.release(p);if(b.at)b.at.pass=true;const a=p.dir;
   b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.z=0;b.vz=0;this.ev.push({k:'kick',v:.3+c*.4});}
  chilena(p){const b=this.ball,d=this.dirOf(p.team),gx=d*this.hl,H=p.ctrl!=null?this.humans.get(p.ctrl):null;
   let ang=H&&len(H.inp.mx,H.inp.my)>.3?Math.atan2(H.inp.my,H.inp.mx):Math.atan2(-p.y,gx-p.x);
@@ -831,10 +863,10 @@ class Match{
   else ang=dist<this.shootRange*1.3?toGoal:(d>0?0:Math.PI)+rnd(-.6,.6);
   const sp=p.dive?Math.min(20,this.shotMax*.75):Math.min(13,this.shotMax*.5);
   this.release(p);p.dir=ang;b.vx=Math.cos(ang)*sp;b.vy=Math.sin(ang)*sp;b.vz=p.dive?.6:1.5;p.cool=.4;this.ev.push({k:'header'});}
- aftertouch(dt){const b=this.ball,a=b.at;if(!a||b.owner>=0)return;a.t-=dt;if(a.t<=0||a.t>(this.cfg.sensible?1.07:.47)){if(a.t<=0)b.at=null;return;}
+ aftertouch(dt){const b=this.ball,a=b.at;if(!a||b.owner>=0)return;a.t-=dt;if(a.t<=0||a.t>(this.cfg.sensible?.87:.47)){if(a.t<=0)b.at=null;return;}
   const H=this.humans.get(a.h);if(!H)return;const v=len(b.vx,b.vy);if(v<4)return;const ux=b.vx/v,uy=b.vy/v,ix=H.inp.mx,iy=H.inp.my;if(len(ix,iy)<.3)return;
   const lat=ux*iy-uy*ix,fwd=ux*ix+uy*iy,k=Math.min(1,v/18);
-  const cb=this.cfg.sensible?50:26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
+  const cb=this.cfg.sensible?(a.pass?30:42):26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
   if(fwd<-.35){b.vz+=7*dt;if(b.z<=0)b.z=.02;}else if(fwd>.6&&b.z>0)b.vz-=4*dt;}// atrás la levanta, adelante la baja
  looseOwned(){const b=this.ball;if(b.owner<0||!this.loose)return false;const o=this.players[b.owner];return!(o.role==='gk'&&o.hold>0)&&o.lock<=0;}
  looseDribble(o){const b=this.ball,dx=b.x-o.x,dy=b.y-o.y,d=len(dx,dy);
@@ -1248,15 +1280,15 @@ const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const K=kbSet();
  const pk=$('#pauseKeys');if(isTouch&&!G.pad){pk.style.display='none';return;}pk.style.display='';
- pk.innerHTML=G.pad?'🕹️ Palanca: moverse · stick derecho: te la adelantás<br>Con la pelota: <kbd>A</kbd> pase · <kbd>B</kbd> tiro (mantené para cargar) · <kbd>X</kbd> centro · <kbd>Y</kbd> profundidad<br>Sin la pelota: <kbd>LB</kbd> cambiar jugador · <kbd>B</kbd> hacer cuerpo (empujón) · <kbd>X</kbd> barrida · <kbd>A</kbd> pedirla<br>Arquero: <kbd>A</kbd> pase · <kbd>B</kbd> patea con todo · <kbd>Y</kbd> saca con la mano · <kbd>RT</kbd> correr · <kbd>Start</kbd> pausa'
+ pk.innerHTML=G.pad?`<div class="padart"><span class="pb"><b style="background:#16a34a">A</b>Pase</span><span class="pb"><b style="background:#dc2626">B</b>Tiro · cuerpo</span><span class="pb"><b style="background:#2563eb">X</b>Centro · barrida</span><span class="pb"><b style="background:#ca8a04">Y</b>Profundidad</span></div><div class="padart"><span class="pb"><b class="sq">LB</b>Cambiar</span><span class="pb"><b class="sq">RT</b>Correr</span><span class="pb"><b>🕹️</b>Stick der.: adelantar</span><span class="pb"><b class="sq">Start</b>Pausa</span></div>`
   :`<div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">${K.arrows[0]}</span><i></i><span class="kc">${K.arrows[1]}</span><span class="kc">${K.arrows[2]}</span><span class="kc">${K.arrows[3]}</span></div><div class="kl">Moverte</div></div>
    <div class="kgrp"><div class="zx"><span class="kc big blue">${K.P}</span><span class="kc big">${K.X}</span><span class="kc big red">${K.C}</span></div><div class="kl"><b style="color:#93c5fd">Pase / centro</b> · Pase al espacio · <b style="color:#fca5a5">Tiro</b></div></div></div>
    <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small></div></div>
-   <div class="khint"><span class="kc sm">${K.P}</span> busca al compañero (mantené: más fuerte; al máximo, centro). <span class="kc sm">${K.X}</span> tocada apenas, te la adelantás (pasa entre los rivales); cargada, la pasa hacia donde apuntás, al espacio vacío. <span class="kc sm">${K.C}</span> tiro, cabezazo, palomita o chilena.<br>Sin la pelota: <span class="kc sm">${K.P}</span> cambiás de jugador o pedís la pelota · <span class="kc sm">${K.X}</span> empujón (puede ser falta; en el área, ¡penal!) · <span class="kc sm">${K.C}</span> barrida.<br>Después de patear, mové hacia un costado para darle <b>efecto</b>; hacia atrás la levantás. En el saque del medio, cualquier botón es un pase.<br><b>Arquero:</b> <span class="kc sm">${K.P}</span> pase (al máximo, por arriba) · <span class="kc sm">${K.X}</span> saca con la mano · <span class="kc sm">${K.C}</span> patea con todo. <span class="kc sm">Esc</span> pausa. Funcionan las dos manos: flechas + Z X C, o WASD + J K L.</div>`;}
+`;}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
 function setupView(cfg,roster){
- G.startT=G.lastAct=performance.now();updateKeysLegend();
+ G.startT=G.lastAct=performance.now();updateKeysLegend();G.cmode=cfg.mode||null;G.dts=cfg.dts||['',''];
  const M=G.map=mapById(cfg.map);
  const kA=cfg.kits[0],kB=cfg.kits[1];
  G.kits=[kA,kB];G.flip=G.myTeam===1;G.ball=cfg.ball||'comun';G.weather=cfg.weather||'seca';G.wx=[];G.rain=[];
@@ -1379,6 +1411,12 @@ function render(v,dt){
  if(ballLow)drawBall(bx,by,v.b.z,s);
  for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
   drawPlayer(ctx,s,p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}
+ // DT de cada equipo, parado afuera de la cancha junto a su mitad (no en el colegio)
+ if(G.cmode&&G.cmode!=='cole'){const hw=G.map.W/2;for(let t=0;t<2;t++){const gi=G.roster.findIndex(r=>r.team===t&&r.role==='gk');const side=gi>=0&&v.P[gi]?Math.sign(v.P[gi].x)||(t?1:-1):(t?1:-1);
+   const[cx,cy]=w2s(side*Math.min(8,G.map.L*.12),-(hw+1.8));const kit=G.kits[t],tr={shirt:'#2b303b',sleeve:kit.shirt,shorts:'#2b303b',socks:'#2b303b'};
+   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(cx+.1*s,cy+.13*s,.36*s,.28*s,0,0,TAU);ctx.fill();
+   ctx.save();ctx.translate(cx,cy);drawPlayer(ctx,s,{dir:Math.PI/2,slide:false,down:false,push:false},tr,G.gk[t],40+t,{spd:0,run:0},false,t);ctx.restore();
+   const dn=G.dts&&G.dts[t];ctx.font='800 11px Inter, sans-serif';ctx.textAlign='center';const lab=dn?'DT '+dn:'DT';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(lab,cx+1,cy-.62*s-5);ctx.fillStyle='#fff';ctx.fillText(lab,cx,cy-.62*s-6);}}
  if(!ballLow)drawBall(bx,by,v.b.z,s);
  // nombres, carga, flecha
  ctx.font='800 12px Inter, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
@@ -1541,11 +1579,18 @@ function hostCreate(){
  try{peer=makePeer(PREFIX+code);}catch(e){showErr(onlineErrMsg());return;}
  Net.peer=peer;Net.code=code;Net.opened=false;toast('Creando sala…');
  const to=setTimeout(()=>{if(!Net.opened){showErr(onlineErrMsg());leaveOnline(true);}},12000);
- peer.on('open',()=>{clearTimeout(to);Net.opened=true;Net.nextHid=1;Lobby={state:'lobby',players:[{hid:0,name:S.name,team:normalizeSettings(S.settings).itaTeam,host:true,slot:S.settings.me}]};G.myHid=0;showLobby();hideToast();});
+ peer.on('open',()=>{clearTimeout(to);Net.opened=true;Net.nextHid=1;G.hid2=null;Lobby={state:'lobby',players:[{hid:0,name:S.name,team:normalizeSettings(S.settings).itaTeam,host:true,slot:S.settings.me}]};G.myHid=0;showLobby();hideToast();});
  peer.on('connection',conn=>{conn.on('data',d=>hostData(conn,d));conn.on('close',()=>hostDrop(conn));conn.on('error',()=>hostDrop(conn));});
  peer.on('error',e=>{if(e.type==='unavailable-id'){clearTimeout(to);try{peer.destroy();}catch(_){}hostCreate();return;}if(e.type==='peer-unavailable')return;if(!Net.opened){clearTimeout(to);showErr(onlineErrMsg(e));leaveOnline(true);}else toast('Problema de conexión: '+e.type);});
  peer.on('disconnected',()=>{if(!Net.leaving)try{peer.reconnect();}catch(_){}});
 }
+function parseIn(d){return{mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0,c:d.c?1:0,t:d.tb?1:0,s:d.s?1:0,e:d.e?1:0,kn:d.kn?1:0,x:d.x?1:0,sw:d.sw?1:0,pad:d.pad?1:0,kx:clamp(+d.kx||0,-1,1),ky:clamp(+d.ky||0,-1,1)};}
+function hostSetTwo(owner,on,conn){// segundo jugador en la misma compu (teclado + joystick)
+ if(Lobby.state!=='lobby')return;const cur=conn?conn.hid2:G.hid2;
+ if(on&&cur==null){const op=Lobby.players.find(p=>p.hid===owner);if(Lobby.players.length>=Math.min(MAX_HUMANS,capOf(mapById(S.settings.map))*2)){toast('No hay lugar para otro jugador');return;}
+  const hid=Net.nextHid++;Lobby.players.push({hid,name:cleanName(((op&&op.name)||'Jugador')+' 2'),team:smallerTeam(),slot:null,owner});if(conn){conn.hid2=hid;conn.send({t:'two',hid2:hid});}else G.hid2=hid;}
+ else if(!on&&cur!=null){Lobby.players=Lobby.players.filter(p=>p.hid!==cur);if(conn){conn.hid2=null;conn.send({t:'two',hid2:null});}else G.hid2=null;}
+ broadcastLobby();}
 function hostData(conn,d){if(!d||typeof d!=='object')return;
  conn.seen=performance.now();if(d.t==='ping')return;
  if(d.t==='hello'){if(conn.hid!=null)return;
@@ -1555,7 +1600,9 @@ function hostData(conn,d){if(!d||typeof d!=='object')return;
   if(Lobby.state==='game'&&G.match){G.match.addHuman({id:hid,name:pl.name,team:pl.team});G.names[hid]=pl.name;conn.send(startMsg());broadcast({t:'roster',names:G.names,pnames:G.match.pnames,homes:G.match.homes});toast(pl.name+' se sumó al partido');}
   broadcastLobby();return;}
  const hid=conn.hid;if(hid==null)return;
- if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push({mx:clamp(+d.mx||0,-1,1),my:clamp(+d.my||0,-1,1),k:d.k?1:0,p:d.p?1:0,c:d.c?1:0,t:d.tb?1:0,s:d.s?1:0,e:d.e?1:0,kn:d.kn?1:0,x:d.x?1:0,sw:d.sw?1:0,pad:d.pad?1:0,kx:clamp(+d.kx||0,-1,1),ky:clamp(+d.ky||0,-1,1)});}
+ if(d.t==='in'){const H=G.match&&G.match.humans.get(hid);if(H)H.q.push(parseIn(d));}
+ else if(d.t==='in2'){const H=G.match&&conn.hid2!=null&&G.match.humans.get(conn.hid2);if(H)H.q.push(parseIn(d));}
+ else if(d.t==='two'){hostSetTwo(hid,!!d.on,conn);}
  else if(d.t==='team'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;movePlayer(pl);broadcastLobby();}
  else if(d.t==='opt'){const pl=Lobby.players.find(p=>p.hid===hid);if(pl)pl.onebtn=!!d.onebtn;const H=G.match&&G.match.humans.get(hid);if(H)H.onebtn=!!d.onebtn;}
  else if(d.t==='slot'){if(Lobby.state!=='lobby')return;const pl=Lobby.players.find(p=>p.hid===hid);if(!pl)return;setSlot(pl,d.v==null?null:d.v);broadcastLobby();}
@@ -1565,13 +1612,13 @@ setInterval(()=>{const now=performance.now();
  if(S.mode==='client'&&Net.hostConn&&Net.hostConn.open)try{Net.hostConn.send({t:'ping'});}catch(e){}},2000);
 addEventListener('pagehide',()=>{if(Net.peer)leaveOnline(true);});
 function hostDrop(conn){const hid=conn.hid;if(hid==null||!Net.conns.has(hid))return;Net.conns.delete(hid);const pl=Lobby.players.find(p=>p.hid===hid);
- Lobby.players=Lobby.players.filter(p=>p.hid!==hid);if(G.match&&G.mode==='host'){G.match.removeHuman(hid);}
+ Lobby.players=Lobby.players.filter(p=>p.hid!==hid&&p.hid!==conn.hid2);if(G.match&&G.mode==='host'){G.match.removeHuman(hid);if(conn.hid2!=null)G.match.removeHuman(conn.hid2);}
  if(pl)toast(pl.name+' salió de la sala');broadcastLobby();}
 function broadcast(m){for(const c of Net.conns.values()){try{if(c.open!==false)c.send(m);}catch(e){}}}
 function lobbyMsg(){const st={...S.settings};delete st.lineups;delete st.mes;delete st.forms;delete st.as;return{t:'lobby',state:Lobby.state,code:Net.code,players:Lobby.players,settings:st};}
 function broadcastLobby(){if(S.mode==='host'){normalizeSettings(S.settings);validateSlots();}broadcast(lobbyMsg());if(S.mode==='host'&&$('#sLobby').classList.contains('on'))renderLobby();}
-function startMsg(){const m=G.match;return{t:'start',cfg:{map:m.cfg.map,np:m.cfg.np,dur:m.cfg.dur,kits:m.cfg.kits,forms:m.cfg.forms,ball:m.cfg.ball,weather:m.cfg.weather},pnames:m.pnames,homes:m.homes,names:G.names,teams:Object.fromEntries([...m.humans.values()].map(h=>[h.id,h.team]))};}
-function clientJoin(code){
+function startMsg(){const m=G.match;return{t:'start',cfg:{map:m.cfg.map,np:m.cfg.np,dur:m.cfg.dur,mode:m.cfg.mode,dts:m.cfg.dts,kits:m.cfg.kits,forms:m.cfg.forms,ball:m.cfg.ball,weather:m.cfg.weather},pnames:m.pnames,homes:m.homes,names:G.names,teams:Object.fromEntries([...m.humans.values()].map(h=>[h.id,h.team]))};}
+function clientJoin(code){G.hid2=null;
  code=String(code||'').replace(/[^0-9]/g,'');if(code.length!==4){shake('#codeIn');return;}
  leaveOnline(true);S.mode='client';Net.leaving=false;Net.joined=false;let peer;
  try{peer=makePeer();}catch(e){showErr(onlineErrMsg());return;}
@@ -1589,21 +1636,26 @@ function clientData(d){if(!d||typeof d!=='object')return;
   case'lobby':Lobby={state:d.state,players:d.players};S.settings=d.settings;S.fromHost=true;Net.code=d.code;
    if(d.state==='lobby'){if(G.mode)exitGame(true);showLobby();}else if(!G.mode)showLobby();break;
   case'start':startClientGame(d);break;
+  case'two':G.hid2=d.hid2==null?null:d.hid2;if(G.mode!=='client')renderLobby();break;
   case'roster':G.names=d.names||G.names;if(d.pnames)G.pnames=d.pnames;if(d.homes)G.homes=d.homes;break;
   case's':if(G.mode!=='client')return;{const v=decodeSnap(d);G.snaps.push({t:performance.now(),v});if(G.snaps.length>12)G.snaps.shift();if(d.ev&&d.ev.length)handleEvents(d.ev);}break;
   case'full':showErr('La sala está llena.');leaveOnline(true);break;
  }}
 let lastSent={...ZINP};
-function sendInput(){if(!Net.hostConn||!Net.hostConn.open)return;const i=localInp,now=performance.now(),dt=now-Net.lastSend;
+let lastSent2={...ZINP},lastSend2=0;
+function sendInput(){if(!Net.hostConn||!Net.hostConn.open)return;
+ if(G.hid2!=null&&G.twoP){const i=localInp2,now=performance.now(),dt=now-lastSend2,L=lastSent2;const btn=['k','p','c','t','s','e','kn','x','sw','pad'].some(q=>i[q]!==L[q]),axis=i.mx!==L.mx||i.my!==L.my;
+  if(btn||(axis&&dt>33)||dt>150){lastSent2={...i};lastSend2=now;try{Net.hostConn.send({t:'in2',mx:i.mx,my:i.my,k:i.k,p:i.p,c:i.c,tb:i.t,s:i.s,e:i.e,kn:i.kn,x:i.x,sw:i.sw,pad:i.pad,kx:i.kx,ky:i.ky});}catch(e){}}}
+ const i=localInp,now=performance.now(),dt=now-Net.lastSend;
  const btn=i.k!==lastSent.k||i.p!==lastSent.p||i.c!==lastSent.c||i.t!==lastSent.t||i.s!==lastSent.s||i.e!==lastSent.e||i.kn!==lastSent.kn||i.x!==lastSent.x||i.sw!==lastSent.sw||i.pad!==lastSent.pad,axis=i.mx!==lastSent.mx||i.my!==lastSent.my;
  if(btn||(axis&&dt>33)||dt>150){lastSent={...i};Net.lastSend=now;try{Net.hostConn.send({t:'in',mx:i.mx,my:i.my,k:i.k,p:i.p,c:i.c,tb:i.t,s:i.s,e:i.e,kn:i.kn,x:i.x,sw:i.sw,pad:i.pad,kx:i.kx,ky:i.ky});}catch(e){}}}
-function leaveOnline(silent){Net.leaving=true;try{if(Net.hostConn)Net.hostConn.close();}catch(e){}for(const c of Net.conns.values())try{c.close();}catch(e){}
+function leaveOnline(silent){Net.leaving=true;G.hid2=null;try{if(Net.hostConn)Net.hostConn.close();}catch(e){}for(const c of Net.conns.values())try{c.close();}catch(e){}
  Net.conns.clear();Net.hostConn=null;try{if(Net.peer)Net.peer.destroy();}catch(e){}Net.peer=null;Net.opened=false;Net.joined=false;}
 
 /* =========================================================
    UI / PANTALLAS
    ========================================================= */
-const SKEYS=['hand','twoP','sensible','mode','school','cat','ita','venue','coleRival','clubRival','lideRival','dur','diff','play','ctrl','coleNp','ballCole','onebtn','loose','weather','lineups','mes','forms'];
+const SKEYS=['hand','twoP','sensible','lideTeam','dts','mode','school','cat','ita','venue','coleRival','clubRival','lideRival','dur','diff','play','ctrl','coleNp','ballCole','onebtn','loose','weather','lineups','mes','forms'];
 function loadSettings(){let o={};try{o=JSON.parse(store.get('fa.settings','{}'))||{};}catch(e){}return{mode:'cole',school:'maria',cat:'infantiles',ita:'rojo',venue:'home1',dur:3,diff:'normal',play:'ita',ctrl:'libre',hand:'diestro',twoP:'off',sensible:'off',lineups:{},mes:{},...o};}
 function saveSettings(){if(S.fromHost)return;const o={};for(const k of SKEYS)o[k]=S.settings[k];store.set('fa.settings',JSON.stringify(o));}
 const S={name:store.get('picado.name',''),mode:null,settings:loadSettings()};
@@ -1668,7 +1720,7 @@ function renderSettings(el,ro){
  else if(st.mode==='club'){
   h+=sec(n++,'Categoría')+`<div class="catrow">`+CAT_ORDER.filter(c=>!ro||c===st.cat).map(c=>{const C=CATS[c];return`<button class="cat ${c===st.cat?'sel':''}" data-cat="${c}" ${ro?'disabled':''}><b>${C.name}</b><small>Fútbol ${C.np} · ${C.np-1} + arquero</small></button>`;}).join('')+
    `</div><div class="hint">Se juega en las canchitas de sintético de 5 del club (son 4 iguales).</div></section>`;}
- else{const rv=LIDE_RIVALS.find(r=>r.id===st.lideRival)||LIDE_RIVALS[0];
+ else{const Z=lideZone(st),rv=Z.find(r=>r.id===st.lideRival)||Z[0];
   h+=sec(n++,'Dónde jugamos')+`<div class="cards three">`;
   if(!ro||st.venue==='home1')h+=mapCard(mapById('ita1'),st.venue==='home1',`data-venue="home1"`,ro,'De local · Cancha 1','Pasto natural');
   if(!ro||st.venue==='home')h+=mapCard(mapById('ita11'),st.venue==='home',`data-venue="home"`,ro,'De local · Cancha 2','Sintético');
@@ -1679,34 +1731,35 @@ function renderSettings(el,ro){
  h+=`<div class="kitrow"><span class="tn">${st.mode==='cole'?'Local':st.mode==='club'?'Italiano':(itaT?'Visitante':'Local')}<small>${esc(ours.name)}</small></span>`;
  if(st.mode==='club')for(const c of CATS[st.cat].ita){const k=italKit(c);h+=`<button class="kopt ${c===st.ita?'sel':''}" data-ita="${c}" ${ro?'disabled':''} title="${esc(k.name)}">${kitSVG(k)}</button>`;}
  else h+=`<span class="kopt sel">${kitSVG(ours)}</span>`;
+ if(st.mode==='lide'&&!ro)h+=`<div class="chips" style="margin-left:6px">${LIDE_TEAMS.map(([t,nm])=>`<button class="chip ${(st.lideTeam||'blanco')===t?'sel':''}" data-lteam="${t}">${nm}</button>`).join('')}</div>`;
  h+=`</div><div class="kitrow col"><span class="tn">${st.mode==='cole'?'Visitante':'Rival'}<small>${esc(rk.name)}${rk.alt?' · camiseta alternativa':''}</small></span><div class="rvs">`;
  for(const k of rivalOptions(st)){if(ro&&k.id!==st[key])continue;const on=k.id===st[key];h+=`<button class="rv ${on?'sel':''}" data-rival="${k.id}" ${ro?'disabled':''}>${kitSVG(on?rk:k)}<span>${esc(k.name)}</span></button>`;}
  h+=`</div></div>`;
  if(S.mode==='solo')h+=`<div class="row"><span class="lbl" style="margin:0 6px 0 2px">Jugás con</span><div class="chips"><button class="chip ${st.play==='ita'?'sel':''}" data-play="ita">${esc(ours.name)}</button><button class="chip ${st.play==='rival'?'sel':''}" data-play="rival">${esc(rk.name)}</button></div></div>`;
- if(st.mode==='lide')h+=`<div class="hint">En la LIDE el Italiano Blanco no juega contra otros Italianos.</div>`;
+ if(st.mode==='lide')h+=`<div class="hint">Cada Italiano juega en su zona de la LIDE (todos con el mismo conjunto) y no se enfrentan entre ellos.</div>`;
  if(st.mode==='club')h+=`<div class="hint">Camisetas del club: remera y medias del color, pantalón negro y escudo. Los Italianos también pueden jugar entre ellos.</div>`;
  h+=`</section>`;
- if(S.mode==='solo'){const mk=R.kits[st.side];h+=sec(n++,'Tu equipo',`<small>${esc(mk.name)}</small>`)+formChips(R.np,st.form,false,'data-form')+lineupHTML(st.lineup,mk,R.np,st.form,st.me,true,true,null)+`</section>`;}
+ if(S.mode==='solo'){const mk=R.kits[st.side];h+=sec(n++,'Tu equipo',`<small>${esc(mk.name)}</small>`)+formChips(R.np,st.form,false,'data-form')+lineupHTML(st.lineup,mk,R.np,st.form,st.me,true,true,null)+(st.mode!=='cole'?dtField(st,st.lkey):'')+`</section>`;}
  h+=sec(n++,'Partido')+`<div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
- {const M=mapById(R.map),wo=M.surf==='cement'?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
+ {const M=mapById(R.map),wo=M.surf==='cement'||/Sintético/.test(M.sub||'')?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
   h+=`<div><div class="lbl">Cancha</div><div class="chips">${wo.map(([k,l])=>chip('weather',k,(k==='mojada'?'🌧️ ':k==='barro'?'🟫 ':'☀️ ')+l)).join('')}</div></div>`;}
  if(S.mode==='solo')h+=`<div><div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div></div>`;
  if(st.mode==='cole')h+=`<div><div class="lbl">Pelota</div><div class="chips">${['comun','pulpo','goma'].map(k=>`<button class="chip ${(st.ballCole||'comun')===k?'sel':''}" data-k="ballCole" data-v="${k}" ${ro?'disabled':''}><span class="bdot" style="background:${BALLS[k].base}"></span>${BALLS[k].name}</button>`).join('')}</div></div>`;
  if(st.mode==='cole')h+=`<div><div class="lbl">Jugadores</div><div class="chips">${chip('coleNp',5,'5 (4 + arquero)')}${chip('coleNp',6,'6 (5 + arquero)')}</div></div>`;
  h+=`<div><div class="lbl">Control</div><div class="chips">${chip('ctrl','libre','Jugador libre')}${chip('ctrl','fijo','Jugador fijo')}</div></div>`;
- h+=`<div><div class="lbl">Mano</div><div class="chips">${chip('hand','diestro','Diestro')}${chip('hand','zurdo','Zurdo')}</div></div>`;
- if(S.mode==='solo'&&!isTouch)h+=`<div><div class="lbl">Jugadores en esta compu</div><div class="chips">${chip('twoP','off','1')}${chip('twoP','juntos','2 · mismo equipo')}${chip('twoP','contra','2 · en contra')}</div></div>`;
+ if(S.mode==='solo'&&S.two)h+=`<div><div class="lbl">De a 2</div><div class="chips">${chip('twoP','juntos','Mismo equipo')}${chip('twoP','contra','En contra')}</div></div>`;
  if(mapById(R.map).fmt===11)h+=`<div><div class="lbl">Modo Sensible Soccer</div><div class="chips">${chip('sensible','off','Apagado')}${chip('sensible','on','Prendido')}</div></div>`;
  h+=`</div>`;
- if(S.mode==='solo'&&!isTouch&&st.twoP!=='off')h+=`<div class="hint">Jugador 1: teclado. Jugador 2: joystick (conectalo y tocá un botón).</div>`;
+ if(S.mode==='solo'&&S.two)h+=`<div class="hint">Jugador 1: teclado. Jugador 2: joystick (conectalo y tocá un botón).</div>`;
  if(mapById(R.map).fmt===11&&st.sensible==='on')h+=`<div class="hint">Modo Sensible Soccer: después de patear, mové para darle mucha más comba (y por más tiempo).</div>`;
  h+=`<div class="hint">${st.ctrl==='fijo'?'Jugador fijo: siempre manejás al mismo jugador (el tuyo).':'Jugador libre: pasás al compañero más cerca de la pelota. Cuando te toca tu jugador lo vas a ver con ★.'}</div></section>`;
  h+='</div>';el.innerHTML=h;if(ro)return;
  const on=(sel,fn)=>el.querySelectorAll(sel).forEach(b=>b.onclick=()=>{fn(b.dataset);saveSettings();settingsChanged(el);});
- on('[data-mode]',d=>st.mode=d.mode);on('[data-school]',d=>st.school=d.school);on('[data-cat]',d=>st.cat=d.cat);on('[data-venue]',d=>st.venue=d.venue);
+ on('[data-mode]',d=>st.mode=d.mode);on('[data-school]',d=>st.school=d.school);on('[data-cat]',d=>st.cat=d.cat);on('[data-venue]',d=>st.venue=d.venue);on('[data-lteam]',d=>{st.lideTeam=d.lteam;});
  on('[data-ita]',d=>st.ita=d.ita);on('[data-rival]',d=>st[st.mode+'Rival']=d.rival);on('[data-play]',d=>{st.play=d.play;});
  on('.chip[data-k]',d=>{st[d.k]=d.k==='dur'?+d.v:d.v;});
  on('[data-form]',d=>{st.forms[st.lkey]=d.form;});
+ el.querySelectorAll('.dtIn').forEach(i=>i.oninput=()=>{if(!st.dts||typeof st.dts!=='object')st.dts={};st.dts[i.dataset.dtkey]=cleanRaw(i.value);saveSettings();});
  if(S.mode==='solo')bindLineup(el,{L:st.lineup,np:R.np,form:st.form,canEdit:true,canMe:true,me:st.me,
   onEdit:(i,v)=>{st.lineup[i]=v;saveSettings();renderSettings(el,false);},onLive:()=>saveSettings(),
   onSwap:(a,b)=>{const L=st.lineup;[L[a],L[b]]=[L[b],L[a]];if(st.me===a)st.me=b;else if(st.me===b)st.me=a;st.mes[st.lkey]=st.me;saveSettings();renderSettings(el,false);},
@@ -1725,21 +1778,24 @@ function renderLobby(){
  let h='';
  for(let t=0;t<2;t++){const k=R.kits[t],pls=Lobby.players.filter(p=>p.team===t);const tc=colDist(k.shirt,'#f3f3f0')<60?'#1b1e26':'#fff';
   h+=`<div class="team"><h3 style="background:linear-gradient(135deg,${k.shirt},${k.shirt}aa);color:${tc}"><span>${t?'Visitante':'Local'} · ${esc(k.name)}</span><span class="cap" style="color:#fff">${pls.length}/${cap}</span></h3><ul>`;
-  for(const p of pls){const me=p.hid===G.myHid,dn=(p.slot!=null&&LT[t][p.slot])||p.name;
+  for(const p of pls){const me=p.hid===G.myHid||(G.hid2!=null&&p.hid===G.hid2),dn=(p.slot!=null&&LT[t][p.slot])||p.name;
    h+=`<li class="${me?'me':''}"><span class="av" style="background:${k.shirt};color:${tc}">${esc(dn.slice(0,1).toUpperCase())}</span><span class="pn">${esc(dn)}${dn!==p.name?` <small style="color:var(--mut)">(${esc(p.name)})</small>`:''}${me?' <small style="color:var(--mut)">(vos)</small>':''}</span>`;
    if(p.slot!=null)h+=`<span class="posb">${POSN[slotPosF(R.np,FT[t],p.slot)]}</span>`;
    if(host)h+=`<button class="mv" data-move="${p.hid}" title="Cambiar de equipo">⇄</button>`;
    if(p.host)h+='<span class="tagh">ANFITRIÓN</span>';h+='</li>';}
   const free=cap-pls.length;if(free>0)h+=`<li class="bot"><span class="av" style="background:#334">🤖</span><span>${free} lugar${free===1?'':'es'} para la máquina</span></li>`;h+=`</ul></div>`;}
+ if(!isTouch)h+=`<label class="swrow" style="margin:10px 4px"><span>👥 Somos 2 en esta compu (teclado + joystick)</span><span class="swl"><input type="checkbox" id="two2Sw" ${G.hid2!=null?'checked':''}><i></i></span></label>`;
  $('#lobTeams').innerHTML=h;
+ {const z=$('#two2Sw');if(z)z.onchange=()=>{if(S.mode==='host')hostSetTwo(0,z.checked,null);else if(Net.hostConn)try{Net.hostConn.send({t:'two',on:z.checked});}catch(e){}};}
  // canchita de cada equipo con nombres
  const meP=Lobby.players.find(p=>p.hid===G.myHid);if(meP&&meP.team!==S.lobTeam){S.lobTeam=meP.team;S.lobView=meP.team;}if(S.lobView==null||S.lobView>1)S.lobView=meP?meP.team:0;
  const vt=S.lobView,vk=R.kits[vt],L=LT[vt],hum={};for(const p of Lobby.players)if(p.team===vt&&p.slot!=null)hum[p.slot]=p.name;
  const canMe=!!meP&&meP.team===vt;
  $('#lobWho').innerHTML=`<section class="sec"><div class="sech"><span class="n">👤</span>Equipos<small>${host?'Armá los equipos':'Elegí quién sos'}</small></div>`+
   `<div class="chips" style="margin-bottom:10px">${[0,1].map(t=>`<button class="chip ${t===vt?'sel':''}" data-view="${t}">${t?'Visitante':'Local'} · ${esc(R.kits[t].name)}</button>`).join('')}</div>`+
-  (host?formChips(R.np,FT[vt],false,'data-lform'):`<div class="hint">Formación ${FT[vt]}</div>`)+lineupHTML(L,vk,R.np,FT[vt],canMe?meP.slot:null,host,canMe,hum)+`</section>`;
+  (host?formChips(R.np,FT[vt],false,'data-lform'):`<div class="hint">Formación ${FT[vt]}</div>`)+lineupHTML(L,vk,R.np,FT[vt],canMe?meP.slot:null,host,canMe,hum)+(host&&S.settings.mode!=='cole'?dtField(S.settings,S.settings.keyT[vt]):'')+`</section>`;
  $('#lobWho').querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{S.lobView=+b.dataset.view;renderLobby();});
+ $('#lobWho').querySelectorAll('.dtIn').forEach(i=>i.oninput=()=>{const st=S.settings;if(!st.dts||typeof st.dts!=='object')st.dts={};st.dts[i.dataset.dtkey]=cleanRaw(i.value);saveSettings();});
  if(host)$('#lobWho').querySelectorAll('[data-lform]').forEach(b=>b.onclick=()=>{S.settings.forms[S.settings.keyT[vt]]=b.dataset.lform;saveSettings();broadcastLobby();});
  bindLineup($('#lobWho'),{L,np:R.np,form:FT[vt],canEdit:host,canMe,me:canMe?meP.slot:null,
   onEdit:(i,v)=>{L[i]=v;saveSettings();broadcastLobby();},onLive:()=>saveSettings(),onCommit:()=>broadcastLobby(),
@@ -1759,10 +1815,10 @@ $('#bShare').onclick=async()=>{const url=location.origin+location.pathname+'?sal
  try{await navigator.clipboard.writeText(text+' → '+url);toast('Link copiado. Pegalo en el grupo de WhatsApp.');}catch(e){toast(url,6000);}};
 $('#bLeaveLobby').onclick=()=>{leaveOnline(true);S.mode=null;showScreen('sHome');};
 function restoreOwnSettings(){if(S.fromHost){S.settings=loadSettings();normalizeSettings(S.settings);S.fromHost=false;S.lobView=null;}}
-function showMode(){restoreOwnSettings();$('#modeEyebrow').textContent=S.mode==='solo'?'Modo solo':'Crear sala';
+function showMode(){restoreOwnSettings();$('#modeEyebrow').textContent=S.mode==='solo'?(S.two?'De a 2':'Modo solo'):'Crear sala';
  document.querySelectorAll('#sMode .mode').forEach(b=>b.classList.toggle('sel',b.dataset.mode===S.settings.mode));showScreen('sMode');}
 document.querySelectorAll('#sMode .mode').forEach(b=>b.onclick=()=>{S.settings.mode=b.dataset.mode;normalizeSettings(S.settings);saveSettings();
- if(S.mode==='solo'){$('#setupEyebrow').textContent='Modo solo · '+MODES.find(m=>m.id===S.settings.mode).name;showScreen('sSetup');renderSettings($('#soloSettings'),false);}
+ if(S.mode==='solo'){$('#setupEyebrow').textContent=(S.two?'De a 2 · ':'Modo solo · ')+MODES.find(m=>m.id===S.settings.mode).name;showScreen('sSetup');renderSettings($('#soloSettings'),false);}
  else hostCreate();});
 $('#bModeBack').onclick=()=>{S.mode=null;showScreen('sHome');};
 function hostStartMatch(){
@@ -1771,19 +1827,19 @@ function hostStartMatch(){
  validateSlots();
  const humans=Lobby.players.map(p=>({id:p.hid,name:(p.slot!=null&&st.lineupT[p.team][p.slot])||p.name,team:p.team,slot:p.slot,onebtn:p.hid===0?!!st.onebtn:!!p.onebtn}));
  G.names=Object.fromEntries(humans.map(h=>[h.id,h.name]));
- const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:'normal',ctrl:st.ctrl,mode:st.mode,sensible:st.sensible==='on'&&M.fmt===11,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:'normal',ctrl:st.ctrl,mode:st.mode,sensible:st.sensible==='on'&&M.fmt===11,dts:st.mode==='cole'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
  Lobby.state='game';broadcastLobby();
- G.mode='host';G.twoP=false;G.match=new Match(cfg);G.myTeam=humans.find(h=>h.id===0).team;setupView(cfg,rosterFor(R.np));
+ G.mode='host';G.twoP=G.hid2!=null;G.match=new Match(cfg);G.myTeam=humans.find(h=>h.id===0).team;setupView(cfg,rosterFor(R.np));
  broadcast(startMsg());goFullscreen();
 }
 function startClientGame(d){
- const cfg=d.cfg;G.mode='client';G.match=null;G.names=d.names||{};G.pnames=d.pnames||null;G.homes=d.homes||{};G.myTeam=d.teams?d.teams[G.myHid]:0;
+ const cfg=d.cfg;G.mode='client';G.twoP=G.hid2!=null;G.match=null;G.names=d.names||{};G.pnames=d.pnames||null;G.homes=d.homes||{};G.myTeam=d.teams?d.teams[G.myHid]:0;
  setupView(cfg,rosterFor(cfg.np||mapById(cfg.map).fmt));$('#sEnd').classList.remove('on');$('#sPause').classList.remove('on');
 }
 function startSolo(){
  const st=S.settings,R=normalizeSettings(st),me=st.me,nm=(me!=null&&st.lineup[me])||S.name||'Vos';
- const two=!isTouch&&st.twoP&&st.twoP!=='off',hum=[{id:0,name:nm,team:st.side,slot:me,onebtn:!!st.onebtn}];if(two)hum.push({id:1,name:'Jugador 2',team:st.twoP==='juntos'?st.side:1-st.side,slot:null});
- const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:st.diff,ctrl:st.ctrl,mode:st.mode,sensible:st.sensible==='on'&&mapById(R.map).fmt===11,kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:hum};
+ const two=!isTouch&&!!S.two,hum=[{id:0,name:nm,team:st.side,slot:me,onebtn:!!st.onebtn}];if(two)hum.push({id:1,name:'Jugador 2',team:st.twoP==='juntos'?st.side:1-st.side,slot:null});G.hid2=two?1:null;
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,diff:st.diff,ctrl:st.ctrl,mode:st.mode,sensible:st.sensible==='on'&&mapById(R.map).fmt===11,dts:st.mode==='cole'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:hum};
  G.mode='solo';G.myHid=0;G.myTeam=st.side;G.twoP=two;G.names=two?{0:nm,1:'Jugador 2'}:{0:nm};G.match=new Match(cfg);setupView(cfg,rosterFor(R.np));goFullscreen();
 }
 function showGameUI(on){
@@ -1800,8 +1856,9 @@ function renderPauseOpts(){const el=$('#pauseOpts');if(!G.mode){el.innerHTML='';
  const ch=(g,v,l,on)=>`<button class="chip ${on?'sel':''}" data-po="${g}" data-v="${v}">${l}</button>`;
  let h=`<div class="kl" style="margin-bottom:6px">Modo de juego</div>`;
  if(canAll)h+=`<div class="porow"><span>Control</span><div class="chips">${ch('ct','libre','Libre',ct!=='fijo')}${ch('ct','fijo','Fijo',ct==='fijo')}</div></div>`;
- const hd=S.settings.hand==='zurdo'?'zurdo':'diestro';h+=`<div class="porow"><span>Mano</span><div class="chips">${ch('hd','diestro','Diestro',hd==='diestro')}${ch('hd','zurdo','Zurdo',hd==='zurdo')}</div></div>`;
+ h+=`<div class="porow"><span>✋ Zurdo</span><label class="swl"><input type="checkbox" id="pzSw" ${S.settings.hand==='zurdo'?'checked':''}><i></i></label></div>`;
  el.innerHTML=h;
+ {const z=el.querySelector('#pzSw');if(z)z.onchange=()=>{S.settings.hand=z.checked?'zurdo':'diestro';saveSettings();const hz=$('#zurdoSw');if(hz)hz.checked=z.checked;};}
  el.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{const g=b.dataset.po,v=b.dataset.v;
   if(g==='ct'&&m){m.cfg.ctrl=v;S.settings.ctrl=v;saveSettings();}
   if(g==='hd'){S.settings.hand=v;saveSettings();}
@@ -1835,7 +1892,10 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* ---- home ---- */
 const nameIn=$('#nameIn');nameIn.value=S.name;nameIn.oninput=()=>{S.name=cleanName(nameIn.value);store.set('picado.name',nameIn.value.trim());};
 function needName(){const n=nameIn.value.trim();if(!n){shake('#nameIn');toast('Poné tu nombre primero');return true;}S.name=cleanName(n);$('#homeErr').style.display='none';SFX.init();return false;}
-$('#bSolo').onclick=()=>{SFX.init();restoreOwnSettings();S.name=cleanName(nameIn.value.trim()||'Vos');S.mode='solo';showMode();};
+$('#bSolo').onclick=()=>{SFX.init();restoreOwnSettings();S.name=cleanName(nameIn.value.trim()||'Vos');S.mode='solo';S.two=false;showMode();};
+$('#bTwo').onclick=()=>{SFX.init();restoreOwnSettings();S.name=cleanName(nameIn.value.trim()||'Vos');S.mode='solo';S.two=true;if(!['juntos','contra'].includes(S.settings.twoP))S.settings.twoP='contra';showMode();};
+if(isTouch)$('#bTwo').style.display='none';
+{const z=$('#zurdoSw');z.checked=S.settings.hand==='zurdo';z.onchange=()=>{S.settings.hand=z.checked?'zurdo':'diestro';saveSettings();};}
 $('#bSetupBack').onclick=()=>showMode();
 $('#bPlaySolo').onclick=()=>startSolo();
 $('#bCreate').onclick=()=>{if(needName())return;restoreOwnSettings();S.mode='host';showMode();};
@@ -1853,7 +1913,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.1,(now-last)
  pollInput();
  let v=null;
  if(G.mode==='solo'||G.mode==='host'){const m=G.match;
-  if(!G.paused){acc+=dt;let n=0;while(acc>=STEP&&n<8){const H=m.humans.get(G.myHid);if(H)H.inp={...localInp};if(G.twoP){const H2=m.humans.get(1);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8)acc=0;}
+  if(!G.paused){acc+=dt;let n=0;while(acc>=STEP&&n<8){const H=m.humans.get(G.myHid);if(H)H.inp={...localInp};if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8)acc=0;}
   const ev=m.ev.splice(0);if(ev.length)handleEvents(ev);
   if(G.mode==='host'){G.pendEv.push(...ev);G.snapT+=dt;if(G.snapT>=1/SNAP_HZ){G.snapT=0;broadcast(encodeSnap(m,G.pendEv.splice(0)));}}
   v=viewFromMatch(m);
