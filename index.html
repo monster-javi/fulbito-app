@@ -73,9 +73,13 @@ input::placeholder{color:#6f877a;font-weight:600}
 #pauseKeys .kfrow{display:flex;align-items:center;gap:8px;justify-content:center}#pauseKeys .kfrow small{font-weight:800;color:#cfe0d6;margin-right:10px}
 .tjoy{width:56px;height:56px;border-radius:50%;border:3px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center}.tjoy i{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.6)}
 .tb{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}.tb.blue{background:#2563eb}.tb.red{background:#dc2626}.tb.two{background:#4b5563;font-size:20px}
-.padsvg{width:100%;max-width:420px;display:block;margin:2px auto 0}.padsvg .body{fill:#2b3038;stroke:#596273;stroke-width:2}.padsvg .bump,.padsvg .mini{fill:#3f4652}.padsvg .stick{fill:#1b1f25;stroke:#6b7280;stroke-width:3}
-.padsvg .dpad{fill:#1b1f25;stroke:#6b7280;stroke-width:1.5}.padsvg .bl text{fill:#fff;font:900 10px Inter,sans-serif;text-anchor:middle}.padsvg .lab text{fill:#e5efe9;font:800 10.5px Inter,sans-serif}
-.padsvg .lines line{stroke:rgba(255,255,255,.35);stroke-width:1}
+.pgrid{display:flex;gap:18px;align-items:center;justify-content:center;margin:4px 0 10px}
+.pk{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border-radius:6px;background:linear-gradient(180deg,#3a4a42,#26332c);border:1px solid rgba(255,255,255,.18);box-shadow:0 2px 0 #111a15;font-weight:900;color:#fff;font-size:12px;line-height:1}
+.parr{display:grid;grid-template-columns:repeat(3,28px);grid-auto-rows:28px;gap:3px;justify-items:center}.parr small{grid-column:1/4;font-size:11px;font-weight:800;color:#cfe0d6;align-self:start}
+.plist{display:flex;flex-direction:column;gap:5px}.plist.two{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:2px 0 8px}
+.pr{display:flex;align-items:center;gap:8px}.pr small{font-size:11.5px;font-weight:800;color:#cfe0d6;line-height:1.15}
+.pd{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border-radius:50%;font-weight:900;font-size:11px;color:#111}.pd.pa{background:#16c43a}.pd.pbb{background:#ee3b3b}.pd.px{background:#1fb3ea}.pd.py{background:#f5d90a}.pd.pst{background:#3a3d44;color:#fff}.pd.pgr{background:#4b5058;color:#fff;font-size:9.5px}
+.padsvg{width:100%;max-width:190px;display:block;margin:2px auto 6px}.padsvg .bt{fill:#e5e7eb;font:900 26px Inter,sans-serif;text-anchor:middle}.padsvg .bd{fill:#111;font:900 24px Inter,sans-serif;text-anchor:middle}
 .padart{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;align-items:center;margin:4px 0 2px}.padart .pb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:800;color:#cfe0d6}
 .padart .pb b{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
 .padart .pb b.sq{border-radius:9px;width:44px;font-size:12px;background:#4b5563}
@@ -379,7 +383,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.24.0';
+const VERSION='1.24.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -899,8 +903,9 @@ class Match{
   if(best){const t=len(best.x-p.x,best.y-p.y)/12;this.kickTo(p,best.x+best.vx*t,best.y+best.vy*t,false,.9);this.ball.passTo=this.idx(best);best.req=null;}
   else{this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*12;b.vy=Math.sin(p.dir)*12;b.vz=0;b.z=0;}
   this.ball.gkLong=null;this.ev.push({k:'kick',v:.2});}
+ isThrower(p){return p.throwIn&&this.ball.owner===this.idx(p);}
  push(p){if(p.pushCd>0||p.stun>0||p.slide>0)return;p.pushCd=.8;const b=this.ball;let q=null,qd=1.6;
-  for(const o of this.players){if(o.team===p.team)continue;const dx=o.x-p.x,dy=o.y-p.y,d=len(dx,dy);if(d>=qd)continue;
+  for(const o of this.players){if(o.team===p.team||this.isThrower(o))continue;const dx=o.x-p.x,dy=o.y-p.y,d=len(dx,dy);if(d>=qd)continue;
    const fr=d>.01?(Math.cos(p.dir)*dx+Math.sin(p.dir)*dy)/d:1;if(fr<-.2)continue;q=o;qd=d;}
   this.ev.push({k:'slide'});if(!q){p.vx+=Math.cos(p.dir)*3;p.vy+=Math.sin(p.dir)*3;return;}
   const nx=(q.x-p.x)/(qd||1),ny=(q.y-p.y)/(qd||1),qi=this.idx(q),hasB=b.owner===qi,gkHands=q.role==='gk'&&q.hold>0;
@@ -1099,7 +1104,9 @@ class Match{
   }
   const P=this.players;
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],c=P[j];if((a.boost>0||c.boost>0)&&a.team!==c.team)continue;/* se la adelantó: pasa al lado del rival */const dx=c.x-a.x,dy=c.y-a.y,d=len(dx,dy);
-   if(d<.78&&d>1e-4){const o=(.78-d)/2,nx=dx/d,ny=dy/d;a.x-=nx*o;a.y-=ny*o;c.x+=nx*o;c.y+=ny*o;}}
+   if(d<.78&&d>1e-4){const o=(.78-d)/2,nx=dx/d,ny=dy/d,ta=this.isThrower(a),tc=this.isThrower(c),ka=ta?0:tc?2:1,kc=tc?0:ta?2:1;a.x-=nx*o*ka;a.y-=ny*o*ka;c.x+=nx*o*kc;c.y+=ny*o*kc;}}
+  {const bo=this.ball.owner,T=bo>=0&&P[bo].throwIn?P[bo]:null;// en el lateral los rivales tienen que quedarse a 2 m del que saca
+   if(T)for(const q of P){if(q.team===T.team)continue;const dx=q.x-T.x,dy=q.y-T.y,d=len(dx,dy);if(d<2){const nx=d>1e-3?dx/d:Math.cos(T.dir),ny=d>1e-3?dy/d:Math.sin(T.dir);q.x=T.x+nx*2;q.y=T.y+ny*2;const vn=q.vx*nx+q.vy*ny;if(vn<0){q.vx-=vn*nx;q.vy-=vn*ny;}}}}
   for(const p of P){
    if(M.walls){p.x=clamp(p.x,-hl+.35,hl-.35);p.y=clamp(p.y,-hw+.35,hw-.35);}
    else{p.x=clamp(p.x,-hl-3,hl+3);p.y=clamp(p.y,-hw-3,hw+3);}
@@ -1112,14 +1119,14 @@ class Match{
   }
  }
  positionOwnedBall(){const b=this.ball;if(b.owner<0)return;const o=this.players[b.owner];
-  const hands=o.role==='gk'&&o.hold>0&&!o.gkKick;const off=o.throwIn?.12:hands?.32:.5+.1*Math.sin(o.run*3.2);
-  b.x=o.x+Math.cos(o.dir)*off;b.y=o.y+Math.sin(o.dir)*off;b.z=o.throwIn?1.95:hands?.9:0;b.vx=o.vx;b.vy=o.vy;b.vz=0;
+  const hands=o.role==='gk'&&o.hold>0&&!o.gkKick;const off=o.throwIn?-.04:hands?.32:.5+.1*Math.sin(o.run*3.2);
+  b.x=o.x+Math.cos(o.dir)*off;b.y=o.y+Math.sin(o.dir)*off;b.z=o.throwIn?.12:hands?.9:0;b.vx=o.vx;b.vy=o.vy;b.vz=0;
   if(o.role==='gk'){const d=this.dirOf(o.team),gx=-d*this.hl;if((b.x-gx)*d<.15)b.x=gx+d*.15;}
   if(this.map.walls){b.y=clamp(b.y,-this.hw+.12,this.hw-.12);if(Math.abs(b.y)>this.gw)b.x=clamp(b.x,-this.hl+.12,this.hl-.12);}}
  ballPhysics(dt){
   const b=this.ball;if(b.owner>=0&&!this.looseOwned())return;
   const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;if(b.lift>0)b.lift-=dt;
-  if(b.throwBy){b.throwBy=false;const v=len(b.vx,b.vy),mx=M.fmt>=11?17:M.fmt>=9?13:10;if(v>mx){b.vx*=mx/v;b.vy*=mx/v;}b.z=Math.max(b.z,1.8);b.vz=clamp(b.vz,1.5,3.5);b.at=null;b.y=clamp(b.y,-hw+.25,hw-.25);b.x=clamp(b.x,-hl+.25,hl-.25);}// lateral con la mano: sale desde arriba de la cabeza y no tan lejosif(b.knock>0)b.knock-=dt;
+  if(b.throwBy){b.throwBy=false;const v=len(b.vx,b.vy),mx=M.fmt>=11?17:M.fmt>=9?13:10;if(v>mx){b.vx*=mx/v;b.vy*=mx/v;}b.z=Math.max(b.z,.3);b.vz=clamp(b.vz+2.5,4,5.5);b.at=null;b.y=clamp(b.y,-hw+.25,hw-.25);b.x=clamp(b.x,-hl+.25,hl-.25);}// lateral con la mano: sale desde arriba de la cabeza y no tan lejosif(b.knock>0)b.knock-=dt;
   if(b.z>0||b.vz>0){b.vz-=9.8*dt;b.z+=b.vz*dt;if(b.z<=0){b.z=0;b.gkLong=null;if(b.vz<-2.2){b.vz=-b.vz*this.bounceK;b.vx*=.72;b.vy*=.72;this.ev.push({k:'bounce'});}else b.vz=0;}const f=1-this.airK*dt;b.vx*=f;b.vy*=f;}
   else{const v=len(b.vx,b.vy);if(v>0){const nv=Math.max(0,v-(this.fr0+this.fr1*v)*dt);b.vx*=nv/v;b.vy*=nv/v;}}
   const ox=b.x;b.x+=b.vx*dt;b.y+=b.vy*dt;
@@ -1375,13 +1382,22 @@ const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><s
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const K=kbSet();
  const pk=$('#pauseKeys');pk.style.display='';
  const key=(k,l,c='')=>`<div class="kk"><span class="kc big ${c}">${k}</span><small>${l}</small></div>`;
- const kbArt=`<div class="ptitle">⌨️ Teclado${G.zurdo?' · zurdo':''}</div><div class="kart"><div class="kgrp"><div class="arrows"><i></i><span class="kc">${K.arrows[0]}</span><i></i><span class="kc">${K.arrows[1]}</span><span class="kc">${K.arrows[2]}</span><span class="kc">${K.arrows[3]}</span></div><div class="kl">Moverte</div></div>
-   <div class="kgrp k3">${key(K.P,'Pase · centro','blue')}${key(K.X,'Al espacio · empujón')}${key(K.C,'Tiro · barrida','red')}</div></div>
-   <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small><span class="kc wide">Esc</span><small>Pausa</small></div></div>`;
+ const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
+ const kbArt=`<div class="ptitle">⌨️ Teclado${G.zurdo?' · zurdo':''}</div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
+   <div class="plist">${row(kc(K.P),'Pase · centro')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
  const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · centro</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
- const pb=(k,l,cl)=>`<div class="kk"><span class="kc big pbk ${cl}">${k}</span><small>${l}</small></div>`;
- const padArt=`<div class="ptitle">🎮 Joystick</div><div class="kart"><div class="kgrp k3 wrap">${pb('🕹️','Moverte','stk')}${pb('A','Pase','pa')}${pb('B','Tiro · cuerpo','pbb')}${pb('X','Centro · barrida','px')}${pb('Y','Profundidad','py')}</div></div>
-   <div class="kart"><div class="kgrp k3 wrap">${pb('LB','Cambiar jugador','psq')}${pb('RT','Correr','psq')}${pb('🕹️','Stick der.: adelantar','stk')}${pb('▶','Start: pausa','psq')}</div></div>`;
+ const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
+ const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="0 0 640 420" aria-hidden="true">
+   <rect x="110" y="6" width="150" height="70" rx="26" fill="#4b5058"/><rect x="380" y="6" width="150" height="70" rx="26" fill="#4b5058"/>
+   <text x="185" y="42" class="bt">LB</text><text x="455" y="42" class="bt">RB</text>
+   <path d="M130,62 Q185,48 250,58 L390,58 Q455,48 510,62 Q590,92 615,250 Q635,395 580,410 Q540,418 500,352 Q470,312 430,312 L210,312 Q170,312 140,352 Q100,418 60,410 Q5,395 25,250 Q50,92 130,62 Z" fill="#202227"/>
+   <circle cx="320" cy="78" r="24" fill="#f4f4f4"/><circle cx="276" cy="140" r="11" fill="#3a3d44"/><circle cx="364" cy="140" r="11" fill="#3a3d44"/>
+   <circle cx="168" cy="140" r="40" fill="#3a3d44"/><text x="168" y="148" class="bt">L</text>
+   <circle cx="244" cy="230" r="50" fill="#3a3d44"/><path d="M232,196h24v22h22v24h-22v22h-24v-22h-22v-24h22z" fill="#8a8f98"/>
+   <circle cx="400" cy="230" r="40" fill="#3a3d44"/><text x="400" y="238" class="bt">R</text>
+   <circle cx="490" cy="92" r="23" fill="#f5d90a"/><circle cx="446" cy="136" r="23" fill="#1fb3ea"/><circle cx="534" cy="136" r="23" fill="#ee3b3b"/><circle cx="490" cy="180" r="23" fill="#16c43a"/>
+   <text x="490" y="100" class="bd">Y</text><text x="446" y="144" class="bd">X</text><text x="534" y="144" class="bd">B</text><text x="490" y="188" class="bd">A</text></svg>
+   <div class="plist two">${row(bd('A','pa'),'Pase')}${row(bd('B','pbb'),'Tiro · cuerpo')}${row(bd('X','px'),'Centro · barrida')}${row(bd('Y','py'),'Profundidad')}${row(bd('L','pst'),'Moverte')}${row(bd('R','pst'),'Adelantarla')}${row(bd('LB','pgr'),'Cambiar jugador')}${row(bd('RT','pgr'),'Correr')}</div>`;
  pk.innerHTML=(isTouch?touchArt:kbArt)+(isTouch&&!G.pad?'':padArt);}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
@@ -1404,13 +1420,13 @@ function setupView(cfg,roster){
 function rosterFor(np){const r=[];for(let t=0;t<2;t++)buildForm(np).forEach((f,i)=>r.push({team:t,role:f[0],i}));return r;}
 function viewFromMatch(m){
  const b=m.ball;return{ph:m.phase,tm:m.time,sc:m.score,b:{x:b.x,y:b.y,z:b.z},
-  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
+  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,thr:!!p.throwIn&&b.owner===i,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
 }
 function encodeSnap(m,ev){const P=[];const b=m.ball;
- m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
+ m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0)|(p.throwIn&&b.owner===i?128:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
  const C=[];for(const H of m.humans.values())if(H.pi>=0)C.push(H.pi,H.id);
  return{t:'s',ph:m.phase,tm:Math.round(m.time*10),sc:m.score,b:[Math.round(b.x*50),Math.round(b.y*50),Math.round(b.z*50)],p:P,c:C,ev};}
-function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),prone:!!(s.p[i+3]&64),push:!!(s.p[i+3]&16),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
+function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),prone:!!(s.p[i+3]&64),push:!!(s.p[i+3]&16),thr:!!(s.p[i+3]&128),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
  for(let i=0;i<s.c.length;i+=2)if(P[s.c[i]])P[s.c[i]].ctrl=s.c[i+1];
  return{ph:s.ph,tm:s.tm/10,sc:s.sc,b:{x:s.b[0]/50,y:s.b[1]/50,z:s.b[2]/50},P};}
 function interpView(){
@@ -1471,7 +1487,10 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  // short
  c.fillStyle=sr;c.strokeStyle=OL;c.lineWidth=Math.max(1,.02*s);c.beginPath();c.ellipse(-.02*s,0,.15*s,.22*s,0,0,TAU);c.fill();c.stroke();
  // brazos
- for(const sd of[-1,1]){const ax=p.push?.5:p.slide?-.22:-sw*sd*.75,ay=p.push?.2:.35;
+ if(p.thr){// lateral: brazos arriba, la pelota sobre la cabeza (las manos se dibujan encima de la pelota)
+  for(const sd of[-1,1]){c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(-.02*s,sd*.17*s);c.stroke();
+   c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(0,sd*.26*s,.1*s,0,TAU);c.fill();c.stroke();}}
+ else for(const sd of[-1,1]){const ax=p.push?.5:p.slide?-.22:-sw*sd*.75,ay=p.push?.2:.35;
   c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.strokeStyle=skin;c.lineWidth=.085*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(ax*.22*s,sd*.27*s,.1*s,0,TAU);c.fill();c.stroke();
@@ -1517,7 +1536,7 @@ function render(v,dt){
    ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
  // pelota (sombra)
  const[bx,by]=w2s(v.b.x,v.b.y);{const zz=v.b.z,a=zz<.3?.38:Math.max(.14,.3-zz*.03),k=1+Math.min(zz,4)*.06;ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.beginPath();ctx.ellipse(bx+.06*s+zz*.25*s0,by+.08*s+zz*.15*s0,.2*s*k,.11*s*k,0,0,TAU);ctx.fill();}// sombrita (también con la pelota en el piso)
- const ballLow=v.b.z<.35;
+ const thrI=v.P.findIndex(p=>p.thr),ballLow=v.b.z<.35&&thrI<0;
  if(ballLow)drawBall(bx,by,v.b.z,s);
  for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
   drawPlayer(ctx,s,p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}
@@ -1534,6 +1553,9 @@ function render(v,dt){
    ctx.save();ctx.translate(cx,cy);drawPlayer(ctx,s,{dir:opp?-Math.PI/2:Math.PI/2,slide:false,down:false,push:false},tr,G.gk[t],40+t,{spd:0,run:0},false,t);ctx.restore();
    const dn=G.dts&&G.dts[t];ctx.font='800 11px Inter, sans-serif';ctx.textAlign='center';const lab=dn?'DT '+dn:'DT';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(lab,cx+1,cy-.62*s-5);ctx.fillStyle='#fff';ctx.fillText(lab,cx,cy-.62*s-6);}}
  if(!ballLow)drawBall(bx,by,v.b.z,s);
+ if(thrI>=0){const p=v.P[thrI],r=G.roster[thrI],[x,y]=w2s(p.x,p.y),skin=SKINS[(r.i*7+r.team*3)%SKINS.length];// manos agarrando la pelota del lateral
+  ctx.save();ctx.translate(x,y);ctx.rotate(p.dir-Math.PI/2+(G.flip?Math.PI:0));ctx.fillStyle=skin;ctx.strokeStyle=OL;ctx.lineWidth=Math.max(1,.015*s);
+  for(const sd of[-1,1]){ctx.beginPath();ctx.arc(-.03*s,sd*.16*s,.06*s,0,TAU);ctx.fill();ctx.stroke();}ctx.restore();}
  // nombres, carga, flecha
  ctx.font='800 12px Inter, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
  let meP=null;
