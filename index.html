@@ -383,7 +383,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.25.0';
+const VERSION='1.25.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -776,16 +776,17 @@ class Match{
   const b=this.ball;if(b.owner>=0)return[b.x,b.y];const v=len(b.vx,b.vy);let t;
   if(b.z>.05||b.vz>.5){t=(b.vz+Math.sqrt(b.vz*b.vz+2*9.8*Math.max(b.z,0)))/9.8;}else{t=v>.5?Math.min(1.6,v/(this.fr0+this.fr1*v)):0;}
   const dr=b.z>.05?1:.55;return[clamp(b.x+b.vx*t*dr,-this.hl,this.hl),clamp(b.y+b.vy*t*dr,-this.hw,this.hw)];}
- manualSwitch(H){// cambio manual (como el FIFA): un toque va al más cercano a la pelota (o a donde va); si ya sos ése, al segundo.
-  // Tocando seguido (menos de 1 s) rota por los 3 más cercanos en el orden del primer toque.
+ manualSwitch(H){// cambio manual como el FIFA: cada toque va al compañero más cercano a la pelota (sin contar el que manejás).
+  // Tocando seguido (menos de 1,5 s entre toques) rota por los cercanos en el orden del primer toque.
   const b=this.ball,cur=this.players[H.pi],ok=p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur);
-  let px=b.x,py=b.y;if(b.owner<0&&(b.z>.3||len(b.vx,b.vy)>4))[px,py]=this.ballTarget();
-  const dP=p=>len(p.x-px,p.y-py);let R=this.players.filter(ok).sort((a,c)=>dP(a)-dP(c));
-  if(b.owner<0&&b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){R=R.filter(q=>q!==r);R.unshift(r);}}// pase: el que la va a recibir primero
-  if(R.length<2)return;R=R.filter((q,k)=>k<2||dP(q)<dP(R[0])+15).slice(0,3);
-  const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1000&&H.swList;H.lastSw=now;let nx;
-  if(recent){const Lc=H.swList.map(k=>this.players[k]).filter(ok);const ci=Lc.indexOf(cur);nx=Lc.length>1?Lc[(ci+1)%Lc.length]:R.find(q=>q!==cur);}
-  else{H.swList=R.map(q=>this.idx(q));nx=R[0]!==cur?R[0]:R[1];}
+  let px=b.x+b.vx*.25,py=b.y+b.vy*.25;if(b.owner<0&&b.z>.6)[px,py]=this.ballTarget();// pelota alta: donde cae
+  const dP=p=>len(p.x-px,p.y-py)+(p.down>0?6:0);let R=this.players.filter(ok).sort((a,c)=>dP(a)-dP(c));
+  if(b.owner<0&&b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){R=R.filter(q=>q!==r);R.unshift(r);}}// pase: primero el que la va a recibir
+  const near=R.filter(q=>q!==cur);if(!near.length)return;
+  {const d0=dP(near[0]),N=this.map.fmt>=9?4:3;R=R.filter(q=>dP(q)<d0+12||q===near[0]).slice(0,N+(R.slice(0,N+1).includes(cur)?1:0));}// solo los que están cerca de verdad
+  const now=performance.now(),streak=H.lastSw&&now-H.lastSw<1500&&H.swList;H.lastSw=now;let nx;
+  if(streak){const L=H.swList.map(k=>this.players[k]).filter(ok),ci=L.indexOf(cur);nx=L.length>1?L[(ci+1)%L.length]:near[0];}// tocando seguido: rota en el mismo orden
+  else{const nr=R.filter(q=>q!==cur);H.swList=(R.includes(cur)?[cur,...nr]:nr).map(q=>this.idx(q));nx=near[0];}// primer toque: al más cercano
   if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
