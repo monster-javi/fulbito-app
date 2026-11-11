@@ -383,7 +383,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.24.1';
+const VERSION='1.25.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -776,20 +776,16 @@ class Match{
   const b=this.ball;if(b.owner>=0)return[b.x,b.y];const v=len(b.vx,b.vy);let t;
   if(b.z>.05||b.vz>.5){t=(b.vz+Math.sqrt(b.vz*b.vz+2*9.8*Math.max(b.z,0)))/9.8;}else{t=v>.5?Math.min(1.6,v/(this.fr0+this.fr1*v)):0;}
   const dr=b.z>.05?1:.55;return[clamp(b.x+b.vx*t*dr,-this.hl,this.hl),clamp(b.y+b.vy*t*dr,-this.hw,this.hw)];}
- manualSwitch(H){// cambio manual: primero los que están en un radio alrededor de la pelota (el más pegado primero);
-  // si no hay nadie cerca, los más cercanos a donde va a caer/parar. Tocando seguido rota entre ellos.
+ manualSwitch(H){// cambio manual (como el FIFA): un toque va al más cercano a la pelota (o a donde va); si ya sos ése, al segundo.
+  // Tocando seguido (menos de 1 s) rota por los 3 más cercanos en el orden del primer toque.
   const b=this.ball,cur=this.players[H.pi],ok=p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur);
-  const RAD=this.map.fmt>=11?11:this.map.fmt>=9?9:7,dB=p=>len(p.x-b.x,p.y-b.y);
-  let L=this.players.filter(p=>ok(p)&&dB(p)<RAD).sort((a,c)=>dB(a)-dB(c)).slice(0,3);
-  if(!L.length&&(b.z>.3||len(b.vx,b.vy)>8)){const[px,py]=this.ballTarget();L=this.players.filter(ok).sort((a,c)=>len(a.x-px,a.y-py)-len(c.x-px,c.y-py)).slice(0,3);
-   if(b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){L=L.filter(q=>q!==r);L.unshift(r);L=L.slice(0,3);}}}
-  if(L.length<3)for(const p of this.players.filter(ok).sort((a,c)=>dB(a)-dB(c))){if(L.length>=3)break;if(!L.includes(p))L.push(p);}// pelota suelta: siempre rota entre los más cercanos
-  if(!L.length)return;const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1200;H.lastSw=now;
-  // la lista se recalcula en cada toque (siempre según dónde está la pelota ahora); tocando seguido no repite a los que ya pasaron
-  {const n0=dB(L[0]),L2=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+7));L=L2.length>=2?L2:L.slice(0,2);}// solo los que de verdad están cerca
-  if(!recent||!H.swSeen)H.swSeen=new Set();H.swSeen.add(this.idx(cur));// mientras seguís tocando pasa por todos los cercanos antes de repetir
-  let nx=L.find(q=>q!==cur&&!H.swSeen.has(this.idx(q)));if(!nx){H.swSeen=new Set([this.idx(cur)]);const ci=L.indexOf(cur);nx=ci>=0?L[(ci+1)%L.length]:L.find(q=>q!==cur);}
-  if(nx)H.swSeen.add(this.idx(nx));
+  let px=b.x,py=b.y;if(b.owner<0&&(b.z>.3||len(b.vx,b.vy)>4))[px,py]=this.ballTarget();
+  const dP=p=>len(p.x-px,p.y-py);let R=this.players.filter(ok).sort((a,c)=>dP(a)-dP(c));
+  if(b.owner<0&&b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){R=R.filter(q=>q!==r);R.unshift(r);}}// pase: el que la va a recibir primero
+  if(R.length<2)return;R=R.filter((q,k)=>k<2||dP(q)<dP(R[0])+15).slice(0,3);
+  const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1000&&H.swList;H.lastSw=now;let nx;
+  if(recent){const Lc=H.swList.map(k=>this.players[k]).filter(ok);const ci=Lc.indexOf(cur);nx=Lc.length>1?Lc[(ci+1)%Lc.length]:R.find(q=>q!==cur);}
+  else{H.swList=R.map(q=>this.idx(q));nx=R[0]!==cur?R[0]:R[1];}
   if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
@@ -903,6 +899,7 @@ class Match{
   if(best){const t=len(best.x-p.x,best.y-p.y)/12;this.kickTo(p,best.x+best.vx*t,best.y+best.vy*t,false,.9);this.ball.passTo=this.idx(best);best.req=null;}
   else{this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*12;b.vy=Math.sin(p.dir)*12;b.vz=0;b.z=0;}
   this.ball.gkLong=null;this.ev.push({k:'kick',v:.2});}
+ isCel(p){return this.phase==='goal'&&!!this.celeb&&p.team===this.celeb.team&&p.role!=='gk'&&!(p.down>0);}
  isThrower(p){return p.throwIn&&this.ball.owner===this.idx(p);}
  push(p){if(p.pushCd>0||p.stun>0||p.slide>0)return;p.pushCd=.8;const b=this.ball;let q=null,qd=1.6;
   for(const o of this.players){if(o.team===p.team||this.isThrower(o))continue;const dx=o.x-p.x,dy=o.y-p.y,d=len(dx,dy);if(d>=qd)continue;
@@ -1098,15 +1095,16 @@ class Match{
     if(a>maxA){p.vx+=ax/a*maxA;p.vy+=ay/a*maxA;}else{p.vx=dvx;p.vy=dvy;}}
    p.x+=p.vx*dt;p.y+=p.vy*dt;
    const sp=len(p.vx,p.vy);
-   if(p.slide<=0){const tgt=p.face!=null?p.face:(sp>.5?Math.atan2(p.vy,p.vx):p.dir);
+   if(p.down>0||p.gkDive>0){if(p.dDir==null)p.dDir=p.dir;p.dir=p.dDir;}// en el piso no gira
+   else if(p.slide<=0){p.dDir=null;const tgt=p.face!=null?p.face:(sp>.5?Math.atan2(p.vy,p.vx):p.dir);
     const own=this.ball.owner===this.idx(p);const rate=(own?11:16)*dt;const df=angDiff(p.dir,tgt);p.dir+=clamp(df,-rate,rate);}
    p.run+=sp*dt;
   }
   const P=this.players;
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],c=P[j];if((a.boost>0||c.boost>0)&&a.team!==c.team)continue;/* se la adelantó: pasa al lado del rival */const dx=c.x-a.x,dy=c.y-a.y,d=len(dx,dy);
    if(d<.78&&d>1e-4){const o=(.78-d)/2,nx=dx/d,ny=dy/d,ta=this.isThrower(a),tc=this.isThrower(c),ka=ta?0:tc?2:1,kc=tc?0:ta?2:1;a.x-=nx*o*ka;a.y-=ny*o*ka;c.x+=nx*o*kc;c.y+=ny*o*kc;}}
-  {const bo=this.ball.owner,T=bo>=0&&P[bo].throwIn?P[bo]:null;// en el lateral los rivales tienen que quedarse a 2 m del que saca
-   if(T)for(const q of P){if(q.team===T.team)continue;const dx=q.x-T.x,dy=q.y-T.y,d=len(dx,dy);if(d<2){const nx=d>1e-3?dx/d:Math.cos(T.dir),ny=d>1e-3?dy/d:Math.sin(T.dir);q.x=T.x+nx*2;q.y=T.y+ny*2;const vn=q.vx*nx+q.vy*ny;if(vn<0){q.vx-=vn*nx;q.vy-=vn*ny;}}}}
+  {const bo=this.ball.owner,T0=bo>=0?P[bo]:null,gkH=T0&&T0.role==='gk'&&(T0.hold>0||T0.gkKick||T0.lock>0),T=T0&&(T0.throwIn||gkH)?T0:null,RX=gkH?(this.map.fmt>=9?5:3.5):2;// lateral: rivales a 2 m; arquero con la pelota en la mano: no se le pegan
+   if(T)for(const q of P){if(q.team===T.team)continue;const dx=q.x-T.x,dy=q.y-T.y,d=len(dx,dy);if(d<RX){const nx=d>1e-3?dx/d:Math.cos(T.dir),ny=d>1e-3?dy/d:Math.sin(T.dir);q.x=T.x+nx*RX;q.y=T.y+ny*RX;const vn=q.vx*nx+q.vy*ny;if(vn<0){q.vx-=vn*nx;q.vy-=vn*ny;}}}}
   for(const p of P){
    if(M.walls){p.x=clamp(p.x,-hl+.35,hl-.35);p.y=clamp(p.y,-hw+.35,hw-.35);}
    else{p.x=clamp(p.x,-hl-3,hl+3);p.y=clamp(p.y,-hw-3,hw+3);}
@@ -1420,13 +1418,13 @@ function setupView(cfg,roster){
 function rosterFor(np){const r=[];for(let t=0;t<2;t++)buildForm(np).forEach((f,i)=>r.push({team:t,role:f[0],i}));return r;}
 function viewFromMatch(m){
  const b=m.ball;return{ph:m.phase,tm:m.time,sc:m.score,b:{x:b.x,y:b.y,z:b.z},
-  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,thr:!!p.throwIn&&b.owner===i,hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
+  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,thr:!!p.throwIn&&b.owner===i,cel:m.isCel(p),hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
 }
 function encodeSnap(m,ev){const P=[];const b=m.ball;
- m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0)|(p.throwIn&&b.owner===i?128:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
+ m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0)|(p.throwIn&&b.owner===i?128:0)|(m.isCel(p)?32:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
  const C=[];for(const H of m.humans.values())if(H.pi>=0)C.push(H.pi,H.id);
  return{t:'s',ph:m.phase,tm:Math.round(m.time*10),sc:m.score,b:[Math.round(b.x*50),Math.round(b.y*50),Math.round(b.z*50)],p:P,c:C,ev};}
-function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),prone:!!(s.p[i+3]&64),push:!!(s.p[i+3]&16),thr:!!(s.p[i+3]&128),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
+function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),prone:!!(s.p[i+3]&64),push:!!(s.p[i+3]&16),thr:!!(s.p[i+3]&128),cel:!!(s.p[i+3]&32),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
  for(let i=0;i<s.c.length;i+=2)if(P[s.c[i]])P[s.c[i]].ctrl=s.c[i+1];
  return{ph:s.ph,tm:s.tm/10,sc:s.sc,b:{x:s.b[0]/50,y:s.b[1]/50,z:s.b[2]/50},P};}
 function interpView(){
@@ -1490,7 +1488,7 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  if(p.thr){// lateral: brazos arriba, la pelota sobre la cabeza (las manos se dibujan encima de la pelota)
   for(const sd of[-1,1]){c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(-.02*s,sd*.17*s);c.stroke();
    c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(0,sd*.26*s,.1*s,0,TAU);c.fill();c.stroke();}}
- else for(const sd of[-1,1]){const ax=p.push?.5:p.slide?-.22:-sw*sd*.75,ay=p.push?.2:.35;
+ else for(const sd of[-1,1]){const ax=p.cel?-.04+Math.sin(ph)*.05*sd:p.push?.5:p.slide?-.22:-sw*sd*.75,ay=p.cel?.62:p.push?.2:.35;// festejo: corre con los brazos abiertos (avioncito)
   c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.strokeStyle=skin;c.lineWidth=.085*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(ax*.22*s,sd*.27*s,.1*s,0,TAU);c.fill();c.stroke();
