@@ -66,8 +66,10 @@ input::placeholder{color:#6f877a;font-weight:600}
 .swl i{position:absolute;inset:0;border-radius:99px;background:#3a4a43;transition:.15s}.swl i:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
 .swl input:checked+i{background:#ffd23f}.swl input:checked+i:after{left:23px}
 .dtrow{display:flex;align-items:center;gap:8px;margin-top:10px}.dtrow input{flex:1;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:8px 10px;font:inherit;font-weight:700}
+#sPause .panel{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}#sPause .panel::-webkit-scrollbar{width:0}
 .ptitle{font-size:12px;font-weight:900;color:#ffd23f;margin:4px 0 2px;letter-spacing:.04em}
-#pauseKeys .kgrp.k3{flex-direction:row;gap:10px;align-items:flex-start}#pauseKeys .kk{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px}#pauseKeys .kk small{font-size:10.5px;font-weight:800;color:#cfe0d6;text-align:center;line-height:1.15}
+#pauseKeys .kgrp.k3{flex-direction:row;gap:10px;align-items:flex-start}#pauseKeys .k3.wrap{flex-wrap:wrap;justify-content:center;row-gap:8px}#pauseKeys .kart{flex-wrap:wrap;row-gap:10px}
+.kc.pbk{border-radius:50%!important;width:46px!important;min-width:0!important;justify-content:center}.kc.pa{background:#16a34a!important}.kc.pbb{background:#dc2626!important}.kc.px{background:#2563eb!important}.kc.py{background:#ca8a04!important}.kc.psq{border-radius:10px!important;width:54px!important;background:#4b5563!important;font-size:15px!important}.kc.stk{background:#1f2937!important;font-size:20px!important}#pauseKeys .kk{display:flex;flex-direction:column;align-items:center;gap:4px;width:62px}#pauseKeys .kart{gap:14px}#pauseKeys .kgrp.k3{gap:6px!important}#pauseKeys .kk small{font-size:10.5px;font-weight:800;color:#cfe0d6;text-align:center;line-height:1.15}
 #pauseKeys .kfrow{display:flex;align-items:center;gap:8px;justify-content:center}#pauseKeys .kfrow small{font-weight:800;color:#cfe0d6;margin-right:10px}
 .tjoy{width:56px;height:56px;border-radius:50%;border:3px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center}.tjoy i{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.6)}
 .tb{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff}.tb.blue{background:#2563eb}.tb.red{background:#dc2626}.tb.two{background:#4b5563;font-size:20px}
@@ -377,7 +379,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.23.3';
+const VERSION='1.24.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -773,16 +775,16 @@ class Match{
  manualSwitch(H){// cambio manual: primero los que están en un radio alrededor de la pelota (el más pegado primero);
   // si no hay nadie cerca, los más cercanos a donde va a caer/parar. Tocando seguido rota entre ellos.
   const b=this.ball,cur=this.players[H.pi],ok=p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur);
-  const RAD=this.map.fmt>=11?9:this.map.fmt>=9?7:5,dB=p=>len(p.x-b.x,p.y-b.y);
+  const RAD=this.map.fmt>=11?11:this.map.fmt>=9?9:7,dB=p=>len(p.x-b.x,p.y-b.y);
   let L=this.players.filter(p=>ok(p)&&dB(p)<RAD).sort((a,c)=>dB(a)-dB(c)).slice(0,3);
   if(!L.length&&(b.z>.3||len(b.vx,b.vy)>8)){const[px,py]=this.ballTarget();L=this.players.filter(ok).sort((a,c)=>len(a.x-px,a.y-py)-len(c.x-px,c.y-py)).slice(0,3);
    if(b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){L=L.filter(q=>q!==r);L.unshift(r);L=L.slice(0,3);}}}
   if(L.length<3)for(const p of this.players.filter(ok).sort((a,c)=>dB(a)-dB(c))){if(L.length>=3)break;if(!L.includes(p))L.push(p);}// pelota suelta: siempre rota entre los más cercanos
   if(!L.length)return;const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1200;H.lastSw=now;
   // la lista se recalcula en cada toque (siempre según dónde está la pelota ahora); tocando seguido no repite a los que ya pasaron
-  {const n0=dB(L[0]),L2=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+5));L=L2.length>=2?L2:L.slice(0,2);}// solo los que de verdad están cerca
-  if(!recent||!H.swSeen||H.swNear!==this.idx(L[0]))H.swSeen=new Set();H.swNear=this.idx(L[0]);H.swSeen.add(this.idx(cur));
-  let nx=L.find(q=>q!==cur&&!H.swSeen.has(this.idx(q)));if(!nx){H.swSeen=new Set([this.idx(cur)]);nx=L.find(q=>q!==cur);}
+  {const n0=dB(L[0]),L2=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+7));L=L2.length>=2?L2:L.slice(0,2);}// solo los que de verdad están cerca
+  if(!recent||!H.swSeen)H.swSeen=new Set();H.swSeen.add(this.idx(cur));// mientras seguís tocando pasa por todos los cercanos antes de repetir
+  let nx=L.find(q=>q!==cur&&!H.swSeen.has(this.idx(q)));if(!nx){H.swSeen=new Set([this.idx(cur)]);const ci=L.indexOf(cur);nx=ci>=0?L[(ci+1)%L.length]:L.find(q=>q!==cur);}
   if(nx)H.swSeen.add(this.idx(nx));
   if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
@@ -1377,17 +1379,9 @@ function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keys
    <div class="kgrp k3">${key(K.P,'Pase · centro','blue')}${key(K.X,'Al espacio · empujón')}${key(K.C,'Tiro · barrida','red')}</div></div>
    <div class="kfifa"><div class="kfrow"><span class="kc wide">Shift</span><small>Correr</small><span class="kc wide">Esc</span><small>Pausa</small></div></div>`;
  const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · centro</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
- const T=(x,y,t,a='start')=>`<text x="${x}" y="${y}" text-anchor="${a}">${t}</text>`,Ln=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
- const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="-44 0 488 206" aria-label="Joystick">
-  <g class="lines">${Ln(128,40,70,22)}${Ln(272,40,330,22)}${Ln(118,92,60,92)}${Ln(178,128,150,178)}${Ln(240,128,262,178)}${Ln(287,66,330,52)}${Ln(266,88,330,82)}${Ln(306,88,340,112)}${Ln(287,110,330,142)}${Ln(200,78,200,40)}</g>
-  <path class="body" d="M120 52 Q200 38 280 52 Q318 58 330 104 L346 168 Q350 196 324 196 Q300 196 286 170 L268 140 L132 140 L114 170 Q100 196 76 196 Q50 196 54 168 L70 104 Q82 58 120 52Z"/>
-  <rect class="bump" x="108" y="34" width="48" height="12" rx="6"/><rect class="bump" x="244" y="34" width="48" height="12" rx="6"/>
-  <circle class="stick" cx="128" cy="92" r="17"/><circle class="stick" cx="240" cy="122" r="17"/>
-  <path class="dpad" d="M164 114h10v-10h10v10h10v10h-10v10h-10v-10h-10z"/>
-  <circle cx="287" cy="66" r="11" fill="#ca8a04"/><circle cx="266" cy="88" r="11" fill="#2563eb"/><circle cx="308" cy="88" r="11" fill="#dc2626"/><circle cx="287" cy="110" r="11" fill="#16a34a"/>
-  <g class="bl"><text x="287" y="70">Y</text><text x="266" y="92">X</text><text x="308" y="92">B</text><text x="287" y="114">A</text><text x="132" y="44">LB</text><text x="268" y="44">RB</text></g>
-  <rect class="mini" x="186" y="72" width="28" height="10" rx="5"/>
-  <g class="lab">${T(66,18,'LB  Cambiar jugador','end')}${T(334,18,'RT  Correr')}${T(56,96,'Moverte','end')}${T(136,192,'Cruceta: mover','end')}${T(334,48,'Profundidad')}${T(334,78,'Centro · barrida')}${T(344,116,'Tiro · hacer cuerpo')}${T(334,146,'Pase')}${T(266,192,'Stick der.: adelantar')}${T(200,34,'Start  Pausa','middle')}</g></svg>`;
+ const pb=(k,l,cl)=>`<div class="kk"><span class="kc big pbk ${cl}">${k}</span><small>${l}</small></div>`;
+ const padArt=`<div class="ptitle">🎮 Joystick</div><div class="kart"><div class="kgrp k3 wrap">${pb('🕹️','Moverte','stk')}${pb('A','Pase','pa')}${pb('B','Tiro · cuerpo','pbb')}${pb('X','Centro · barrida','px')}${pb('Y','Profundidad','py')}</div></div>
+   <div class="kart"><div class="kgrp k3 wrap">${pb('LB','Cambiar jugador','psq')}${pb('RT','Correr','psq')}${pb('🕹️','Stick der.: adelantar','stk')}${pb('▶','Start: pausa','psq')}</div></div>`;
  pk.innerHTML=(isTouch?touchArt:kbArt)+(isTouch&&!G.pad?'':padArt);}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
