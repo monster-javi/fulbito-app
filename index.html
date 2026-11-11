@@ -383,7 +383,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.25.1';
+const VERSION='1.25.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -732,9 +732,10 @@ class Match{
    else if(tk.lock<=.05){this.penShot(tk);this.penHold=false;}}
   if(!this.koHold&&!this.penHold){this.time-=dt;if(this.time<=0){this.time=0;this.finish();return;}}
   this.updateControl();this.computeChasers();
-  for(const p of this.players){
-   const H=p.ctrl!=null?this.humans.get(p.ctrl):null;
-   if(p.down>0||p.gkDive>0){p.dvx=p.dvy=0;p.charge=-1;}else if(H)this.humanInput(p,H,dt);else if(p.role==='gk')this.gkAI(p,dt);else this.fieldAI(p,dt);
+  const C0=this.players.map(p=>p.ctrl);// quién maneja a quién al empezar el paso: si se cambió de jugador en este paso, el nuevo no vuelve a leer el mismo botón
+  for(const [pi,p] of this.players.entries()){
+   const H=p.ctrl!=null&&p.ctrl===C0[pi]?this.humans.get(p.ctrl):null;
+   if(p.down>0||p.gkDive>0){p.dvx=p.dvy=0;p.charge=-1;}else if(H)this.humanInput(p,H,dt);else if(p.ctrl!=null){}else if(p.role==='gk')this.gkAI(p,dt);else this.fieldAI(p,dt);
    if(this.phase!=='play')break;
   }
   if(this.phase!=='play'){this.endInputs();return;}
