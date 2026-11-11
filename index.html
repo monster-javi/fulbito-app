@@ -377,7 +377,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.23.2';
+const VERSION='1.23.3';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -780,7 +780,7 @@ class Match{
   if(L.length<3)for(const p of this.players.filter(ok).sort((a,c)=>dB(a)-dB(c))){if(L.length>=3)break;if(!L.includes(p))L.push(p);}// pelota suelta: siempre rota entre los más cercanos
   if(!L.length)return;const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1200;H.lastSw=now;
   // la lista se recalcula en cada toque (siempre según dónde está la pelota ahora); tocando seguido no repite a los que ya pasaron
-  {const n0=dB(L[0]);L=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+5));}// solo los que de verdad están cerca
+  {const n0=dB(L[0]),L2=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+5));L=L2.length>=2?L2:L.slice(0,2);}// solo los que de verdad están cerca
   if(!recent||!H.swSeen||H.swNear!==this.idx(L[0]))H.swSeen=new Set();H.swNear=this.idx(L[0]);H.swSeen.add(this.idx(cur));
   let nx=L.find(q=>q!==cur&&!H.swSeen.has(this.idx(q)));if(!nx){H.swSeen=new Set([this.idx(cur)]);nx=L.find(q=>q!==cur);}
   if(nx)H.swSeen.add(this.idx(nx));
