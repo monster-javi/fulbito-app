@@ -383,7 +383,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.27.0';
+const VERSION='1.28.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1543,8 +1543,12 @@ function render(v,dt){
  // sombras + anillos
  for(const i of order){const p=v.P[i];const[x,y]=w2s(p.x,p.y);
   ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*s,y+.13*s,.36*s,.28*s,0,0,TAU);ctx.fill();
-  if(p.ctrl!=null){const me=p.ctrl===G.myHid;const r=G.roster[i];const HMr=(G.match?G.match.homes:G.homes)||{};if(me&&HMr[p.ctrl]===i){ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,.62*s,.52*s,0,0,TAU);ctx.stroke();}
-   ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
+  if(p.ctrl!=null){const me=p.ctrl===G.myHid;const r=G.roster[i];// marcador estilo Tehkan: dos flechitas diagonales detrás del jugador (según hacia dónde ataca)
+   const [x1,y1]=w2s(p.x+(r.team===0?1:-1),p.y),fl=len(x1-x,y1-y)||1,fx=(x1-x)/fl,fy=(y1-y)/fl,nx=-fy,ny=fx;
+   ctx.fillStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=1;
+   for(const sd of[-1,1]){const cx=x-fx*.6*s+nx*sd*.6*s,cy=y-fy*.6*s+ny*sd*.6*s;// punta apuntando hacia el jugador, en diagonal (45°)
+    let dx=fx-nx*sd,dy=fy-ny*sd;const dl=len(dx,dy);dx/=dl;dy/=dl;const px=-dy,py=dx,L=.3*s,W=.15*s;// punta de flecha con muesca atrás
+    ctx.beginPath();ctx.moveTo(cx+dx*L*.6,cy+dy*L*.6);ctx.lineTo(cx-dx*L*.4+px*W,cy-dy*L*.4+py*W);ctx.lineTo(cx-dx*L*.1,cy-dy*L*.1);ctx.lineTo(cx-dx*L*.4-px*W,cy-dy*L*.4-py*W);ctx.closePath();ctx.fill();ctx.stroke();}}}
  // pelota (sombra)
  const[bx,by]=w2s(v.b.x,v.b.y);{const zz=v.b.z,a=zz<.3?.38:Math.max(.14,.3-zz*.03),k=1+Math.min(zz,4)*.06;ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.beginPath();ctx.ellipse(bx+.06*s+zz*.25*s0,by+.08*s+zz*.15*s0,.2*s*k,.11*s*k,0,0,TAU);ctx.fill();}// sombrita (también con la pelota en el piso)
  const thrI=v.P.findIndex(p=>p.thr),ballLow=v.b.z<.35&&thrI<0;
