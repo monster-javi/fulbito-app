@@ -366,7 +366,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.21.0';
+const VERSION='1.21.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -748,10 +748,16 @@ class Match{
   }
  }
  switchTo(H,p){const cur=this.players[H.pi];if(cur){cur.ctrl=null;cur.charge=-1;}p.ctrl=H.id;H.pi=this.idx(p);H.swCd=.35;}
- manualSwitch(H){// cambio manual: va rotando entre los 3 más cerca de la pelota (el cambio automático sigue igual)
-  const b=this.ball,cur=this.players[H.pi],px=b.x+b.vx*.3,py=b.y+b.vy*.3;
+ ballTarget(){// adónde va la pelota: si vuela, dónde cae; si rueda, dónde para (o un poco adelante)
+  const b=this.ball;if(b.owner>=0)return[b.x,b.y];const v=len(b.vx,b.vy);let t;
+  if(b.z>.05||b.vz>.5){t=(b.vz+Math.sqrt(b.vz*b.vz+2*9.8*Math.max(b.z,0)))/9.8;}else{t=v>.5?Math.min(1.6,v/(this.fr0+this.fr1*v)):0;}
+  const dr=b.z>.05?1:.55;return[clamp(b.x+b.vx*t*dr,-this.hl,this.hl),clamp(b.y+b.vy*t*dr,-this.hw,this.hw)];}
+ manualSwitch(H){// cambio manual: primero el más cercano a donde va la pelota, y si seguís tocando rota entre los 3 más cercanos
+  const b=this.ball,cur=this.players[H.pi],[px,py]=this.ballTarget();
   const L=this.players.filter(p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur)).sort((a,c)=>len(a.x-px,a.y-py)-len(c.x-px,c.y-py)).slice(0,3);
-  if(!L.length)return;const i=L.indexOf(cur),nx=L[(i+1)%L.length];
+  if(b.passTo>=0){const r=this.players[b.passTo];if(r&&r.team===H.team&&r.role!=='gk'&&(r.ctrl==null||r===cur)&&!L.includes(r))L.unshift(r);else if(r&&L.includes(r)){L.splice(L.indexOf(r),1);L.unshift(r);}}
+  if(!L.length)return;const recent=H.lastSw&&performance.now()-H.lastSw<1500;H.lastSw=performance.now();
+  const i=L.indexOf(cur),nx=recent?L[(i+1)%L.length]:(L[0]!==cur?L[0]:L[1]||L[0]);
   if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
@@ -1453,7 +1459,7 @@ function render(v,dt){
   if(p.ctrl!=null){const me=p.ctrl===G.myHid;const r=G.roster[i];const HMr=(G.match?G.match.homes:G.homes)||{};if(me&&HMr[p.ctrl]===i){ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,.62*s,.52*s,0,0,TAU);ctx.stroke();}
    ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
  // pelota (sombra)
- const[bx,by]=w2s(v.b.x,v.b.y);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(bx+v.b.z*.25*s0,by+v.b.z*.15*s0,.16*s,.12*s,0,0,TAU);ctx.fill();
+ const[bx,by]=w2s(v.b.x,v.b.y);{const zz=v.b.z,a=zz<.3?.38:Math.max(.14,.3-zz*.03),k=1+Math.min(zz,4)*.06;ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.beginPath();ctx.ellipse(bx+.06*s+zz*.25*s0,by+.08*s+zz*.15*s0,.2*s*k,.11*s*k,0,0,TAU);ctx.fill();}// sombrita (también con la pelota en el piso)
  const ballLow=v.b.z<.35;
  if(ballLow)drawBall(bx,by,v.b.z,s);
  for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
