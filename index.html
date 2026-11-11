@@ -377,7 +377,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.23.0';
+const VERSION='1.23.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -687,9 +687,10 @@ class Match{
   const b=this.ball;this.score[team]++;
   const sc=b.last>=0?this.players[b.last]:null;
   const own=sc&&sc.team!==team;
-  this.ev.push({k:'goal',team,name:sc?this.nameOf(sc):'',own});
+  this.ev.push({k:'goal',team,name:sc?this.nameOf(sc):'',own,lead:sc&&!own?this.idx(sc):this.idx(this.players.find(q=>q.team===team&&q.role!=='gk'))});
   this.phase='goal';this.phaseT=4.5;this.kickTeam=1-team;b.owner=-1;
-  {const d=this.dirOf(team),cs=sc&&!own?sc:null;this.celeb={team,x:d*this.hl*.8,y:(Math.sign(cs?cs.y:b.y)||1)*this.hw*.7};}// festejo grupal
+  {const d=this.dirOf(team),cs=sc&&!own?sc:this.players.find(q=>q.team===team&&q.role!=='gk');const R=this.map.fmt>=11?5:3;
+   this.celeb={team,lead:this.idx(cs),cx:clamp(cs.x-d*R,-this.hl+R+1,this.hl-R-1),cy:clamp(cs.y,-this.hw+R+1,this.hw-R-1),R,a:0,trail:[]};}// festejo: trencito detrás del que hizo el gol
  }
  finish(){this.phase='end';this.ev.push({k:'end',sc:[...this.score]});}
 
@@ -697,10 +698,11 @@ class Match{
   for(const H of this.humans.values()){H.swCd=Math.max(0,H.swCd-dt);if(H.q.length){if(H.q.length>4)H.q.splice(0,H.q.length-2);H.inp=H.q.shift();}}
   if(this.phase==='end')return;
   if(this.phase==='goal'){
-   this.phaseT-=dt;const ce=this.celeb;let k=0;
-   for(const p of this.players){p.dvx=p.dvy=0;if(!ce||p.role==='gk'||p.down>0)continue;
-    if(p.team===ce.team){const a=k++*2.1;this.setMove(p,ce.x+Math.cos(a)*.9-this.dirOf(p.team)*.6,ce.y+Math.sin(a)*.9,this.spd*1.1);}
-    else this.setMove(p,-this.dirOf(p.team)*this.hl*.25+p.y*0,p.y*.7,this.spd*.35);}
+   this.phaseT-=dt;const ce=this.celeb;
+   for(const p of this.players){p.dvx=p.dvy=0;}
+   if(ce){const L=this.players[ce.lead];ce.a+=dt*this.spd*.8/ce.R;// el goleador da vueltas y los compañeros lo siguen en fila
+    this.setMove(L,ce.cx+Math.cos(ce.a)*ce.R,ce.cy+Math.sin(ce.a)*ce.R,this.spd*1.05);ce.trail.unshift([L.x,L.y]);if(ce.trail.length>400)ce.trail.pop();
+    let k=1;for(const p of this.players){if(p===L||p.team!==ce.team||p.role==='gk'||p.down>0)continue;const t=ce.trail[Math.min(ce.trail.length-1,k*14)];k++;if(t)this.setMove(p,t[0],t[1],this.spd*1.1);}}
    for(const H of this.humans.values()){const i=H.inp,q=H.prev;if((i.k&&!q.k)||(i.p&&!q.p)||(i.x&&!q.x)||(i.c&&!q.c))this.phaseT=Math.min(this.phaseT,.1);}// cualquier botón saltea el festejo
    this.moveAll(dt);this.ballPhysics(dt);
    if(this.phaseT<=0){if(this.time<=0)this.finish();else this.setupKickoff(this.kickTeam);}
@@ -1426,7 +1428,8 @@ const FL=()=>G.flip?-1:1;
 const w2s=(x,y)=>[FL()*(y-G.cam.y)*G.ppm+VW/2,-FL()*(x-G.cam.x)*G.ppm+VH/2];
 function updateCamera(v,dt){
  const M=G.map,mg=fieldMargin(M);let tx=v.b.x,ty=v.b.y;
- const me=G.twoP?null:v.P.find(p=>p.ctrl===G.myHid);if(me){tx=tx*.72+me.x*.28;ty=ty*.72+me.y*.28;}
+ if(v.ph==='goal'&&G.celLead!=null&&v.P[G.celLead]){tx=v.P[G.celLead].x;ty=v.P[G.celLead].y;}// la cámara sigue al que hizo el gol y su trencito
+ const me=G.twoP||v.ph==='goal'?null:v.P.find(p=>p.ctrl===G.myHid);if(me){tx=tx*.72+me.x*.28;ty=ty*.72+me.y*.28;}
  const k=1-Math.exp(-dt*5.5);G.cam.x+=(tx-G.cam.x)*k;G.cam.y+=(ty-G.cam.y)*k;
  const hx=VH/2/G.ppm,hy=VW/2/G.ppm,ex=M.L/2+mg,ey=M.W/2+mg;
  G.cam.x=hx>=ex?0:clamp(G.cam.x,-ex+hx,ex-hx);G.cam.y=hy>=ey?0:clamp(G.cam.y,-ey+hy,ey-hy);
@@ -1605,7 +1608,7 @@ const SFX={ac:null,nb:null,
   else if(k==='slide'){this.noise(.22,350,.7,.22,.02);}
  }catch(e){}}};
 function handleEvents(ev){for(const e of ev){
- if(e.k==='kick')SFX.play('kick',e.v);else if(e.k==='goal'){SFX.play('goal');SFX.play('whistle',1);const kit=G.kits[e.team];banner('¡GOOOL!',e.own?'En contra · '+kit.name:(e.name?e.name+' · ':'')+kit.name,false,2600);if(navigator.vibrate)try{navigator.vibrate(120)}catch(_){}}
+ if(e.k==='kick')SFX.play('kick',e.v);else if(e.k==='goal'){G.celTeam=e.team;G.celLead=e.lead;SFX.play('goal');SFX.play('whistle',1);const kit=G.kits[e.team];banner('¡GOOOL!',e.own?'En contra · '+kit.name:(e.name?e.name+' · ':'')+kit.name,false,2600);if(navigator.vibrate)try{navigator.vibrate(120)}catch(_){}}
  else if(e.k==='restart'){banner(e.kind==='lateral'?'LATERAL':e.kind==='corner'?'CÓRNER':e.kind==='libre'?'TIRO LIBRE':e.kind==='penal'?'¡PENAL!':'SAQUE DE ARCO',e.sub||'',!e.sub,e.kind==='penal'?1800:e.sub?1500:1000);SFX.play('whistle',e.kind==='penal'||e.kind==='libre'?2:1);}
  else if(e.k==='whistle')SFX.play('whistle',e.n||1);
  else if(e.k==='gkdive'){SFX.play('slide');}
@@ -1622,18 +1625,20 @@ addEventListener('keyup',e=>{keys[e.code]=false;if(e.code.startsWith('Arrow')){K
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){
  const zh=S.settings.hand==='zurdo';if(G.zurdo!==zh){G.zurdo=zh;document.body.classList.toggle('zurdo',zh);updateKeysLegend();}
- const kd=c=>keys[c]||latch[c];
+ const STP=G.stepped||G.mode!=='solo'&&G.mode!=='host';G.stepped=false;
+ if(STP){for(const q in latch)if(latch[q]===2)delete latch[q];if(touch.lk===2)touch.lk=0;if(touch.lp===2)touch.lp=0;}// un toque rápido se borra recién cuando el juego ya lo procesó
+ const kd=c=>keys[c]||(latch[c]?(latch[c]=2,true):false);
  // ---- teclado (+ táctil): flechas o WASD para moverse · Z/J pase · X/K al espacio/empujón · C/L tiro · Shift correr
  let mx=0,my=0;
  if(kd('ArrowLeft')||kd('KeyA'))mx-=1;if(kd('ArrowRight')||kd('KeyD'))mx+=1;if(kd('ArrowUp')||kd('KeyW'))my-=1;if(kd('ArrowDown')||kd('KeyS'))my+=1;
  let k=kd('KeyC')||kd('KeyL')||kd('Space'),p=kd('KeyZ')||kd('KeyJ'),x=kd('KeyX')||kd('KeyK'),e=0,kn=G.knock?1:0,sp=kd('ShiftLeft')||kd('ShiftRight');G.knock=0;
- if(G.stepped||G.mode!=='solo'&&G.mode!=='host'){for(const q in latch)delete latch[q];G.stepped=false;}// las teclas tocadas rápido se guardan hasta que el juego las procesa
+// las teclas tocadas rápido se guardan hasta que el juego las procesa
  mx+=touch.mx;my+=touch.my;
  {// táctil: los dos botones juntos = empujar (esperamos un toque por si llega el segundo)
   const n=performance.now();if(touch.k&&touch.p)touch.combo=true;
   if(touch.combo){if(!touch.k&&!touch.p)touch.combo=false;else e=1;touch.lk=touch.lp=0;}
   else{const wk=touch.k&&n-touch.kAt<70,wp=touch.p&&n-touch.pAt<70;
-   if(!wk){k=k||touch.k||touch.lk;touch.lk=0;}if(!wp){p=p||touch.p||touch.lp;touch.lp=0;}}}
+   if(!wk){k=k||touch.k||!!touch.lk;if(touch.lk)touch.lk=2;}if(!wp){p=p||touch.p||!!touch.lp;if(touch.lp)touch.lp=2;}}}
  const f=G.flip?-1:1;
  const pack=(mx,my,o)=>{const l=len(mx,my);if(l>1){mx/=l;my/=l;}return{mx:Math.round(-my*f*100)/100,my:Math.round(mx*f*100)/100,k:o.k?1:0,p:o.p?1:0,c:o.c?1:0,t:o.t?1:0,s:o.s?1:0,e:o.e?1:0,kn:o.kn?1:0,x:o.x?1:0,sw:o.sw?1:0,pad:o.pad?1:0,kx:(o.kx||o.ky)?Math.round(-o.ky*f*100)/100:0,ky:o.kx||o.ky?Math.round(o.kx*f*100)/100:0};};
  const kb={k,p,x,e,kn,s:sp,c:0,t:0};
