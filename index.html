@@ -48,7 +48,19 @@ input::placeholder{color:#6f877a;font-weight:600}
  background:linear-gradient(180deg,#ffe066,#ffc21a);box-shadow:0 5px 0 #b3830f,0 14px 24px rgba(255,190,30,.25);transition:transform .08s}
 .cta:active{transform:translateY(3px);box-shadow:0 2px 0 #b3830f}
 .cta small{display:block;font-size:12px;font-weight:700;opacity:.7}
-.cta.two{background:linear-gradient(180deg,#7dd3fc,#38bdf8);margin-top:10px;font-size:17px;padding:12px 18px}
+.play2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.play2.single{grid-template-columns:1fr}
+.pbtn{border:0;border-radius:16px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:900;color:#1b1300;background:linear-gradient(180deg,#ffe066,#ffc21a);box-shadow:0 5px 0 #b8860b;cursor:pointer}
+.pbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #b8860b}.pbtn b{font-size:17px}.pbtn small{font-size:11.5px;font-weight:700;opacity:.7;text-align:center}
+.pbtn .pi{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:2px}
+.onl{display:flex;gap:8px;margin-top:6px}.obtn{flex:1;border:0;border-radius:12px;padding:11px 8px;font-weight:900;font-size:14.5px;color:#03210f;background:linear-gradient(160deg,#36d07f,#1c8f53);box-shadow:0 4px 0 #146a3c;cursor:pointer}
+.ojoin{flex:1.2;display:flex;gap:6px;background:linear-gradient(160deg,#4f8dff,#2a5fd0);box-shadow:0 4px 0 #1e4499;border-radius:12px;padding:5px}
+.ojoin input{flex:1;min-width:0;background:rgba(0,0,0,.22);border:0;border-radius:9px;color:#fff;text-align:center;font-weight:900;font-size:16px;letter-spacing:.2em}.ojoin input::placeholder{color:rgba(255,255,255,.6);letter-spacing:.05em;font-size:13px}
+.ojoin button{border:0;border-radius:9px;padding:0 12px;font-weight:900;background:#fff;color:#1e4499;cursor:pointer}
+#sSides .card{max-width:560px;margin:auto;background:#0f1f19;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:20px}
+.sideh{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;font-weight:900;font-size:13px;margin:10px 0 6px}.sideh span:first-child,.sideh span:last-child{color:#ffd23f}
+.siderow{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;min-height:52px;border-top:1px dashed rgba(255,255,255,.1)}
+.siderow .ctlc{justify-self:center;display:flex;align-items:center;gap:6px;background:#1f3a2f;border:2px solid rgba(255,255,255,.2);border-radius:12px;padding:7px 10px;font-weight:900;font-size:13.5px;transition:.15s;white-space:nowrap}
+.siderow .ctlc.on{border-color:#ffd23f;background:#2f4b1f}.siderow .ctlc button{border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:7px;width:24px;height:24px;font-weight:900;cursor:pointer}
 .swrow{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-weight:800;font-size:14px;color:#cfe0d6;cursor:pointer}
 .swl{position:relative;display:inline-block;width:46px;height:26px;flex:none;cursor:pointer}.swl input{position:absolute;opacity:0;width:0;height:0}
 .swl i{position:absolute;inset:0;border-radius:99px;background:#3a4a43;transition:.15s}.swl i:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
@@ -267,23 +279,18 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
   <div class="pcard">
    <div class="lbl">Tu nombre</div>
    <div class="field"><span class="ico">👤</span><input id="nameIn" maxlength="14" placeholder="Ej: Tomi" autocomplete="off" enterkeyhint="done"></div>
-   <button class="cta" id="bSolo"><span class="ci">▶</span><span>Jugar solo<small>Contra la máquina</small></span></button>
-   <button class="cta two" id="bTwo"><span class="ci">👥</span><span>Jugar de a 2<small>En esta compu: teclado + joystick</small></span></button>
-   <label class="swrow"><span>✋ Zurdo</span><span class="swl"><input type="checkbox" id="zurdoSw"><i></i></span></label>
-   <div class="grid2">
-    <button class="tile green" id="bCreate"><span class="tico">🏟️</span><b>Crear sala</b><small>Invitá a tus amigos con un código</small></button>
-    <div class="tile blue join"><b>Unirme</b><small>Código de la sala</small><input id="codeIn" maxlength="4" placeholder="1234" autocomplete="off" inputmode="numeric" pattern="[0-9]*"><button id="bJoin">Entrar</button></div>
+   <div class="play2">
+    <button class="pbtn" id="bSolo"><span class="pi">▶</span><b>Jugar solo</b><small>Contra la máquina</small></button>
+    <button class="pbtn" id="bTwo"><span class="pi">👥</span><b>Jugar de a 2</b><small>En esta compu · teclado o joysticks</small></button>
    </div>
+   <div class="lbl" style="margin-top:16px">Con amigos online</div>
+   <div class="onl">
+    <button class="obtn" id="bCreate">🏟️ Crear sala</button>
+    <div class="ojoin"><input id="codeIn" maxlength="4" placeholder="Código" autocomplete="off" inputmode="numeric" pattern="[0-9]*"><button id="bJoin">Unirme</button></div>
+   </div>
+   <label class="swrow"><span>✋ Zurdo</span><span class="swl"><input type="checkbox" id="zurdoSw"><i></i></span></label>
   </div>
   <div class="err" id="homeErr"></div>
-  <details class="help"><summary>Cómo se juega</summary>
-   <p>🕹️ <b>Moverte:</b> joystick con el dedo izquierdo (o flechas).</p>
-   <p>🔴 <b>Patear:</b> mantené para cargar y soltá. Sin la pelota, es barrida.</p>
-   <p>🔵 <b>Pase:</b> al compañero que tenés adelante. Sin la pelota, cambiás de jugador.</p>
-   <p>⌨️ <b>En la compu:</b> flechas o <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> para moverte · <kbd>Z</kbd>/<kbd>J</kbd> pase (mantené: fuerte o centro) · <kbd>X</kbd>/<kbd>K</kbd> toque: te la adelantás · cargada: pase al espacio (sin pelota: empujón) · <kbd>C</kbd>/<kbd>L</kbd> tiro (sin pelota: barrida) · <kbd>Shift</kbd> correr.</p>
-   <p>✌️ <b>Empujar en el celu:</b> apretá los dos botones a la vez. Ojo, puede ser falta.</p>
-   <p>👥 <b>Con amigos:</b> uno crea la sala y pasa el código de 4 números.</p>
-  </details>
   <footer class="foot">Fulbito App <span class="ver" id="verHome"></span></footer>
  </div>
 </section>
@@ -321,6 +328,13 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
  <div class="dock"><button class="cta" id="bStart"><span class="ci">▶</span><span>¡Empezar partido!</span></button><div class="hint" id="lobWait" style="text-align:center;font-weight:700">⏳ Esperando a que el que creó la sala empiece el partido…</div></div>
 </section>
 
+<section class="screen overlay" id="sSides"><div class="card">
+  <h2 style="text-align:center;margin:0">¿Para qué lado jugás?</h2>
+  <div class="sideh"><span id="sideA">LOCAL</span><span style="opacity:.6">No juega</span><span id="sideB">VISITANTE</span></div>
+  <div id="sideRows"></div>
+  <div class="hint" style="text-align:center;margin-top:10px">⬅️ ➡️ con las flechas o la palanca · Enter o botón A para empezar</div>
+  <div class="row center" style="margin-top:12px"><button class="pill" id="bSidesBack">Volver</button><button class="cta" id="bSidesGo" style="width:auto;margin:0;padding:12px 26px"><span>¡A la cancha!</span></button></div>
+ </div></section>
 <section class="screen overlay" id="sPause">
  <div class="panel"><h2>Pausa</h2>
   <div class="hint" id="pauseNote"></div>
@@ -352,7 +366,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.20.0';
+const VERSION='1.21.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -520,6 +534,22 @@ function ctlSection(st,R,n){// quién juega con qué equipo: teclado y cada joys
  h+=`<div class="hint">${pads.length?'Elegí con qué equipo juega cada uno. Pueden jugar juntos o en contra, y también joystick contra joystick.':'Conectá uno o más joysticks y tocá un botón para que aparezcan acá.'}</div></section>`;return h;}
 addEventListener('gamepadconnected',()=>{if(S.mode==='solo'&&S.two&&$('#sSetup').classList.contains('on'))renderSettings($('#soloSettings'),false);});
 addEventListener('gamepaddisconnected',()=>{if(S.mode==='solo'&&S.two&&$('#sSetup').classList.contains('on'))renderSettings($('#soloSettings'),false);});
+// ===== De a 2 (o más): cada control elige su lado, como en el FIFA
+let sidesRaf=0,sidesPrev={};
+function openSides(){const st=S.settings,R=resolveSetup(st),C=ctlOf(st);$('#sideA').textContent=R.kits[0].name;$('#sideB').textContent=R.kits[1].name;
+ sidesPrev={};$('#sSides').classList.add('on');renderSides();cancelAnimationFrame(sidesRaf);sidesLoop();}
+function closeSides(){$('#sSides').classList.remove('on');cancelAnimationFrame(sidesRaf);}
+function sidesCtl(){const C=ctlOf(S.settings),L=[{key:'kb',lab:'⌨️ Teclado'}];padIdx().forEach((g,i)=>L.push({key:'p'+g,lab:'🎮 Joystick '+(i+1)}));for(const c of L)if(C[c.key]==null)C[c.key]=c.key==='kb'?'0':'x';return L;}
+function renderSides(){const C=ctlOf(S.settings),L=sidesCtl();
+ $('#sideRows').innerHTML=L.map(c=>{const v=C[c.key],col=v==='0'?1:v==='1'?3:2;return`<div class="siderow"><div class="ctlc ${v!=='x'?'on':''}" style="grid-column:${col}"><button data-sd="${c.key}" data-dir="-1">◀</button>${c.lab}<button data-sd="${c.key}" data-dir="1">▶</button></div></div>`;}).join('')+(L.length<2?`<div class="hint" style="text-align:center;margin-top:8px">Conectá un joystick y tocá un botón para que aparezca.</div>`:'');
+ $('#sideRows').querySelectorAll('[data-sd]').forEach(b=>b.onclick=()=>moveSide(b.dataset.sd,+b.dataset.dir));}
+function moveSide(key,dir){const C=ctlOf(S.settings),ord=['0','x','1'];let i=ord.indexOf(C[key]||'x');i=clamp(i+dir,0,2);C[key]=ord[i];saveSettings();renderSides();}
+function sidesGo(){const C=ctlOf(S.settings);if(!sidesCtl().some(c=>C[c.key]==='0'||C[c.key]==='1')){toast('Poné al menos un control de un lado');return;}closeSides();startSolo();}
+function sidesLoop(){sidesRaf=requestAnimationFrame(sidesLoop);let changed=false;const pads=padIdx();if(pads.some(g=>ctlOf(S.settings)['p'+g]==null)){sidesCtl();renderSides();}
+ try{for(const gp of navigator.getGamepads()){if(!gp)continue;const ax=gp.axes[0]||0,bt=gp.buttons,pr=i=>!!(bt[i]&&bt[i].pressed);const d=(ax<-.6||pr(14))?-1:(ax>.6||pr(15))?1:0,k='p'+gp.index,pv=sidesPrev[k]||{};
+  if(d&&d!==pv.d)moveSide(k,d);if(pr(0)&&!pv.a)sidesGo();if(pr(1)&&!pv.b)closeSides();sidesPrev[k]={d,a:pr(0),b:pr(1)};}}catch(e){}}
+$('#bSidesGo').onclick=sidesGo;$('#bSidesBack').onclick=closeSides;
+addEventListener('keydown',e=>{if(!$('#sSides').classList.contains('on'))return;if(e.code==='ArrowLeft'||e.code==='KeyA'){moveSide('kb',-1);e.preventDefault();}else if(e.code==='ArrowRight'||e.code==='KeyD'){moveSide('kb',1);e.preventDefault();}else if(e.code==='Enter'||e.code==='Space'){sidesGo();e.preventDefault();}else if(e.code==='Escape')closeSides();},true);
 function dtField(st,key){return`<div class="dtrow"><span class="lbl" style="margin:0">DT</span><input class="dtIn" data-dtkey="${esc(key)}" maxlength="14" value="${esc((st.dts&&st.dts[key])||'')}" placeholder="Nombre del técnico"></div>`;}
 function lineupKey(st,kit,np){return st.mode+':'+(st.mode==='club'?st.cat+':':'')+kit.id+':'+np;}
 const AWAY_T={
@@ -718,9 +748,11 @@ class Match{
   }
  }
  switchTo(H,p){const cur=this.players[H.pi];if(cur){cur.ctrl=null;cur.charge=-1;}p.ctrl=H.id;H.pi=this.idx(p);H.swCd=.35;}
- manualSwitch(H){const b=this.ball,cur=this.players[H.pi],px=b.x+b.vx*.3,py=b.y+b.vy*.3;let best=cur,bd=cur?len(cur.x-px,cur.y-py):1e9;
-  for(const p of this.players)if(p.team===H.team&&p.role!=='gk'&&p!==cur&&p.ctrl==null){const d=len(p.x-px,p.y-py);if(d<bd){bd=d;best=p;}}
-  if(best&&best!==cur){this.switchTo(H,best);H.swCd=.6;}}
+ manualSwitch(H){// cambio manual: va rotando entre los 3 más cerca de la pelota (el cambio automático sigue igual)
+  const b=this.ball,cur=this.players[H.pi],px=b.x+b.vx*.3,py=b.y+b.vy*.3;
+  const L=this.players.filter(p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur)).sort((a,c)=>len(a.x-px,a.y-py)-len(c.x-px,c.y-py)).slice(0,3);
+  if(!L.length)return;const i=L.indexOf(cur),nx=L[(i+1)%L.length];
+  if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
   const m=len(inp.mx,inp.my);let sp=this.spd*(own?1.1:1)*(p.boost>0?1.22:1);
@@ -739,7 +771,7 @@ class Match{
    const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(inp.t&&!prev.t)||(inp.e&&!prev.e)||(!inp.x&&prev.x);
    if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;return;}}
   if(own&&p.role==='gk'&&((inp.e&&!prev.e)||(!inp.x&&prev.x)||(inp.pad&&inp.t&&!prev.t))){if(p.face!=null&&m>.15)p.dir=p.face;p.xch=-1;this.gkThrow(p);return;}
-  if(own&&inp.kn&&!prev.kn&&p.role!=='gk'&&p.lock<=0&&(m>.15||inp.kx||inp.ky)){this.knockOn(p,(inp.kx||inp.ky)?Math.atan2(inp.ky,inp.kx):Math.atan2(inp.my,inp.mx));return;}// stick derecho (joystick) o doble toque
+  if(own&&inp.kn&&!prev.kn&&p.role!=='gk'&&p.lock<=0&&(m>.15||inp.kx||inp.ky)){let a=(inp.kx||inp.ky)?Math.atan2(inp.ky,inp.kx):Math.atan2(inp.my,inp.mx);const run=m>.15?Math.atan2(inp.my,inp.mx):p.dir;if(Math.abs(angDiff(a,run))<1.05)a=run;this.knockOn(p,a);return;}// stick derecho (joystick) o doble toque
   if(!own&&((inp.e&&!prev.e)||(inp.x&&!prev.x))){this.push(p);return;}
   if(H.onebtn){if(own&&p.role==='gk'){p.gkT=(p.gkT||0)+dt;if(p.gkT>7&&p.obT<0){p.gkT=0;this.gkDistribute(p);return;}}this.oneBtn(p,H,dt,own,m);return;}
   if(own&&p.role==='gk'){p.gkT=(p.gkT||0)+dt;if(p.gkT>7&&p.charge<0){p.gkT=0;this.gkDistribute(p);return;}}
@@ -814,6 +846,9 @@ class Match{
  aimPass(p,c){// como el tiro (misma carga y potencia) pero por abajo, hacia donde apuntás
   const b=this.ball,v=this.shotMax*(.45+.55*c);this.release(p);if(b.at)b.at.pass=true;const a=p.dir;
   b.vx=Math.cos(a)*v;b.vy=Math.sin(a)*v;b.z=0;b.vz=0;this.ev.push({k:'kick',v:.3+c*.4});}
+ slideHit(q){// barrida que toca la pelota: le pega en la dirección de la barrida
+  const b=this.ball,qi=this.idx(q),v=Math.max(12,len(q.vx,q.vy)*1.6);b.owner=-1;b.at=null;b.vx=Math.cos(q.dir)*v;b.vy=Math.sin(q.dir)*v;b.vz=1.2;b.z=Math.max(b.z,.05);
+  b.last=qi;b.lastTeam=q.team;b.passTo=-1;q.cool=.35;this.ev.push({k:'kick',v:.6});}
  chilena(p){const b=this.ball,d=this.dirOf(p.team),gx=d*this.hl,H=p.ctrl!=null?this.humans.get(p.ctrl):null;
   let ang=H&&len(H.inp.mx,H.inp.my)>.3?Math.atan2(H.inp.my,H.inp.mx):Math.atan2(-p.y,gx-p.x);
   this.ballTo(p);p.dir=ang;this.shoot(p,.9,true,ang);b.vz=Math.min(b.vz,2.5);p.down=.7;p.stun=Math.max(p.stun,.8);p.cool=.6;this.ev.push({k:'chilena'});}
@@ -877,7 +912,7 @@ class Match{
  aftertouch(dt){const b=this.ball,a=b.at;if(!a||b.owner>=0)return;a.t-=dt;if(a.t<=0||a.t>(this.cfg.sensible?.87:.47)){if(a.t<=0)b.at=null;return;}
   const H=this.humans.get(a.h);if(!H)return;const v=len(b.vx,b.vy);if(v<4)return;const ux=b.vx/v,uy=b.vy/v,ix=H.inp.mx,iy=H.inp.my;if(len(ix,iy)<.3)return;
   const lat=ux*iy-uy*ix,fwd=ux*ix+uy*iy,k=Math.min(1,v/18);
-  const cb=this.cfg.sensible?(a.pass?30:42):26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
+  const cb=this.cfg.sensible?(a.pass?10:21):26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
   if(fwd<-.35){b.vz+=7*dt;if(b.z<=0)b.z=.02;}else if(fwd>.6&&b.z>0)b.vz-=4*dt;}// atrás la levanta, adelante la baja
  looseOwned(){const b=this.ball;if(b.owner<0||!this.loose)return false;const o=this.players[b.owner];return!(o.role==='gk'&&o.hold>0)&&o.lock<=0;}
  looseDribble(o){const b=this.ball,dx=b.x-o.x,dy=b.y-o.y,d=len(dx,dy);
@@ -1074,7 +1109,7 @@ class Match{
       const ax=q.x-o.x,ay=q.y-o.y,al=len(ax,ay)||1,front=(Math.cos(o.dir)*ax+Math.sin(o.dir)*ay)/al;
       if(q.slide>0&&!q.slChk){q.slChk=1;if(front<-.2&&Math.random()<.7){this.foul(q,o.x,o.y);o.dir=q.dir;this.knockDown(o,1.3);this.ballTo(q);this.ev.push({k:'steal'});break;}}
       let ch=q.slide>0?.6:front>.35?.13:front>-.2?.05:.015;if(this.loose)ch=Math.max(ch,.2);if(o.recv>0)ch*=.3;
-      if(Math.random()<ch){this.ballTo(q);o.stun=q.slide>0?.85:.35;if(q.slide>0){o.dir=q.dir;this.knockDown(o,.7);}o.cool=.5;o.charge=-1;this.ev.push({k:'steal'});break;}}}}
+      if(Math.random()<ch){if(q.slide>0)this.slideHit(q);else this.ballTo(q);o.stun=q.slide>0?.85:.35;if(q.slide>0){o.dir=q.dir;this.knockDown(o,.7);}o.cool=.5;o.charge=-1;this.ev.push({k:'steal'});break;}}}}
    if(this.looseOwned())this.looseDribble(o);else this.positionOwnedBall();return;}
   // cabezazos y palomitas
   if(b.z>=.45&&b.z<=2.3)for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(b.lift>0&&p.team!==b.lastTeam)continue;// el saque alto del arquero pasa por arriba de los que están pegados al área
@@ -1097,6 +1132,7 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
     else best.cool=.6;}
    return;}
   if(sp>19&&best.slide<=0){b.vx*=-.25;b.vy=b.vy*.3+rnd(-3,3);best.cool=.25;b.last=bi;b.lastTeam=best.team;this.ev.push({k:'bounce'});return;}
+  if(best.slide>0){this.slideHit(best);return;}
   this.ballTo(best);
  }
  gkClear(){const b=this.ball;if(b.owner<0)return;const g=this.players[b.owner];if(g.role!=='gk'||!(g.hold>0||g.lock>0))return;
@@ -1438,7 +1474,8 @@ function render(v,dt){
   // etiqueta: nombre del jugador (si tiene) y abajo quién lo maneja; sin nombre: "Yo" para mí, el nombre del que lo maneja para los demás
   const own=HM[p.ctrl]===i,pn=PN&&PN[i],home=G.names[p.ctrl]||'',r0=G.roster[i];
   const teamNamed=PN&&PN.some((n,j)=>n&&G.roster[j]&&G.roster[j].team===r0.team),multi=Object.keys(G.names||{}).length>1;
-  let nm0,sub='';if(pn){nm0=pn;sub=me?'(Yo)':home;}else if(own)nm0=home;else nm0=me&&(teamNamed||multi)?'Yo':home;
+  const hasB=len(v.b.x-p.x,v.b.y-p.y)<.8&&v.b.z<1;
+  let nm0,sub='';if(pn){nm0=pn;sub=me?'(Yo)':home;}else if(own)nm0=me&&!hasB?'Yo':home;else nm0=me?'Yo':home;// "Soy yo": con la pelota muestra tu nombre
   const nm=own?'★ '+nm0:nm0;const w=ctx.measureText(nm).width+10,yy=y-.72*s-10;
   ctx.fillStyle=me?(own?'#ffc21a':'rgba(255,255,255,.92)'):'rgba(0,0,0,.6)';rr(ctx,x-w/2,yy-9,w,18,6);ctx.fill();if(me&&own){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}ctx.fillStyle=me?'#1b1500':'#fff';ctx.fillText(nm,x,yy+.5);
   if(sub){ctx.font='700 10px Inter, sans-serif';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(sub,x+1,yy+16);ctx.fillStyle=me?'#ffd23f':'#e5e7eb';ctx.fillText(sub,x,yy+15);ctx.font='800 12px Inter, sans-serif';}
@@ -1542,13 +1579,14 @@ function pollInput(){
   if(!pad){pad=pd;pmx=ax;pmy=ay;}
   if(pd.k||pd.p||pd.c||pd.t||ax||ay){if(!G.pad&&!G.twoP){G.pad=true;updateKeysLegend();}}
   if(bs&&!G.padStart[gi]&&G.mode)togglePause();G.padStart[gi]=bs;}
- if(G.local&&G.local.length){const kbP=pack(mx,my,kb);G.localInps={};for(const c of G.local)G.localInps[c.hid]=c.src==='kb'?kbP:(pads[c.idx]||{...ZINP});localInp=G.localInps[G.myHid]||{...ZINP};
+ if(G.local&&G.local.length){const kbP=pack(mx,my,kb);G.localInps={};G.knC=G.knC||{};for(const c of G.local){let li=c.src==='kb'?kbP:(pads[c.idx]||{...ZINP});const ck=G.knC[c.hid];if(ck&&!li.kn)li={...li,kn:1,kx:ck.kx,ky:ck.ky};G.knC[c.hid]=li.kn?{kx:li.kx,ky:li.ky}:null;G.localInps[c.hid]=li;}localInp=G.localInps[G.myHid]||{...ZINP};
   const li=localInp;if(li.mx||li.my||li.k||li.p)G.lastAct=performance.now();return;}
  if(G.twoP){localInp=pack(mx,my,kb);localInp2=pad?pack(pmx,pmy,pad):{...ZINP};}
  else{const o={...kb};if(pad){for(const q of['k','p','c','t','e','sw','pad'])o[q]=o[q]||pad[q];o.s=o.s||pad.s;if(pad.kn){o.kn=1;o.kx=pad.kx;o.ky=pad.ky;}if(len(pmx,pmy)>.2){mx=pmx+touch.mx;my=pmy+touch.my;}}
   // si el joystick se usa, sus botones sin pelota funcionan como en el FIFA
   if(!(pad&&(pad.k||pad.c||pad.t)))o.pad=0;
   localInp=pack(mx,my,o);}
+ if(G.knCarry&&!localInp.kn){localInp.kn=1;localInp.kx=G.knCarry.kx;localInp.ky=G.knCarry.ky;}G.knCarry=localInp.kn?{kx:localInp.kx,ky:localInp.ky}:null;
  const li=localInp;if(li.mx||li.my||li.k||li.p||li.c||li.t||li.e||li.x||li.sw)G.lastAct=performance.now();}
 (function setupTouch(){const T=$('#touch'),joy=$('#joy'),knob=$('#knob');const btn={};
  const setBtn=(id,on)=>{const el=$(id);el.classList.toggle('on',on);if(id==='#bKick'){touch.k=on?1:0;if(on){touch.lk=1;touch.kAt=performance.now();}}else{touch.p=on?1:0;if(on){touch.lp=1;touch.pAt=performance.now();}}};
@@ -1755,7 +1793,6 @@ function renderSettings(el,ro){
  if(st.mode==='club')h+=`<div class="hint">Camisetas del club: remera y medias del color, pantalón negro y escudo. Los Italianos también pueden jugar entre ellos.</div>`;
  h+=`</section>`;
  if(S.mode==='solo'){const mk=R.kits[st.side];h+=sec(n++,'Tu equipo',`<small>${esc(mk.name)}</small>`)+formChips(R.np,st.form,false,'data-form')+lineupHTML(st.lineup,mk,R.np,st.form,st.me,true,true,null)+(st.mode!=='cole'?dtField(st,st.lkey):'')+`</section>`;}
- if(S.mode==='solo'&&S.two)h+=ctlSection(st,R,n++);
  h+=sec(n++,'Partido')+`<div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
  {const M=mapById(R.map),wo=M.surf==='cement'||/Sintético/.test(M.sub||'')?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
   h+=`<div><div class="lbl">Cancha</div><div class="chips">${wo.map(([k,l])=>chip('weather',k,(k==='mojada'?'🌧️ ':k==='barro'?'🟫 ':'☀️ ')+l)).join('')}</div></div>`;}
@@ -1916,10 +1953,10 @@ const nameIn=$('#nameIn');nameIn.value=S.name;nameIn.oninput=()=>{S.name=cleanNa
 function needName(){const n=nameIn.value.trim();if(!n){shake('#nameIn');toast('Poné tu nombre primero');return true;}S.name=cleanName(n);$('#homeErr').style.display='none';SFX.init();return false;}
 $('#bSolo').onclick=()=>{SFX.init();restoreOwnSettings();S.name=cleanName(nameIn.value.trim()||'Vos');S.mode='solo';S.two=false;showMode();};
 $('#bTwo').onclick=()=>{SFX.init();restoreOwnSettings();S.name=cleanName(nameIn.value.trim()||'Vos');S.mode='solo';S.two=true;if(!['juntos','contra'].includes(S.settings.twoP))S.settings.twoP='contra';showMode();};
-if(isTouch)$('#bTwo').style.display='none';
+if(isTouch){$('#bTwo').style.display='none';$('.play2').classList.add('single');}
 {const z=$('#zurdoSw');z.checked=S.settings.hand==='zurdo';z.onchange=()=>{S.settings.hand=z.checked?'zurdo':'diestro';saveSettings();};}
 $('#bSetupBack').onclick=()=>showMode();
-$('#bPlaySolo').onclick=()=>startSolo();
+$('#bPlaySolo').onclick=()=>{if(S.two&&!isTouch)openSides();else startSolo();};
 $('#bCreate').onclick=()=>{if(needName())return;restoreOwnSettings();S.mode='host';S.two=false;normalizeSettings(S.settings);hostCreate();};
 $('#bJoin').onclick=()=>{if(needName())return;clientJoin($('#codeIn').value);};
 $('#codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#bJoin').click();});
@@ -1935,11 +1972,11 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.1,(now-last)
  pollInput();
  let v=null;
  if(G.mode==='solo'||G.mode==='host'){const m=G.match;
-  if(!G.paused){acc+=dt;let n=0;while(acc>=STEP&&n<8){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8)acc=0;}
+  if(!G.paused){acc+=dt;let n=0;while(acc>=STEP&&n<8){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8)acc=0;if(n>0){G.knCarry=null;if(G.knC)for(const q in G.knC)G.knC[q]=null;}}
   const ev=m.ev.splice(0);if(ev.length)handleEvents(ev);
   if(G.mode==='host'){G.pendEv.push(...ev);G.snapT+=dt;if(G.snapT>=1/SNAP_HZ){G.snapT=0;broadcast(encodeSnap(m,G.pendEv.splice(0)));}}
   v=viewFromMatch(m);
- }else if(G.mode==='client'){sendInput();v=interpView();}
+ }else if(G.mode==='client'){sendInput();G.knCarry=null;v=interpView();}
  render(v,dt);G.view=v;tickKeysLegend(now);
 }
 requestAnimationFrame(frame);
