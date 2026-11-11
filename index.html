@@ -377,7 +377,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.23.1';
+const VERSION='1.23.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -778,9 +778,12 @@ class Match{
   if(!L.length&&(b.z>.3||len(b.vx,b.vy)>8)){const[px,py]=this.ballTarget();L=this.players.filter(ok).sort((a,c)=>len(a.x-px,a.y-py)-len(c.x-px,c.y-py)).slice(0,3);
    if(b.passTo>=0){const r=this.players[b.passTo];if(r&&ok(r)){L=L.filter(q=>q!==r);L.unshift(r);L=L.slice(0,3);}}}
   if(L.length<3)for(const p of this.players.filter(ok).sort((a,c)=>dB(a)-dB(c))){if(L.length>=3)break;if(!L.includes(p))L.push(p);}// pelota suelta: siempre rota entre los más cercanos
-  if(!L.length)return;const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1500&&H.swList;H.lastSw=now;
-  if(recent)L=H.swList.map(i=>this.players[i]).filter(ok);else H.swList=L.map(p=>this.idx(p));// la ronda queda fija mientras seguís tocando
-  if(!L.length)return;const i=L.indexOf(cur),nx=recent?L[(i+1)%L.length]:(L[0]!==cur?L[0]:L[1]||L[0]);
+  if(!L.length)return;const now=performance.now(),recent=H.lastSw&&now-H.lastSw<1200;H.lastSw=now;
+  // la lista se recalcula en cada toque (siempre según dónde está la pelota ahora); tocando seguido no repite a los que ya pasaron
+  {const n0=dB(L[0]);L=L.filter(q=>q===L[0]||dB(q)<Math.max(RAD,n0+5));}// solo los que de verdad están cerca
+  if(!recent||!H.swSeen||H.swNear!==this.idx(L[0]))H.swSeen=new Set();H.swNear=this.idx(L[0]);H.swSeen.add(this.idx(cur));
+  let nx=L.find(q=>q!==cur&&!H.swSeen.has(this.idx(q)));if(!nx){H.swSeen=new Set([this.idx(cur)]);nx=L.find(q=>q!==cur);}
+  if(nx)H.swSeen.add(this.idx(nx));
   if(nx&&nx!==cur){this.switchTo(H,nx);H.swCd=1.4;}}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
