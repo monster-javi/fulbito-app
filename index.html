@@ -67,7 +67,8 @@ input::placeholder{color:#6f877a;font-weight:600}
 .swl input:checked+i{background:#ffd23f}.swl input:checked+i:after{left:23px}
 .dtrow{display:flex;align-items:center;gap:8px;margin-top:10px}.dtrow input{flex:1;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:8px 10px;font:inherit;font-weight:700}
 #sPause .panel{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}#sPause .panel::-webkit-scrollbar{width:0}
-.ptitle{font-size:12px;font-weight:900;color:#ffd23f;margin:4px 0 2px;letter-spacing:.04em}
+.ptitle{font-size:12px;font-weight:900;color:#ffd23f;margin:4px 0 2px;letter-spacing:.04em}.ptitle.prow{display:flex;align-items:center;gap:10px}
+.hsw{display:inline-flex;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:2px}.hsw b{font-size:10px;font-weight:800;color:#cfe0d6;padding:2px 8px;border-radius:999px;cursor:pointer;letter-spacing:0}.hsw b.on{background:#ffd23f;color:#1b1500}
 #pauseKeys .kgrp.k3{flex-direction:row;gap:10px;align-items:flex-start}#pauseKeys .k3.wrap{flex-wrap:wrap;justify-content:center;row-gap:8px}#pauseKeys .kart{flex-wrap:wrap;row-gap:10px}
 .kc.pbk{border-radius:50%!important;width:46px!important;min-width:0!important;justify-content:center}.kc.pa{background:#16a34a!important}.kc.pbb{background:#dc2626!important}.kc.px{background:#2563eb!important}.kc.py{background:#ca8a04!important}.kc.psq{border-radius:10px!important;width:54px!important;background:#4b5563!important;font-size:15px!important}.kc.stk{background:#1f2937!important;font-size:20px!important}#pauseKeys .kk{display:flex;flex-direction:column;align-items:center;gap:4px;width:62px}#pauseKeys .kart{gap:14px}#pauseKeys .kgrp.k3{gap:6px!important}#pauseKeys .kk small{font-size:10.5px;font-weight:800;color:#cfe0d6;text-align:center;line-height:1.15}
 #pauseKeys .kfrow{display:flex;align-items:center;gap:8px;justify-content:center}#pauseKeys .kfrow small{font-weight:800;color:#cfe0d6;margin-right:10px}
@@ -383,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.28.1';
+const VERSION='1.29.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1387,14 +1388,14 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  const mini=$('#mini');if((M.L+mg*2)*ppm>VH+4||(M.W+mg*2)*ppm>VW+4){const h=Math.min(150,VH*.3),w=h*(M.W+2)/(M.L+2);mini.width=Math.round(w*DPR);mini.height=Math.round(h*DPR);mini.style.width=w+'px';mini.style.height=h+'px';mini.style.display='block';G.mini=true;}
  else{mini.style.display='none';G.mini=false;}
 }
-const kbSet=()=>G.zurdo?{mv:'<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd>',P:'Z',X:'X',C:'C',arrows:['▲','◀','▼','▶']}:{mv:'<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>',P:'J',X:'K',C:'L',arrows:['W','A','S','D']};
+const kbSet=(z=G.zurdo)=>!z?{mv:'<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd>',P:'Z',X:'X',C:'C',arrows:['▲','◀','▼','▶']}:{mv:'<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>',P:'J',X:'K',C:'L',arrows:['W','A','S','D']};
 const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase / centro</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
-function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const K=kbSet();
+function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const zv=G.kbPrev??G.zurdo,K=kbSet(zv);// en la pausa se puede ver cómo sería diestro o zurdo (solo visual)
  const pk=$('#pauseKeys');pk.style.display='';
  const key=(k,l,c='')=>`<div class="kk"><span class="kc big ${c}">${k}</span><small>${l}</small></div>`;
  const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
- const kbArt=`<div class="ptitle">⌨️ Teclado${G.zurdo?' · zurdo':''}</div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
+ const kbArt=`<div class="ptitle prow">⌨️ Teclado<span class="hsw"><b data-kh="0" class="${zv?'':'on'}">Diestro</b><b data-kh="1" class="${zv?'on':''}">Zurdo</b></span></div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
    <div class="plist">${row(kc(K.P),'Pase · centro')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
  const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · centro</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
  const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
@@ -1409,7 +1410,8 @@ function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keys
    <circle cx="490" cy="92" r="23" fill="#f5d90a"/><circle cx="446" cy="136" r="23" fill="#1fb3ea"/><circle cx="534" cy="136" r="23" fill="#ee3b3b"/><circle cx="490" cy="180" r="23" fill="#16c43a"/>
    <text x="490" y="100" class="bd">Y</text><text x="446" y="144" class="bd">X</text><text x="534" y="144" class="bd">B</text><text x="490" y="188" class="bd">A</text></svg>
    <div class="plist two">${row(bd('A','pa'),'Pase')}${row(bd('B','pbb'),'Tiro · cuerpo')}${row(bd('X','px'),'Centro · barrida')}${row(bd('Y','py'),'Profundidad')}${row(bd('L','pst'),'Moverte')}${row(bd('R','pst'),'Adelantarla')}${row(bd('LB','pgr'),'Cambiar jugador')}${row(bd('RT','pgr'),'Correr')}</div>`;
- pk.innerHTML=(isTouch?touchArt:kbArt)+(isTouch&&!G.pad?'':padArt);}
+ pk.innerHTML=(isTouch?touchArt:kbArt)+(isTouch&&!G.pad?'':padArt);
+ pk.onclick=e=>{const t=e.target.closest('[data-kh]');if(!t)return;G.kbPrev=t.dataset.kh==='1';updateKeysLegend();};}
 function tickKeysLegend(now){const el=$('#keys');if(!G.mode||(isTouch&&!G.pad)){el.style.display='none';return;}el.style.display='flex';
  const show=now-(G.startT||0)<10000||now-(G.lastAct||0)>9000;el.classList.toggle('show',show&&!$('#sPause').classList.contains('on')&&!$('#sEnd').classList.contains('on'));}
 function setupView(cfg,roster){
@@ -1650,18 +1652,18 @@ function handleEvents(ev){for(const e of ev){
    ENTRADA (teclado, táctil, joystick)
    ========================================================= */
 const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false,kAt:0,pAt:0,combo:false};const ZINP={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0,sw:0,pad:0,kx:0,ky:0};let localInp={...ZINP},localInp2={...ZINP};const KN={c:'',t:0};const KNOCK_ON=false;// doble toque para adelantarla: apagado por ahora
-const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KNOCK_ON&&KN.c===e.code&&n-KN.t<420){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
+const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KNOCK_ON&&KN.c===e.code&&n-KN.t<420){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Numpad4','Numpad5','Numpad6'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code.startsWith('Arrow')){KN.c=e.code;KN.t=performance.now();}});// doble toque: soltar y volver a apretar rápido la misma flecha
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){
- const zh=S.settings.hand==='zurdo';if(G.zurdo!==zh){G.zurdo=zh;document.body.classList.toggle('zurdo',zh);updateKeysLegend();}
+ const zh=S.settings.hand==='zurdo';if(G.zurdo!==zh){G.zurdo=zh;G.kbPrev=null;document.body.classList.toggle('zurdo',zh);updateKeysLegend();}
  const STP=G.stepped||G.mode!=='solo'&&G.mode!=='host';G.stepped=false;
  if(STP){for(const q in latch)if(latch[q]===2)delete latch[q];if(touch.lk===2)touch.lk=0;if(touch.lp===2)touch.lp=0;}// un toque rápido se borra recién cuando el juego ya lo procesó
  const kd=c=>keys[c]||(latch[c]?(latch[c]=2,true):false);
  // ---- teclado (+ táctil): flechas o WASD para moverse · Z/J pase · X/K al espacio/empujón · C/L tiro · Shift correr
  let mx=0,my=0;
  if(kd('ArrowLeft')||kd('KeyA'))mx-=1;if(kd('ArrowRight')||kd('KeyD'))mx+=1;if(kd('ArrowUp')||kd('KeyW'))my-=1;if(kd('ArrowDown')||kd('KeyS'))my+=1;
- let k=kd('KeyC')||kd('KeyL')||kd('Space'),p=kd('KeyZ')||kd('KeyJ'),x=kd('KeyX')||kd('KeyK'),e=0,kn=G.knock?1:0,sp=kd('ShiftLeft')||kd('ShiftRight');G.knock=0;
+ let k=kd('KeyC')||kd('KeyL')||kd('Numpad6')||kd('Space'),p=kd('KeyZ')||kd('KeyJ')||kd('Numpad4'),x=kd('KeyX')||kd('KeyK')||kd('Numpad5'),e=0,kn=G.knock?1:0,sp=kd('ShiftLeft')||kd('ShiftRight');G.knock=0;
 // las teclas tocadas rápido se guardan hasta que el juego las procesa
  mx+=touch.mx;my+=touch.my;
  {// táctil: los dos botones juntos = empujar (esperamos un toque por si llega el segundo)
