@@ -384,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.29.0';
+const VERSION='1.30.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1389,15 +1389,15 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  else{mini.style.display='none';G.mini=false;}
 }
 const kbSet=(z=G.zurdo)=>!z?{mv:'<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd>',P:'Z',X:'X',C:'C',arrows:['▲','◀','▼','▶']}:{mv:'<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>',P:'J',X:'K',C:'L',arrows:['W','A','S','D']};
-const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase / centro</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
+const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase · sin pelota: cambiar</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const zv=G.kbPrev??G.zurdo,K=kbSet(zv);// en la pausa se puede ver cómo sería diestro o zurdo (solo visual)
  const pk=$('#pauseKeys');pk.style.display='';
  const key=(k,l,c='')=>`<div class="kk"><span class="kc big ${c}">${k}</span><small>${l}</small></div>`;
  const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
  const kbArt=`<div class="ptitle prow">⌨️ Teclado<span class="hsw"><b data-kh="0" class="${zv?'':'on'}">Diestro</b><b data-kh="1" class="${zv?'on':''}">Zurdo</b></span></div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
-   <div class="plist">${row(kc(K.P),'Pase · centro')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
- const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · centro</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
+   <div class="plist">${row(kc(K.P),'Pase · cambiar jugador')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
+ const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
  const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
  const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="0 0 640 420" aria-hidden="true">
    <rect x="110" y="6" width="150" height="70" rx="26" fill="#4b5058"/><rect x="380" y="6" width="150" height="70" rx="26" fill="#4b5058"/>
@@ -1639,8 +1639,40 @@ const SFX={ac:null,nb:null,
   else if(k==='cross'){this.tone('sine',140,50,.16,.45);this.noise(.08,1200,1,.2);}
   else if(k==='slide'){this.noise(.22,350,.7,.22,.02);}
  }catch(e){}}};
+/* ---------------- música (chiptune de marcha, original) ---------------- */
+const MUS={on:store.get('fa.music','1')!=='0',bus:null,next:0,step:0,playing:false,hold:0,
+ // melodía: [nota midi (0 = silencio), duración en corcheas]; marcha en Sol, 2/4, rapidita
+ L:[[67,1],[71,1],[74,1],[71,1],[79,2],[74,2],[76,1],[74,1],[72,1],[71,1],[69,4],
+    [66,1],[69,1],[72,1],[69,1],[78,2],[72,2],[74,1],[72,1],[71,1],[69,1],[67,4],
+    [71,1],[72,1],[74,1],[76,1],[74,2],[71,2],[72,1],[74,1],[76,1],[78,1],[79,2],[74,2],
+    [76,1],[76,1],[74,1],[72,1],[71,1],[74,1],[79,2],[69,1],[71,1],[72,1],[66,1],[67,2],[0,2]],
+ B:[43,43,48,50,50,50,50,43, 43,43,48,43,48,43,50,43],// raíz de cada compás (2 tiempos = 4 corcheas)
+ bpm:156,
+ ensure(){if(!SFX.ac)return false;if(!this.bus){this.bus=SFX.ac.createGain();this.bus.gain.value=.55;this.bus.connect(SFX.ac.destination);}return true;},
+ note(type,midi,t,d,vol){const a=SFX.ac,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=440*Math.pow(2,(midi-69)/12);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setValueAtTime(vol*.8,t+d*.55);g.gain.linearRampToValueAtTime(0,t+d*.92);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+d);},
+ drum(kind,t){const a=SFX.ac;if(kind==='k'){const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.1);g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+.14);return;}
+  const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=SFX.nb;f.type=kind==='h'?'highpass':'bandpass';f.frequency.value=kind==='h'?7000:1800;const v=kind==='h'?.06:.16,d=kind==='h'?.03:.09;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(this.bus);n.start(t,Math.random()*.5);n.stop(t+d+.02);},
+ start(){if(!this.ensure())return;this.playing=true;this.step=0;this.li=0;this.lt=0;this.next=SFX.ac.currentTime+.08;},
+ stop(){this.playing=false;},
+ update(){const want=this.on&&G.mode&&!G.paused&&!$('#sEnd').classList.contains('on')&&performance.now()>this.hold;
+  if(!want){if(this.playing)this.stop();return;}if(!this.playing)this.start();if(!this.playing)return;
+  const e=60/this.bpm/2,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
+  while(this.next<a.currentTime+.2){const st=this.step,t=this.next,bar=Math.floor(st/4)%16,pos=st%4,root=this.B[bar];
+   if(st>=this.lt){const[m,d]=this.L[this.li];if(m)this.note('square',m,t,d*e,.045);this.lt=st+d;this.li=(this.li+1)%this.L.length;}
+   this.note('triangle',pos%2?root+19:root+12,t,e*.9,.13);// bajo "pum-pa"
+   if(pos%2===0)this.drum('k',t);else this.drum('h',t);if(pos===2&&bar%4===3)this.drum('s',t);if(bar===15&&pos>=2)this.drum('s',t+e/2);
+   this.step=(st+1)%64;if(this.step===0){this.li=0;this.lt=0;}this.next+=e;}},
+ jingle(){// musiquita alegre del gol
+  if(!this.on||!this.ensure())return;this.stop();this.hold=performance.now()+2600;const a=SFX.ac,t0=a.currentTime+.05,e=.09;
+  const J=[[72,1],[76,1],[79,1],[84,1],[79,1],[84,1],[88,2],[86,1],[88,1],[91,6]];let t=t0;
+  for(const[m,d]of J){this.note('square',m,t,d*e,.06);this.note('square',m-12,t,d*e,.035);t+=d*e;}
+  const C=[[48,4],[55,4],[60,4],[48,8]];t=t0;for(const[m,d]of C){this.note('triangle',m,t,d*e,.15);t+=d*e;}
+  for(let i=0;i<8;i++)this.drum(i%2?'s':'k',t0+i*e*2);},
+ set(v){this.on=v;store.set('fa.music',v?'1':'0');if(!v)this.stop();}};
 function handleEvents(ev){for(const e of ev){
- if(e.k==='kick')SFX.play('kick',e.v);else if(e.k==='goal'){G.celTeam=e.team;G.celLead=e.lead;SFX.play('goal');SFX.play('whistle',1);const kit=G.kits[e.team];banner('¡GOOOL!',e.own?'En contra · '+kit.name:(e.name?e.name+' · ':'')+kit.name,false,2600);if(navigator.vibrate)try{navigator.vibrate(120)}catch(_){}}
+ if(e.k==='kick')SFX.play('kick',e.v);else if(e.k==='goal'){G.celTeam=e.team;G.celLead=e.lead;SFX.play('goal');MUS.jingle();SFX.play('whistle',1);const kit=G.kits[e.team];banner('¡GOOOL!',e.own?'En contra · '+kit.name:(e.name?e.name+' · ':'')+kit.name,false,2600);if(navigator.vibrate)try{navigator.vibrate(120)}catch(_){}}
  else if(e.k==='restart'){banner(e.kind==='lateral'?'LATERAL':e.kind==='corner'?'CÓRNER':e.kind==='libre'?'TIRO LIBRE':e.kind==='penal'?'¡PENAL!':'SAQUE DE ARCO',e.sub||'',!e.sub,e.kind==='penal'?1800:e.sub?1500:1000);SFX.play('whistle',e.kind==='penal'||e.kind==='libre'?2:1);}
  else if(e.k==='whistle')SFX.play('whistle',e.n||1);
  else if(e.k==='gkdive'){SFX.play('slide');}
@@ -2020,8 +2052,10 @@ function renderPauseOpts(){const el=$('#pauseOpts');if(!G.mode){el.innerHTML='';
  const ch=(g,v,l,on)=>`<button class="chip ${on?'sel':''}" data-po="${g}" data-v="${v}">${l}</button>`;
  let h='';
  if(canAll&&G.match&&G.match.humans.size>1)h+=`<div class="porow"><span>Control</span><div class="chips">${ch('ct','libre','Libre',ct!=='fijo')}${ch('ct','fijo','Fijo',ct==='fijo')}</div></div>`;
+ h+=`<div class="porow"><span>🎵 Música</span><label class="swl"><input type="checkbox" id="pmSw" ${MUS.on?'checked':''}><i></i></label></div>`;
  if(isTouch)h+=`<div class="porow"><span>✋ Zurdo</span><label class="swl"><input type="checkbox" id="pzSw" ${S.settings.hand==='zurdo'?'checked':''}><i></i></label></div>`;
  el.innerHTML=h;el.style.display=h?'':'none';
+ {const mz=el.querySelector('#pmSw');if(mz)mz.onchange=()=>MUS.set(mz.checked);}
  {const z=el.querySelector('#pzSw');if(z)z.onchange=()=>{S.settings.hand=z.checked?'zurdo':'diestro';saveSettings();const hz=$('#zurdoSw');if(hz)hz.checked=z.checked;};}
  el.querySelectorAll('[data-po]').forEach(b=>b.onclick=()=>{const g=b.dataset.po,v=b.dataset.v;
   if(g==='ct'&&m){m.cfg.ctrl=v;S.settings.ctrl=v;saveSettings();}
@@ -2073,7 +2107,8 @@ if(inv.length===4){$('#codeIn').value=inv;const el=$('#invite');el.style.display
    LOOP PRINCIPAL
    ========================================================= */
 let last=performance.now(),acc=0;
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.1,(now-last)/1000);last=now;
+addEventListener('pointerdown',()=>{SFX.init();if(SFX.ac&&SFX.ac.state==='suspended')SFX.ac.resume();},true);addEventListener('keydown',()=>{SFX.init();if(SFX.ac&&SFX.ac.state==='suspended')SFX.ac.resume();},true);
+function frame(now){requestAnimationFrame(frame);try{MUS.update();}catch(e){}const dt=Math.min(.1,(now-last)/1000);last=now;
  if(!G.mode||!G.map)return;
  pollInput();
  let v=null;
