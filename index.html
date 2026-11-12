@@ -384,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.30.0';
+const VERSION='1.31.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1641,15 +1641,18 @@ const SFX={ac:null,nb:null,
  }catch(e){}}};
 /* ---------------- música (chiptune de marcha, original) ---------------- */
 const MUS={on:store.get('fa.music','1')!=='0',bus:null,next:0,step:0,playing:false,hold:0,
- // melodía: [nota midi (0 = silencio), duración en corcheas]; marcha en Sol, 2/4, rapidita
- L:[[67,1],[71,1],[74,1],[71,1],[79,2],[74,2],[76,1],[74,1],[72,1],[71,1],[69,4],
-    [66,1],[69,1],[72,1],[69,1],[78,2],[72,2],[74,1],[72,1],[71,1],[69,1],[67,4],
-    [71,1],[72,1],[74,1],[76,1],[74,2],[71,2],[72,1],[74,1],[76,1],[78,1],[79,2],[74,2],
-    [76,1],[76,1],[74,1],[72,1],[71,1],[74,1],[79,2],[69,1],[71,1],[72,1],[66,1],[67,2],[0,2]],
- B:[43,43,48,50,50,50,50,43, 43,43,48,43,48,43,50,43],// raíz de cada compás (2 tiempos = 4 corcheas)
- bpm:156,
- ensure(){if(!SFX.ac)return false;if(!this.bus){this.bus=SFX.ac.createGain();this.bus.gain.value=.55;this.bus.connect(SFX.ac.destination);}return true;},
- note(type,midi,t,d,vol){const a=SFX.ac,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=440*Math.pow(2,(midi-69)/12);
+ // tema original estilo arcade: Si menor, 112 bpm, en semicorcheas. Melodía: [nota midi (0 = silencio), duración en semicorcheas]
+ L:[[71,2],[74,2],[78,3],[76,1],[74,2],[73,2],[71,4], [69,1],[71,1],[73,2],[74,2],[73,2],[71,2],[69,2],[66,4],
+    [69,2],[73,2],[76,3],[74,1],[73,2],[71,2],[69,4], [76,1],[74,1],[73,2],[71,2],[73,2],[69,2],[64,2],[69,4],
+    [71,2],[74,2],[79,3],[78,1],[76,2],[74,2],[71,4], [74,1],[76,1],[78,2],[79,2],[78,2],[76,2],[74,2],[71,4],
+    [73,2],[78,2],[73,2],[70,2],[73,2],[76,2],[73,2],[70,2], [78,3],[76,1],[73,2],[70,2],[66,4],[0,4]],
+ B:[47,47,45,45,43,43,42,42],// raíz de cada compás: Sim Sim La La Sol Sol Fa# Fa#
+ CH:[[71,74,78],[71,74,78],[69,73,76],[69,73,76],[67,71,74],[67,71,74],[66,70,73],[66,70,73]],
+ BP:[0,0,12,0,7,0,12,7,0,0,12,0,7,12,7,5],// bajo: salta en octavas y quintas
+ bpm:112,
+ ensure(){if(!SFX.ac)return false;const a=SFX.ac;if(!this.bus||this.bus.context!==a){this.bus=a.createGain();this.bus.gain.value=.55;this.bus.connect(a.destination);
+  const mk=d=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)im[k]=Math.sin(k*Math.PI*d)/k;return a.createPeriodicWave(re,im);};this.p25=mk(.25);this.p12=mk(.125);}return true;},
+ note(type,midi,t,d,vol){const a=SFX.ac,o=a.createOscillator(),g=a.createGain();if(type==='p25')o.setPeriodicWave(this.p25);else if(type==='p12')o.setPeriodicWave(this.p12);else o.type=type;o.frequency.value=440*Math.pow(2,(midi-69)/12);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setValueAtTime(vol*.8,t+d*.55);g.gain.linearRampToValueAtTime(0,t+d*.92);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+d);},
  drum(kind,t){const a=SFX.ac;if(kind==='k'){const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.1);g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+.14);return;}
   const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=SFX.nb;f.type=kind==='h'?'highpass':'bandpass';f.frequency.value=kind==='h'?7000:1800;const v=kind==='h'?.06:.16,d=kind==='h'?.03:.09;
@@ -1658,14 +1661,15 @@ const MUS={on:store.get('fa.music','1')!=='0',bus:null,next:0,step:0,playing:fal
  stop(){this.playing=false;},
  update(){const want=this.on&&G.mode&&!G.paused&&!$('#sEnd').classList.contains('on')&&performance.now()>this.hold;
   if(!want){if(this.playing)this.stop();return;}if(!this.playing)this.start();if(!this.playing)return;
-  const e=60/this.bpm/2,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
-  while(this.next<a.currentTime+.2){const st=this.step,t=this.next,bar=Math.floor(st/4)%16,pos=st%4,root=this.B[bar];
-   if(st>=this.lt){const[m,d]=this.L[this.li];if(m)this.note('square',m,t,d*e,.045);this.lt=st+d;this.li=(this.li+1)%this.L.length;}
-   this.note('triangle',pos%2?root+19:root+12,t,e*.9,.13);// bajo "pum-pa"
-   if(pos%2===0)this.drum('k',t);else this.drum('h',t);if(pos===2&&bar%4===3)this.drum('s',t);if(bar===15&&pos>=2)this.drum('s',t+e/2);
-   this.step=(st+1)%64;if(this.step===0){this.li=0;this.lt=0;}this.next+=e;}},
- jingle(){// musiquita alegre del gol
-  if(!this.on||!this.ensure())return;this.stop();this.hold=performance.now()+2600;const a=SFX.ac,t0=a.currentTime+.05,e=.09;
+  const e=60/this.bpm/4,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
+  while(this.next<a.currentTime+.2){const st=this.step,t=this.next,bar=Math.floor(st/16)%8,pos=st%16,root=this.B[bar];
+   if(st>=this.lt){const[m,d]=this.L[this.li];if(m)this.note('p25',m,t,d*e,.05);this.lt=st+d;this.li=(this.li+1)%this.L.length;}
+   if(pos%2===0||this.BP[pos]!==this.BP[pos-1])this.note('triangle',root+this.BP[pos],t,e*1.8,.16);// bajo
+   this.note('p12',this.CH[bar][pos%3]+12,t,e*.8,.018);// arpegio rapidito de fondo
+   if(pos%4===2)this.drum('h',t);if(pos===0||pos===8)this.drum('k',t);if(pos===12&&bar%2===1)this.drum('s',t);if(bar===7&&pos>=12)this.drum('s',t+e/2);
+   this.step=(st+1)%128;if(this.step===0){this.li=0;this.lt=0;}this.next+=e;}},
+ jingle(){// musiquita alegre del gol: suena siempre, aunque la música esté apagada
+  if(!this.ensure())return;this.stop();this.hold=performance.now()+2600;const a=SFX.ac,t0=a.currentTime+.05,e=.09;
   const J=[[72,1],[76,1],[79,1],[84,1],[79,1],[84,1],[88,2],[86,1],[88,1],[91,6]];let t=t0;
   for(const[m,d]of J){this.note('square',m,t,d*e,.06);this.note('square',m-12,t,d*e,.035);t+=d*e;}
   const C=[[48,4],[55,4],[60,4],[48,8]];t=t0;for(const[m,d]of C){this.note('triangle',m,t,d*e,.15);t+=d*e;}
