@@ -384,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.31.2';
+const VERSION='1.32.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1650,7 +1650,7 @@ const MUS={on:store.get('fa.music','1')!=='0',bus:null,next:0,step:0,playing:fal
  CH:[[71,74,78],[71,74,78],[69,73,76],[69,73,76],[67,71,74],[67,71,74],[66,70,73],[66,70,73]],
  BP:[0,0,12,0,7,0,12,7,0,0,12,0,7,12,7,5],
  DR:[.55,0,.4,0,1,.45,.55,0,.55,0,.4,0,1,.45,.55,0],// redoblante: x.x.XXx. x.x.XXx.// bajo: salta en octavas y quintas
- bpm:112,
+ bpm:224,// solo batería, al doble de tempo
  ensure(){if(!SFX.ac)return false;const a=SFX.ac;if(!this.bus||this.bus.context!==a){this.bus=a.createGain();this.bus.gain.value=.55;this.bus.connect(a.destination);
   const mk=d=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)im[k]=Math.sin(k*Math.PI*d)/k;return a.createPeriodicWave(re,im);};this.p25=mk(.25);this.p12=mk(.125);}return true;},
  note(type,midi,t,d,vol){const a=SFX.ac,o=a.createOscillator(),g=a.createGain();if(type==='p25')o.setPeriodicWave(this.p25);else if(type==='p12')o.setPeriodicWave(this.p12);else o.type=type;o.frequency.value=440*Math.pow(2,(midi-69)/12);
@@ -1665,9 +1665,6 @@ const MUS={on:store.get('fa.music','1')!=='0',bus:null,next:0,step:0,playing:fal
   if(!want){if(this.playing)this.stop();return;}if(!this.playing)this.start();if(!this.playing)return;
   const e=60/this.bpm/4,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
   while(this.next<a.currentTime+.2){const st=this.step,t=this.next,bar=Math.floor(st/16)%8,pos=st%16,root=this.B[bar];
-   if(st>=this.lt){const[m,d]=this.L[this.li];if(m)this.note('p25',m,t,d*e,.05);this.lt=st+d;this.li=(this.li+1)%this.L.length;}
-   if(pos%2===0||this.BP[pos]!==this.BP[pos-1])this.note('triangle',root+this.BP[pos],t,e*1.8,.16);// bajo
-   this.note('p12',this.CH[bar][pos%3]+12,t,e*.8,.018);// arpegio rapidito de fondo
    // batería: bombo (negra) · redoblante (negra) · bombo-bombo (corcheas) · redoblante (negra), en loop
    if(pos===0||pos===8||pos===10)this.drum('k',t);if(pos===4||pos===12)this.drum('s',t,1);if(pos%2===0)this.drum('h',t);
    if(bar===7&&pos>=13)this.drum('s',t,.6);
