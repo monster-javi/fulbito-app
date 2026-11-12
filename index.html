@@ -384,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.33.0';
+const VERSION='1.33.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1626,16 +1626,24 @@ const SFX={ac:null,nb:null,
  env(node,t0,a,dur,peak){const g=this.ac.createGain();g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak,t0+a);g.gain.exponentialRampToValueAtTime(.001,t0+dur);node.connect(g);g.connect(this.ac.destination);return g;},
  noise(dur,freq,q,peak,a=.005){const s=this.ac.createBufferSource();s.buffer=this.nb;const f=this.ac.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;s.connect(f);const t=this.ac.currentTime;this.env(f,t,a,dur,peak);s.start(t);s.stop(t+dur+.05);return f;},
  tone(type,f0,f1,dur,peak){const o=this.ac.createOscillator();o.type=type;const t=this.ac.currentTime;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);this.env(o,t,.004,dur,peak);o.start(t);o.stop(t+dur+.05);},
- cheer(){// público festejando: rugido que crece y se apaga + cántico "o-lé, o-lé" de muchas voces
-  const a=this.ac,t0=a.currentTime,out=a.createGain();out.gain.value=.5;out.connect(a.destination);
-  {const s=a.createBufferSource();s.buffer=this.nb;s.loop=true;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=1100;f.Q.value=.5;const g=a.createGain();
-   g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.55,t0+.5);g.gain.setValueAtTime(.5,t0+2.2);g.gain.linearRampToValueAtTime(.18,t0+3.4);g.gain.linearRampToValueAtTime(0,t0+5.2);
-   s.connect(f);f.connect(g);g.connect(out);s.start(t0);s.stop(t0+5.3);}
-  const fm=[[650,4],[1080,6]],bus=a.createGain();bus.gain.value=.9;for(const[fr,q]of fm){const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=fr;f.Q.value=q;bus.connect(f);f.connect(out);}
-  const C=[[64,.9,.42],[60,1.32,.55],[64,2.0,.42],[60,2.42,.42],[62,2.84,.38],[64,3.22,.8]];// o-lé, o-lé-o-lé-o (melodía de cancha)
-  for(const[m,st,d]of C){const t=t0+st;for(let v=0;v<12;v++){const o=a.createOscillator(),g=a.createGain();o.type='sawtooth';
-    o.frequency.value=440*Math.pow(2,(m-69+(v%3===0?-12:0))/12)*(1+(Math.random()-.5)*.03);const tt=t+Math.random()*.04;
-    g.gain.setValueAtTime(0,tt);g.gain.linearRampToValueAtTime(.022,tt+.06);g.gain.setValueAtTime(.02,tt+d*.7);g.gain.linearRampToValueAtTime(0,tt+d);o.connect(g);g.connect(bus);o.start(tt);o.stop(tt+d+.02);}}},
+ cheer(){// público festejando: tribuna (muchas capas de ruido con formantes de voz que fluctúan), aplausos y cántico "o-lé" de muchas voces
+  const a=this.ac,t0=a.currentTime,out=a.createGain(),T=5.4;out.gain.value=.25;const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;lp.connect(out);out.connect(a.destination);
+  const pan=(node,x)=>{if(a.createStereoPanner){const p=a.createStereoPanner();p.pan.value=x;node.connect(p);p.connect(lp);}else node.connect(lp);};
+  const curve=(n,base,var_)=>{const c=new Float32Array(n);let v=base;for(let k=0;k<n;k++){v+=(Math.random()-.5)*var_;v=Math.max(base*.4,Math.min(base*1.6,v));c[k]=v;}return c;};
+  const VW=[[700,1150],[550,1700],[400,2100],[620,1000],[480,1900],[750,1250]];// "aaa", "eee", "ooo"... de la gente
+  for(let L=0;L<VW.length;L++){const s=a.createBufferSource();s.buffer=this.nb;s.loop=true;s.playbackRate.value=.8+Math.random()*.4;const g=a.createGain(),env=a.createGain();
+   for(const fr of VW[L]){const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=fr*(.9+Math.random()*.2);f.Q.value=3.5;s.connect(f);f.connect(g);}
+   g.gain.setValueCurveAtTime(curve(40,.5,.18),t0,T);env.gain.setValueAtTime(0,t0);env.gain.linearRampToValueAtTime(.9,t0+.35+Math.random()*.3);env.gain.setValueAtTime(.85,t0+2.3);env.gain.linearRampToValueAtTime(.3,t0+3.6);env.gain.linearRampToValueAtTime(0,t0+T);
+   g.connect(env);pan(env,(L/(VW.length-1))*1.4-.7);s.start(t0,Math.random());s.stop(t0+T+.05);}
+  for(let k=0;k<70;k++){const t=t0+.3+Math.random()*3.2,s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=this.nb;f.type='bandpass';f.frequency.value=1400+Math.random()*1600;f.Q.value=1.2;// aplausos
+   g.gain.setValueAtTime(.12*Math.random()*(t-t0<2.6?1:.5),t);g.gain.exponentialRampToValueAtTime(.001,t+.05);s.connect(f);f.connect(g);pan(g,Math.random()*1.6-.8);s.start(t,Math.random()*.8);s.stop(t+.06);}
+  const C=[[64,.95,.42],[60,1.37,.55],[64,2.02,.42],[60,2.44,.42],[62,2.86,.38],[64,3.24,.8]];// o-lé, o-lé-o-lé-o
+  for(let v=0;v<20;v++){const vb=a.createGain(),f1=a.createBiquadFilter(),f2=a.createBiquadFilter(),mix=a.createGain();f1.type='bandpass';f1.frequency.value=520+Math.random()*80;f1.Q.value=4;f2.type='bandpass';f2.frequency.value=950+Math.random()*120;f2.Q.value=5;
+   vb.connect(f1);vb.connect(f2);f1.connect(mix);f2.connect(mix);mix.gain.value=.5;pan(mix,Math.random()*1.4-.7);
+   const oc=(v%4===0?-12:0),det=(Math.random()-.5)*.035,lag=Math.random()*.07,o=a.createOscillator(),lfo=a.createOscillator(),lg=a.createGain(),g=a.createGain();o.type='sawtooth';lfo.frequency.value=4.5+Math.random()*1.5;lg.gain.value=3+Math.random()*3;lfo.connect(lg);lg.connect(o.frequency);
+   g.gain.value=0;o.connect(g);g.connect(vb);
+   for(const[m,st,d]of C){const t=t0+st+lag,fq=440*Math.pow(2,(m-69+oc)/12)*(1+det);o.frequency.setTargetAtTime(fq,t-.03,.03);g.gain.setTargetAtTime(.05,t,.03);g.gain.setTargetAtTime(0,t+d*.8,.05);}
+   o.frequency.value=440*Math.pow(2,(64-69+oc)/12);o.start(t0+.8);lfo.start(t0+.8);o.stop(t0+T);lfo.stop(t0+T);}},
  play(k,v=1){if(!this.ac)return;try{
   if(k==='kick'){this.tone('sine',170,55,.13,.5*v);this.noise(.05,1800,1,.25*v);}
   else if(k==='bounce'){this.tone('sine',120,60,.08,.18);}
