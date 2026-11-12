@@ -384,7 +384,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.32.2';
+const VERSION='1.32.3';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1640,7 +1640,7 @@ const SFX={ac:null,nb:null,
   else if(k==='slide'){this.noise(.22,350,.7,.22,.02);}
  }catch(e){}}};
 /* ---------------- música (chiptune de marcha, original) ---------------- */
-const MUS={on:store.get('fa.music','0')==='1',waitW:false,// apagada por defectobus:null,next:0,step:0,playing:false,hold:0,
+const MUS={on:store.get('fa.music','0')==='1',waitW:false,/* apagada por defecto */bus:null,next:0,step:0,playing:false,hold:0,
  // tema original estilo arcade: Si menor, 112 bpm, en semicorcheas. Melodía: [nota midi (0 = silencio), duración en semicorcheas]
  L:[[71,2],[74,2],[78,3],[76,1],[74,2],[73,2],[71,4], [69,1],[71,1],[73,2],[74,2],[73,2],[71,2],[69,2],[66,4],
     [69,2],[73,2],[76,3],[74,1],[73,2],[71,2],[69,4], [76,1],[74,1],[73,2],[71,2],[73,2],[69,2],[64,2],[69,4],
@@ -1651,28 +1651,28 @@ const MUS={on:store.get('fa.music','0')==='1',waitW:false,// apagada por defecto
  BP:[0,0,12,0,7,0,12,7,0,0,12,0,7,12,7,5],
  DR:[.55,0,.4,0,1,.45,.55,0,.55,0,.4,0,1,.45,.55,0],// redoblante: x.x.XXx. x.x.XXx.// bajo: salta en octavas y quintas
  bpm:224,// solo batería, al doble de tempo
- ensure(){if(!SFX.ac)return false;const a=SFX.ac;if(!this.bus||this.bus.context!==a){this.bus=a.createGain();this.bus.gain.value=.55;this.bus.connect(a.destination);
+ ensure(){if(!SFX.ac)return false;const a=SFX.ac;if(!this.bus||this.bus.context!==a){this.out=null;this.bus=a.createGain();this.bus.gain.value=.55;this.bus.connect(a.destination);this.mbus=a.createGain();this.mbus.gain.value=.4;this.mbus.connect(this.bus);
   const mk=d=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)im[k]=Math.sin(k*Math.PI*d)/k;return a.createPeriodicWave(re,im);};this.p25=mk(.25);this.p12=mk(.125);}return true;},
  note(type,midi,t,d,vol){const a=SFX.ac,o=a.createOscillator(),g=a.createGain();if(type==='p25')o.setPeriodicWave(this.p25);else if(type==='p12')o.setPeriodicWave(this.p12);else o.type=type;o.frequency.value=440*Math.pow(2,(midi-69)/12);
-  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setValueAtTime(vol*.8,t+d*.55);g.gain.linearRampToValueAtTime(0,t+d*.92);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+d);},
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.006);g.gain.setValueAtTime(vol*.8,t+d*.55);g.gain.linearRampToValueAtTime(0,t+d*.92);o.connect(g);g.connect(this.out||this.bus);o.start(t);o.stop(t+d);},
  ebass(midi,t,d){const a=SFX.ac,o=a.createOscillator(),f=a.createBiquadFilter(),g=a.createGain();o.type='sawtooth';o.frequency.value=440*Math.pow(2,(midi-69)/12);
-  f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(1400,t);f.frequency.exponentialRampToValueAtTime(220,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.004);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(f);f.connect(g);g.connect(this.bus);o.start(t);o.stop(t+d+.02);},
- drum(kind,t,vv){const a=SFX.ac;if(kind==='k'){const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.1);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);o.connect(g);g.connect(this.bus);o.start(t);o.stop(t+.14);return;}
-  if(kind==='s'){const o=a.createOscillator(),og=a.createGain();o.type='triangle';o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(140,t+.08);og.gain.setValueAtTime(.18*(vv??1),t);og.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(og);og.connect(this.bus);o.start(t);o.stop(t+.1);}
+  f.type='lowpass';f.Q.value=6;f.frequency.setValueAtTime(1400,t);f.frequency.exponentialRampToValueAtTime(220,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.2,t+.004);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(f);f.connect(g);g.connect(this.out||this.bus);o.start(t);o.stop(t+d+.02);},
+ drum(kind,t,vv){const a=SFX.ac;if(kind==='k'){const o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+.1);g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);o.connect(g);g.connect(this.out||this.bus);o.start(t);o.stop(t+.14);return;}
+  if(kind==='s'){const o=a.createOscillator(),og=a.createGain();o.type='triangle';o.frequency.setValueAtTime(210,t);o.frequency.exponentialRampToValueAtTime(140,t+.08);og.gain.setValueAtTime(.18*(vv??1),t);og.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(og);og.connect(this.out||this.bus);o.start(t);o.stop(t+.1);}
   const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=SFX.nb;f.type=kind==='h'?'highpass':'bandpass';f.frequency.value=kind==='h'?7000:2200;f.Q.value=kind==='h'?1:.8;const v=(kind==='h'?.035:.3)*(vv??1),d=kind==='h'?.025:.13;
-  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(this.bus);n.start(t,Math.random()*.5);n.stop(t+d+.02);},
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(this.out||this.bus);n.start(t,Math.random()*.5);n.stop(t+d+.02);},
  start(){if(!this.ensure())return;this.playing=true;this.step=0;this.li=0;this.lt=0;this.next=SFX.ac.currentTime+.08;},
  stop(){this.playing=false;},
- update(){if(!G.mode)this.waitW=false;const want=this.on&&!this.waitW&&G.mode&&!G.paused&&!$('#sEnd').classList.contains('on')&&performance.now()>this.hold;
+ update(){if(!G.mode)this.waitW=false;const want=this.on&&!this.waitW&&G.mode&&!$('#sEnd').classList.contains('on')&&performance.now()>this.hold;
   if(!want){if(this.playing)this.stop();return;}if(!this.playing)this.start();if(!this.playing)return;
-  const e=60/this.bpm/4,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
+  this.out=this.mbus;const e=60/this.bpm/4,a=SFX.ac;if(this.next<a.currentTime-.3)this.next=a.currentTime+.05;// volvió de una pestaña oculta
   while(this.next<a.currentTime+.2){const st=this.step,t=this.next,bar=Math.floor(st/16)%8,pos=st%16,root=this.B[bar];
    // batería: bombo (negra) · redoblante (negra) · bombo-bombo (corcheas) · redoblante (negra), en loop
    if(pos===0||pos===8||pos===10)this.drum('k',t);if(pos===4||pos===12)this.drum('s',t,1);if(pos%2===0)this.drum('h',t);
    if(pos%2===0)this.ebass(43,t,e*1.1);// bajo electrónico en Sol, tapping en corcheas
    this.step=(st+1)%128;if(this.step===0){this.li=0;this.lt=0;}this.next+=e;}},
  jingle(){// musiquita alegre del gol: suena siempre, aunque la música esté apagada
-  if(!this.ensure())return;this.stop();this.waitW=true;this.hold=performance.now()+2600;/* la música vuelve recién con el pitazo del saque */const a=SFX.ac,t0=a.currentTime+.05,e=.09;
+  if(!this.ensure())return;this.stop();this.out=this.bus;this.waitW=true;this.hold=performance.now()+2600;/* la música vuelve recién con el pitazo del saque */const a=SFX.ac,t0=a.currentTime+.05,e=.09;
   const J=[[72,1],[76,1],[79,1],[84,1],[79,1],[84,1],[88,2],[86,1],[88,1],[91,6]];let t=t0;
   for(const[m,d]of J){this.note('square',m,t,d*e,.06);this.note('square',m-12,t,d*e,.035);t+=d*e;}
   const C=[[48,4],[55,4],[60,4],[48,8]];t=t0;for(const[m,d]of C){this.note('triangle',m,t,d*e,.15);t+=d*e;}
