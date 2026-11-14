@@ -385,7 +385,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.39.1';
+const VERSION='1.40.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1044,7 +1044,7 @@ class Match{
  aiPass(p,force,minScore=-1){let best=null,bs=-1e9;
   for(const m of this.players)if(m.team===p.team&&m!==p){const s=this.passScore(p,m);if(s>bs){bs=s;best=m;}}
   if(best&&(bs>minScore||(force&&bs>-99))){this.passTo(p,best);return true;}return false;}
- slideTackle(p){const b=this.ball;if(p.ctrl==null)p.dir=Math.atan2(b.y-p.y,b.x-p.x);else if(p.face!=null)p.dir=p.face;
+ slideTackle(p){const b=this.ball;if(p.ctrl==null)p.dir=Math.atan2(b.y-p.y,b.x-p.x);else{if(p.face!=null)p.dir=p.face;const ba=Math.atan2(b.y-p.y,b.x-p.x),df=angDiff(p.dir,ba);if(len(b.x-p.x,b.y-p.y)<3.5&&Math.abs(df)<.62)p.dir+=df*.6;}// barrida: se orienta un poco hacia la pelota
   p.slide=.38;p.slChk=0;p.vx=Math.cos(p.dir)*9.5;p.vy=Math.sin(p.dir)*9.5;this.ev.push({k:'slide'});}
  ballTo(p){const b=this.ball;b.gkLong=null;b.lift=0;b.knock=0;p.recv=.3;b.owner=this.idx(p);b.last=b.owner;b.lastTeam=p.team;b.passTo=-1;b.gkRoll=-1;p.slide=0;p.req=null;}
 
@@ -1215,9 +1215,10 @@ class Match{
       break;}
      if(d<.62){// robo: de frente es fácil, de costado o de atrás cuesta (así se puede gambetear)
       const ax=q.x-o.x,ay=q.y-o.y,al=len(ax,ay)||1,front=(Math.cos(o.dir)*ax+Math.sin(o.dir)*ay)/al;
-      if(q.slide>0&&!q.slChk){q.slChk=1;if(front<-.2&&Math.random()<.7){this.foul(q,o.x,o.y);o.dir=q.dir;this.knockDown(o,1.3);this.ballTo(q);this.ev.push({k:'steal'});break;}}
-      let ch=q.slide>0?.6:front>.35?.13:front>-.2?.05:.015;if(q.role==='gk'&&this.map.fmt<=6&&q.slide<=0)ch*=d<.45?.35:.12;// en cancha chica al arquero se lo puede gambetearif(this.loose)ch=Math.max(ch,.2);if(o.recv>0)ch*=.3;
-      if(Math.random()<ch){if(q.slide>0)this.slideHit(q);else this.ballTo(q);o.stun=q.slide>0?.85:.35;if(q.slide>0){o.dir=q.dir;this.knockDown(o,.7);}o.cool=.5;o.charge=-1;this.ev.push({k:'steal'});break;}}}}
+      if(q.slide>0&&!q.slChk){q.slChk=1;if(front<-.2&&Math.random()<.35){this.foul(q,o.x,o.y);o.dir=q.dir;this.knockDown(o,1.3);this.ballTo(q);this.ev.push({k:'steal'});break;}}
+      let ch=q.slide>0?.6:front>.35?.13:front>-.2?.05:.015;
+      {const v=len(o.vx,o.vy),S=this.spd;if(q.slide<=0&&front<.35){if(v<S*.45&&front<-.2)ch*=.15;else if(v>S*.9)ch*=1.6;}}// proteger de espaldas yendo despacio; a toda velocidad la llevás más lejos del pieif(q.role==='gk'&&this.map.fmt<=6&&q.slide<=0)ch*=d<.45?.35:.12;// en cancha chica al arquero se lo puede gambetearif(this.loose)ch=Math.max(ch,.2);if(o.recv>0)ch*=.3;
+      if(Math.random()<ch){if(q.slide>0){if(front>-.2&&Math.random()<.5){this.ballTo(q);q.vx*=.3;q.vy*=.3;}else this.slideHit(q);}else this.ballTo(q);/* barrida de frente o costado: a veces se la queda */o.stun=q.slide>0?.85:.35;if(q.slide>0){o.dir=q.dir;this.knockDown(o,.7);}o.cool=.5;o.charge=-1;this.ev.push({k:'steal'});break;}}}}
    if(this.looseOwned())this.looseDribble(o);else this.positionOwnedBall();return;}
   // cabezazos y palomitas
   if(b.z>=.45&&b.z<=2.3)for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(b.lift>0&&p.team!==b.lastTeam)continue;// el saque alto del arquero pasa por arriba de los que están pegados al área
