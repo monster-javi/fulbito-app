@@ -385,7 +385,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.37.0';
+const VERSION='1.37.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1144,7 +1144,8 @@ class Match{
  ballPhysics(dt){
   const b=this.ball;if(b.owner>=0&&!this.looseOwned())return;
   const M=this.map,hl=this.hl,hw=this.hw,gw=this.gw,R=.11;if(b.lift>0)b.lift-=dt;
-  if(b.throwBy){b.throwBy=false;const v=len(b.vx,b.vy),mx=M.fmt>=11?17:M.fmt>=9?13:10;if(v>mx){b.vx*=mx/v;b.vy*=mx/v;}b.z=Math.max(b.z,.3);b.vz=clamp(b.vz+2.5,4,5.5);b.at=null;b.y=clamp(b.y,-hw+.25,hw-.25);b.x=clamp(b.x,-hl+.25,hl-.25);}// lateral con la mano: sale desde arriba de la cabeza y no tan lejosif(b.knock>0)b.knock-=dt;
+  if(b.throwBy){b.throwBy=false;const v=len(b.vx,b.vy),mx=M.fmt>=11?17:M.fmt>=9?13:10;if(v>mx){b.vx*=mx/v;b.vy*=mx/v;}b.z=Math.max(b.z,.3);b.vz=clamp(b.vz+2.5,4,5.5);b.at=null;b.y=clamp(b.y,-hw+.25,hw-.25);b.x=clamp(b.x,-hl+.25,hl-.25);}// lateral con la mano: sale desde arriba de la cabeza y no tan lejos
+  if(b.knock>0)b.knock-=dt;
   if(b.z>0||b.vz>0){b.vz-=9.8*dt;b.z+=b.vz*dt;if(b.z<=0){b.z=0;b.gkLong=null;if(b.vz<-2.2){b.vz=-b.vz*this.bounceK;b.vx*=.72;b.vy*=.72;this.ev.push({k:'bounce'});}else b.vz=0;}const f=1-this.airK*dt;b.vx*=f;b.vy*=f;}
   else{const v=len(b.vx,b.vy);if(v>0){const nv=Math.max(0,v-(this.fr0+this.fr1*v)*dt);b.vx*=nv/v;b.vy*=nv/v;}}
   const ox=b.x;b.x+=b.vx*dt;b.y+=b.vy*dt;
