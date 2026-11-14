@@ -385,7 +385,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.36.0';
+const VERSION='1.37.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -683,7 +683,8 @@ class Match{
   let ix=-x,iy=-y;if(kind==='lateral'){ix=this.dirOf(team)*3;iy=-Math.sign(y)*6;}else if(kind==='libre'){ix=this.dirOf(team);iy=-y*.04;}
   const il=len(ix,iy)||1;ix/=il;iy/=il;
   taker.x=x-ix*.55;taker.y=y-iy*.55;taker.dir=taker.face=Math.atan2(iy,ix);taker.vx=taker.vy=0;taker.charge=-1;
-  const R=this.map.fmt===11?6:3.5;
+  const R=(kind==='libre'||kind==='corner')?this.restDist():this.map.fmt===11?6:3.5;
+  this.guard=(kind==='libre'||kind==='corner')?{x,y,team,R,taker:this.idx(taker)}:null;// rivales a distancia reglamentaria hasta que se patee
   for(const p of this.players)if(p.team!==team){const dx=p.x-x,dy=p.y-y,d=len(dx,dy);if(d<R){const k=R/(d||1);p.x=x+(dx||.1)*k;p.y=y+dy*k;}p.vx=p.vy=0;}
   if(kind==='arco'){const M=this.map,z=M.fmt>=11?M.box:(M.sbox||M.box),d=this.dirOf(team),gx=-d*this.hl;// rivales afuera del área en el saque de arco
    for(const p of this.players)if(p.team!==team&&(p.x-gx)*d<z.d+.5&&Math.abs(p.y)<z.w/2+.5)p.x=gx+d*(z.d+.8);}
@@ -696,7 +697,7 @@ class Match{
   const sc=b.last>=0?this.players[b.last]:null;
   const own=sc&&sc.team!==team;
   this.ev.push({k:'goal',team,name:sc?this.nameOf(sc):'',own,lead:sc&&!own?this.idx(sc):this.idx(this.players.find(q=>q.team===team&&q.role!=='gk'))});
-  this.phase='goal';this.phaseT=4.5;this.kickTeam=1-team;b.owner=-1;
+  this.guard=null;this.phase='goal';this.phaseT=4.5;this.kickTeam=1-team;b.owner=-1;
   {const d=this.dirOf(team),cs=sc&&!own?sc:this.players.find(q=>q.team===team&&q.role!=='gk');const R=this.map.fmt>=11?5:3;
    this.celeb={team,lead:this.idx(cs),cx:clamp(cs.x-d*R,-this.hl+R+1,this.hl-R-1),cy:clamp(cs.y,-this.hw+R+1,this.hw-R-1),R,a:0,trail:[]};}// festejo: trencito detrás del que hizo el gol
  }
@@ -914,6 +915,7 @@ class Match{
   if(best){const t=len(best.x-p.x,best.y-p.y)/12;this.kickTo(p,best.x+best.vx*t,best.y+best.vy*t,false,.9);this.ball.passTo=this.idx(best);best.req=null;}
   else{this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*12;b.vy=Math.sin(p.dir)*12;b.vz=0;b.z=0;}
   this.ball.gkLong=null;this.ev.push({k:'kick',v:.2});}
+ restDist(){const f=this.map.fmt;return f>=11?9.15:f>=9?7:5;}// distancia en tiros libres y córners: 11 → 9,15 m · 9 → 7 m · 5/patio (futsal) → 5 m
  isCel(p){return this.phase==='goal'&&!!this.celeb&&p.team===this.celeb.team&&p.role!=='gk'&&!(p.down>0);}
  isThrower(p){return p.throwIn&&this.ball.owner===this.idx(p);}
  push(p){if(p.pushCd>0||p.stun>0||p.slide>0)return;p.pushCd=.8;const b=this.ball;let q=null,qd=1.6;
@@ -1118,6 +1120,9 @@ class Match{
   const P=this.players;
   for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],c=P[j];if((a.boost>0||c.boost>0)&&a.team!==c.team)continue;/* se la adelantó: pasa al lado del rival */const dx=c.x-a.x,dy=c.y-a.y,d=len(dx,dy);
    if(d<.78&&d>1e-4){const o=(.78-d)/2,nx=dx/d,ny=dy/d,ta=this.isThrower(a),tc=this.isThrower(c),ka=ta?0:tc?2:1,kc=tc?0:ta?2:1;a.x-=nx*o*ka;a.y-=ny*o*ka;c.x+=nx*o*kc;c.y+=ny*o*kc;}}
+  {const g=this.guard,b=this.ball;if(g){if(this.phase==='play'&&(b.owner!==g.taker||len(b.vx,b.vy)>2))this.guard=null;// ya pateó
+    else for(const q of P){if(q.team===g.team)continue;const dx=q.x-b.x,dy=q.y-b.y,d=len(dx,dy);if(d<g.R){const nx=d>1e-3?dx/d:-this.dirOf(g.team),ny=d>1e-3?dy/d:0;
+     q.x=clamp(b.x+nx*g.R,-this.hl-1,this.hl+1);q.y=clamp(b.y+ny*g.R,-this.hw-1,this.hw+1);const vn=q.vx*nx+q.vy*ny;if(vn<0){q.vx-=vn*nx;q.vy-=vn*ny;}}}}}
   {const bo=this.ball.owner,T0=bo>=0?P[bo]:null,gkH=T0&&T0.role==='gk'&&(T0.hold>0||T0.gkKick||T0.lock>0),T=T0&&(T0.throwIn||gkH)?T0:null,RX=gkH?(this.map.fmt>=9?5:3.5):2;// lateral: rivales a 2 m; arquero con la pelota en la mano: no se le pegan
    if(T)for(const q of P){if(q.team===T.team)continue;const dx=q.x-T.x,dy=q.y-T.y,d=len(dx,dy);if(d<RX){const nx=d>1e-3?dx/d:Math.cos(T.dir),ny=d>1e-3?dy/d:Math.sin(T.dir);q.x=T.x+nx*RX;q.y=T.y+ny*RX;const vn=q.vx*nx+q.vy*ny;if(vn<0){q.vx-=vn*nx;q.vy-=vn*ny;}}}}
   for(const p of P){
@@ -1747,7 +1752,7 @@ function handleEvents(ev){for(const e of ev){
    ENTRADA (teclado, táctil, joystick)
    ========================================================= */
 const keys={};const touch={mx:0,my:0,k:0,p:0,joyId:null,ox:0,oy:0,used:false,kAt:0,pAt:0,combo:false};const ZINP={mx:0,my:0,k:0,p:0,c:0,t:0,s:0,e:0,kn:0,x:0,sw:0,pad:0,kx:0,ky:0};let localInp={...ZINP},localInp2={...ZINP};const KN={c:'',t:0};const KNOCK_ON=false;// doble toque para adelantarla: apagado por ahora
-const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KNOCK_ON&&KN.c===e.code&&n-KN.t<420){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Numpad4','Numpad5','Numpad6'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode)togglePause();});
+const latch={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!keys[e.code]){latch[e.code]=true;if(e.code.startsWith('Arrow')){const n=performance.now();if(KNOCK_ON&&KN.c===e.code&&n-KN.t<420){G.knock=1;KN.c='';}}}keys[e.code]=true;if(G.mode&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Numpad4','Numpad5','Numpad6'].includes(e.code))e.preventDefault();if((e.code==='Escape'||e.code==='KeyP')&&G.mode&&!$('#sEnd').classList.contains('on'))togglePause();});
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code.startsWith('Arrow')){KN.c=e.code;KN.t=performance.now();}});// doble toque: soltar y volver a apretar rápido la misma flecha
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function pollInput(){
@@ -1779,7 +1784,7 @@ function pollInput(){
   pads[gi]=pack(ax,ay,pd);
   if(!pad){pad=pd;pmx=ax;pmy=ay;}
   if(pd.k||pd.p||pd.c||pd.t||ax||ay){if(!G.pad&&!G.twoP){G.pad=true;updateKeysLegend();}}
-  if(bs&&!G.padStart[gi]&&G.mode)togglePause();G.padStart[gi]=bs;if(G.mode&&PNAV.on())PNAV.pad(gi,ax,ay,pr(0),pr(1));}
+  if(bs&&!G.padStart[gi]&&G.mode&&!$('#sEnd').classList.contains('on'))togglePause();G.padStart[gi]=bs;if(G.mode&&PNAV.on())PNAV.pad(gi,ax,ay,pr(0),pr(1));}
  if(G.local&&G.local.length){const kbP=pack(mx,my,kb);G.localInps={};G.knC=G.knC||{};for(const c of G.local){let li=c.src==='kb'?kbP:(pads[c.idx]||{...ZINP});const ck=G.knC[c.hid];if(ck&&!li.kn)li={...li,kn:1,kx:ck.kx,ky:ck.ky};G.knC[c.hid]=li.kn?{kx:li.kx,ky:li.ky}:null;G.localInps[c.hid]=li;}localInp=G.localInps[G.myHid]||{...ZINP};
   const li=localInp;if(li.mx||li.my||li.k||li.p)G.lastAct=performance.now();return;}
  if(G.twoP){localInp=pack(mx,my,kb);localInp2=pad?pack(pmx,pmy,pad):{...ZINP};}
@@ -2126,13 +2131,14 @@ function renderPauseOpts(){const el=$('#pauseOpts');if(!G.mode){el.innerHTML='';
   renderPauseOpts();});}
 // menú de pausa con teclado o joystick: arriba/abajo (o izq/der) mueve, Enter/A elige, Esc/B vuelve al partido
 const PNAV={i:0,pads:{},
- items(){return[...$('#sPause .panel').querySelectorAll('button,label.swl,.hsw b')].filter(e=>e.offsetParent!==null);},
+ scr(){return['#sEnd','#sPause'].map(q=>$(q)).find(e=>e&&e.classList.contains('on'));},// menú abierto durante el juego (final del partido o pausa)
+ items(){const sc=this.scr();return sc?[...sc.querySelectorAll('button,label.swl,.hsw b')].filter(e=>e.offsetParent!==null):[];},
  show(){const L=this.items();if(!L.length)return;this.i=(this.i+L.length)%L.length;L.forEach((e,k)=>e.classList.toggle('pfoc',k===this.i));const e=L[this.i];e.scrollIntoView({block:'nearest'});},
  move(d){this.i+=d;this.show();},
  go(){const e=this.items()[this.i];if(!e)return;if(e.matches('label.swl')){const c=e.querySelector('input');if(c){c.checked=!c.checked;c.dispatchEvent(new Event('change'));}}else e.click();setTimeout(()=>this.show(),0);},
- on(){return $('#sPause').classList.contains('on');},
+ on(){return !!this.scr();},
  pad(gi,ax,ay,a,b){const P=this.pads[gi]||(this.pads[gi]={d:0,a:a,b:b,t:0});const d=ay<-.5||ax<-.5?-1:ay>.5||ax>.5?1:0,now=performance.now();
-  if(d&&(d!==P.d||now-P.t>280)){this.move(d);P.t=now;}P.d=d;if(a&&!P.a)this.go();if(b&&!P.b)togglePause(false);P.a=a;P.b=b;}};
+  if(d&&(d!==P.d||now-P.t>280)){this.move(d);P.t=now;}P.d=d;if(a&&!P.a)this.go();if(b&&!P.b&&$('#sPause').classList.contains('on'))togglePause(false);P.a=a;P.b=b;}};
 addEventListener('keydown',e=>{if(!G.mode||!PNAV.on())return;const c=e.code;
  if(['ArrowUp','ArrowLeft','KeyW','KeyA'].includes(c)){PNAV.move(-1);e.preventDefault();e.stopImmediatePropagation();}
  else if(['ArrowDown','ArrowRight','KeyS','KeyD','Tab'].includes(c)){PNAV.move(1);e.preventDefault();e.stopImmediatePropagation();}
@@ -2153,7 +2159,7 @@ function showEnd(sc){if(!G.mode)return;const k=G.kits;const el=$('#sEnd');
  let b='';if(G.mode==='solo')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" id="bMenu">‹ Volver al armado</button>`;
  else if(G.mode==='host')b=`<button class="big" id="bAgain">Revancha</button><button class="big alt2" id="bToLobby">Volver a la sala</button>`;
  else b=`<div class="hint" style="margin-top:12px">Esperando al que creó la sala…</div><button class="big alt2" id="bMenu">Salir</button>`;
- $('#endBtns').innerHTML=b;el.classList.add('on');
+ $('#endBtns').innerHTML=b;el.classList.add('on');PNAV.i=0;for(const k in PNAV.pads)PNAV.pads[k].a=PNAV.pads[k].b=true;setTimeout(()=>PNAV.show(),0);
  const a=$('#bAgain');if(a)a.onclick=()=>{el.classList.remove('on');if(G.mode==='solo')startSolo();else hostStartMatch();};
  const m=$('#bMenu');if(m)m.onclick=()=>{const md=G.mode;if(md==='solo'){backToSetup();return;}exitGame();if(md==='client'){leaveOnline(true);S.mode=null;}showScreen('sHome');};
  const l=$('#bToLobby');if(l)l.onclick=()=>{exitGame(true);Lobby.state='lobby';showLobby();broadcastLobby();};
