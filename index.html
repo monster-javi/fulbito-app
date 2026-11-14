@@ -178,6 +178,7 @@ input::placeholder{color:#6f877a;font-weight:600}
 #pauseBtn{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:7;display:none;width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(8,14,10,.8);color:#fff;font-weight:900;font-size:15px}
 #touch{position:fixed;inset:0;z-index:4;display:none;touch-action:none}
 #joy{position:absolute;width:130px;height:130px;margin:-65px 0 0 -65px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.12),rgba(255,255,255,.03));display:none;pointer-events:none}
+#knob.run{background:radial-gradient(circle at 35% 30%,#fff6c9,#ffd23f);box-shadow:0 0 14px rgba(255,210,63,.8)}
 #knob{position:absolute;left:40px;top:40px;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#cfd8d3);box-shadow:0 4px 10px rgba(0,0,0,.4)}
 .tbtn{position:absolute;border-radius:50%;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.05em;text-shadow:0 1px 3px #000;user-select:none;-webkit-user-select:none;border:2px solid rgba(255,255,255,.45);box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.35)}
 .tbtn.on{filter:brightness(1.4);transform:scale(.94)}
@@ -385,7 +386,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.40.0';
+const VERSION='1.40.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1459,7 +1460,7 @@ function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keys
  const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
  const kbArt=`<div class="ptitle prow">⌨️ Teclado<span class="hsw"><b data-kh="0" class="${zv?'':'on'}">Diestro</b><b data-kh="1" class="${zv?'on':''}">Zurdo</b></span></div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
    <div class="plist">${row(kc(K.P),'Pase · cambiar (2 veces: arquero)')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
- const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte</div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
+ const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte<br><small>a fondo: correr</small></div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
  const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
  const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="0 0 640 420" aria-hidden="true">
    <rect x="110" y="6" width="150" height="70" rx="26" fill="#4b5058"/><rect x="380" y="6" width="150" height="70" rx="26" fill="#4b5058"/>
@@ -1836,6 +1837,7 @@ function pollInput(){
  else{const o={...kb};if(pad){for(const q of['k','p','c','t','e','sw','pad'])o[q]=o[q]||pad[q];o.s=o.s||pad.s;if(pad.kn){o.kn=1;o.kx=pad.kx;o.ky=pad.ky;}if(len(pmx,pmy)>.2){mx=pmx+touch.mx;my=pmy+touch.my;}}
   // si el joystick se usa, sus botones sin pelota funcionan como en el FIFA
   if(!(pad&&(pad.k||pad.c||pad.t)))o.pad=0;
+  if(touch.run&&touch.joyId!=null)o.s=1;// celu: joystick a fondo corre
   localInp=pack(mx,my,o);}
  if(G.knCarry&&!localInp.kn){localInp.kn=1;localInp.kx=G.knCarry.kx;localInp.ky=G.knCarry.ky;}G.knCarry=localInp.kn?{kx:localInp.kx,ky:localInp.ky}:null;
  const li=localInp;if(li.mx||li.my||li.k||li.p||li.c||li.t||li.e||li.x||li.sw)G.lastAct=performance.now();}
@@ -1846,10 +1848,11 @@ function pollInput(){
   const jz=G.zurdo?e.clientX>VW*.4:e.clientX<VW*.6;// zurdo: palanca a la derecha y botones a la izquierda
   if(touch.joyId==null&&jz){touch.joyId=e.pointerId;touch.ox=e.clientX;touch.oy=e.clientY;joy.style.left=e.clientX+'px';joy.style.top=e.clientY+'px';joy.style.display='block';knob.style.transform='translate(0,0)';}
   else if(!jz){btn[e.pointerId]='#bKick';setBtn('#bKick',true);}});
- T.addEventListener('pointermove',e=>{if(e.pointerId!==touch.joyId)return;e.preventDefault();let dx=e.clientX-touch.ox,dy=e.clientY-touch.oy;const d=len(dx,dy),R=55;
-  if(d>R){touch.ox+=dx/d*(d-R);touch.oy+=dy/d*(d-R);joy.style.left=touch.ox+'px';joy.style.top=touch.oy+'px';dx=e.clientX-touch.ox;dy=e.clientY-touch.oy;}
-  const m=Math.min(1,len(dx,dy)/R);touch.mx=m<.12?0:dx/R;touch.my=m<.12?0:dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`;});
- const up=e=>{if(e.pointerId===touch.joyId){touch.joyId=null;touch.mx=touch.my=0;joy.style.display='none';}if(btn[e.pointerId]){setBtn(btn[e.pointerId],false);delete btn[e.pointerId];}};
+ T.addEventListener('pointermove',e=>{if(e.pointerId!==touch.joyId)return;e.preventDefault();let dx=e.clientX-touch.ox,dy=e.clientY-touch.oy;const d=len(dx,dy),R=55,RM=R*1.35;// empujar más allá del borde = correr
+  touch.run=d>R*1.15;knob.classList.toggle('run',touch.run);
+  if(d>RM){touch.ox+=dx/d*(d-RM);touch.oy+=dy/d*(d-RM);joy.style.left=touch.ox+'px';joy.style.top=touch.oy+'px';dx=e.clientX-touch.ox;dy=e.clientY-touch.oy;}
+  const dl=len(dx,dy),m=Math.min(1,dl/R),kx=dl>R?dx/dl*R:dx,ky=dl>R?dy/dl*R:dy;touch.mx=m<.12?0:kx/R;touch.my=m<.12?0:ky/R;dx=kx;dy=ky;knob.style.transform=`translate(${dx}px,${dy}px)`;});
+ const up=e=>{if(e.pointerId===touch.joyId){touch.joyId=null;touch.mx=touch.my=0;touch.run=false;knob.classList.remove('run');joy.style.display='none';}if(btn[e.pointerId]){setBtn(btn[e.pointerId],false);delete btn[e.pointerId];}};
  T.addEventListener('pointerup',up);T.addEventListener('pointercancel',up);T.addEventListener('lostpointercapture',up);
 })();
 const isTouch=('ontouchstart' in window)||matchMedia('(pointer:coarse)').matches;
