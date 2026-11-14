@@ -385,7 +385,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.37.1';
+const VERSION='1.37.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -927,7 +927,7 @@ class Match{
   const nearBall=hasB||len(q.x-b.x,q.y-b.y)<3;
   if(gkHands){this.foul(p,q.x,q.y);return;}
   if(Math.random()<(nearBall?.4:.15))this.foul(p,q.x,q.y);
-  q.vx=nx*9;q.vy=ny*9;q.kb=.4;q.dir=Math.atan2(ny,nx);this.knockDown(q,1.3);q.prone=true;// empujado: cae boca abajoq.slide=0;q.charge=-1;
+  q.vx=nx*9;q.vy=ny*9;q.kb=.4;q.dir=Math.atan2(ny,nx);this.knockDown(q,1.3);q.prone=true;q.slide=0;q.charge=-1;// empujado: cae boca abajo (y se corta su barrida o su tiro)
   if(hasB){b.owner=-1;b.last=qi;b.lastTeam=q.team;b.at=null;b.vx=q.vx*.35+nx*2.5;b.vy=q.vy*.35+ny*2.5;b.vz=0;q.cool=.6;}
   this.ev.push({k:'steal'});}
  knockDown(q,t){q.prone=false;q.down=Math.max(q.down||0,t);q.stun=Math.max(q.stun,t+.2);q.cool=Math.max(q.cool,t);q.charge=-1;q.pch=-1;q.cch=-1;}
