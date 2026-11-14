@@ -385,7 +385,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.39.0';
+const VERSION='1.39.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -791,7 +791,8 @@ class Match{
   if(b.z>.05||b.vz>.5){t=(b.vz+Math.sqrt(b.vz*b.vz+2*9.8*Math.max(b.z,0)))/9.8;}else{t=v>.5?Math.min(1.6,v/(this.fr0+this.fr1*v)):0;}
   const dr=b.z>.05?1:.55;return[clamp(b.x+b.vx*t*dr,-this.hl,this.hl),clamp(b.y+b.vy*t*dr,-this.hw,this.hw)];}
  manualSwitch(H){{const cur=this.players[H.pi],now=performance.now();// dos toques rápidos: pasa al arquero
-  if(H.lastSw&&now-H.lastSw<280&&cur&&cur.role!=='gk'){const g=this.players.find(q=>q.team===H.team&&q.role==='gk'&&q.ctrl==null);if(g){H.lastSw=0;H.swSeen=null;this.switchTo(H,g);H.swCd=2;return;}}}// cambio manual: entre los 2 más cercanos a la pelota y 1 que esté hacia donde va la pelota (para pasar a un defensor).
+  const g=this.players.find(q=>q.team===H.team&&q.role==='gk'&&q.ctrl==null),bx=this.ball;// solo si la pelota está cerca de nuestro arco (así no salta al arquero tocando rápido en otra parte)
+  if(H.lastSw&&now-H.lastSw<230&&cur&&cur.role!=='gk'&&g&&len(bx.x-g.x,bx.y-g.y)<(this.map.fmt>=11?22:this.map.fmt>=9?15:9)){{H.lastSw=0;H.swSeen=null;this.switchTo(H,g);H.swCd=2;return;}}}// cambio manual: entre los 2 más cercanos a la pelota y 1 que esté hacia donde va la pelota (para pasar a un defensor).
   // Si en el radio hay uno solo (o nadie), se suman los que están hacia donde va la pelota dentro de un radio del doble (saques largos).
   const b=this.ball,cur=this.players[H.pi],ok=p=>p.team===H.team&&p.role!=='gk'&&(p.ctrl==null||p===cur);
   const RAD=this.map.fmt>=11?12:this.map.fmt>=9?9:6,E=this.players.filter(ok);if(E.length<2)return;
