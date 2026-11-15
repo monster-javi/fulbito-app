@@ -386,7 +386,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.40.2';
+const VERSION='1.41.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -404,21 +404,21 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,basket:true,
+ {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,basket:true,
   th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
- {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
- {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#8fa3b8',line:'#ffffff',wall:'#e2ddd2',wallDark:'#b9b2a3',brick:false,text:'INSTITUTO AMÉRICA DEL SUR',textCol:'#b4491a'}},
- {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#b98a6a',line:'#ffffff',wall:'#c96f55',wallDark:'#994c37',brick:true,text:'INSTITUTO SAGRADO CORAZÓN',textCol:'#fff3e0'}},
- {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:32,W:20,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#a7adb3',line:'#ffffff',lineDark:true,wall:'#e8ecef',wallDark:'#bcc4ca',brick:false,text:'ESCUELA ORT',textCol:'#1e4ea8'}},
- {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:36,W:19,fence:{side:1,end:1.6},goalW:5,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:4.5,w:9},spot:6,netD:1.1,gkSpot:3,
+ {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:45,W:23.75,fence:{side:1,end:1.6},goalW:5,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:4.5,w:9},spot:6,netD:1.1,gkSpot:3,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
  {id:'prelide',name:'Club Italiano · Prelide',sub:'3 canchitas infantiles juntas · Fútbol 9',fmt:9,L:60,W:32,goalW:6,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:6,box:{d:9,w:21},sbox:{d:3.5,w:11},spot:8,netD:1.3,gkSpot:4,under:true,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff',uline:'rgba(255,236,120,.15)'}},
@@ -876,7 +876,7 @@ class Match{
    if(Math.abs(angDiff(ang,toGoal))<.8&&dist<this.shootRange*1.9){const c=Math.cos(ang);let yAt=Math.abs(c)>.05?p.y+Math.tan(ang)*(gx-p.x):0;
     const lim=this.gw*.82;yAt=clamp(yAt,-lim,lim);const tgt=Math.atan2(yAt-p.y,gx-p.x);ang=ang+angDiff(ang,tgt)*.65;}}
   const v=this.shotMax*(.45+.55*charge);
-  this.release(p);p.dir=ang;
+  this.release(p);p.dir=ang;b.pow=charge;b.curved=false;b.solo=null;{const gk=this.players.find(q=>q.team!==p.team&&q.role==='gk');if(gk)b.solo=this.aloneVs(gk,p);}
   b.vx=Math.cos(ang)*v;b.vy=Math.sin(ang)*v;b.vz=(1.1+charge*4)*(this.map.goalH/2.44);b.z=.15;
   this.ev.push({k:'kick',v:.4+charge*.6});
  }
@@ -922,6 +922,9 @@ class Match{
   this.gkDiveTo(p,Math.atan2(ty-p.y,tx-p.x),clamp(dd*2.4,5,8.5),.5);p.gkRush=.55;p.rushChk=0;}
  rushFoul(p){const b=this.ball;if(p.rushChk)return;for(const q of this.players){if(q.team===p.team||q.down>0)continue;
    if(len(q.x-p.x,q.y-p.y)<.6&&len(b.x-p.x,b.y-p.y)>1.2&&b.owner!==this.idx(q)){p.rushChk=1;if(Math.random()<.6){this.knockDown(q,1.1);this.foul(p,q.x,q.y);}return;}}}// se llevó al jugador y no la pelota: falta (penal si es en el área)
+ aloneVs(gk,o){// ¿hay algún defensor (que no sea el arquero) entre el atacante y el arco?
+  const d=this.dirOf(gk.team),gx=-d*this.hl;for(const q of this.players){if(q.team!==gk.team||q===gk||q.down>0)continue;
+   const ax=gx-o.x,ay=-o.y,al=len(ax,ay)||1,t=((q.x-o.x)*ax+(q.y-o.y)*ay)/al;if(t<0||t>al)continue;const off=Math.abs((q.x-o.x)*ay-(q.y-o.y)*ax)/al;if(off<1.4+t*.15)return false;}return true;}
  rushTarget(p){const b=this.ball,o=b.owner>=0?this.players[b.owner]:null;if(!this.inOwnBox(p))return false;
   if(o&&o.team!==p.team&&len(o.x-p.x,o.y-p.y)<4.5)return true;return b.owner<0&&b.z<.5&&len(b.x-p.x,b.y-p.y)<3.5;}
  gkReach(){return this.map.fmt<=6?.85:1.15;}// parado: en F5 llega menos (antes era casi perfecto)
@@ -999,7 +1002,7 @@ class Match{
  aftertouch(dt){const b=this.ball,a=b.at;if(!a||b.owner>=0)return;a.t-=dt;if(a.t<=0||a.t>(this.cfg.sensible?.87:.65)){if(a.t<=0)b.at=null;return;}
   const H=this.humans.get(a.h);if(!H)return;const v=len(b.vx,b.vy);if(v<4)return;const ux=b.vx/v,uy=b.vy/v,ix=H.inp.mx,iy=H.inp.my;if(len(ix,iy)<.3)return;
   const lat=ux*iy-uy*ix,fwd=ux*ix+uy*iy,k=Math.min(1,v/18);
-  const cb=this.cfg.sensible?(a.pass?10:21):26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
+  if(Math.abs(lat)>.3&&!a.pass)b.curved=true;const cb=this.cfg.sensible?(a.pass?10:21):26;b.vx+=-uy*lat*cb*k*dt;b.vy+=ux*lat*cb*k*dt;const nv=len(b.vx,b.vy);b.vx*=v/nv;b.vy*=v/nv;// comba
   if(fwd<-.35){b.vz+=7*dt;if(b.z<=0)b.z=.02;}else if(fwd>.6&&b.z>0)b.vz-=4*dt;}// atrás la levanta, adelante la baja
  looseOwned(){const b=this.ball;if(b.owner<0||!this.loose)return false;const o=this.players[b.owner];return!(o.role==='gk'&&o.hold>0)&&o.lock<=0;}
  looseDribble(o){const b=this.ball,dx=b.x-o.x,dy=b.y-o.y,d=len(dx,dy);
@@ -1117,7 +1120,7 @@ class Match{
  }
  gkAI(p,dt){
   const b=this.ball,d=this.dirOf(p.team),gx=-d*this.hl,idx=this.idx(p),diff=this.aiFactor(p.team);
-  if(b.owner>=0&&(p.gkDive||0)<=0&&p.down<=0&&(p.rushT=(p.rushT||0)-dt)<=0){p.rushT=.35;const o=this.players[b.owner];if(o.team!==p.team&&len(o.x-p.x,o.y-p.y)<2.8&&(o.x-gx)*d<(this.map.sbox||this.map.box).d+2&&this.inOwnBox(p)&&Math.random()<.3*(diff.save||.7)){this.gkRush(p);return;}}// mano a mano en el área chica
+  if(b.owner>=0&&(p.gkDive||0)<=0&&p.down<=0&&(p.rushT=(p.rushT||0)-dt)<=0){p.rushT=.35;const o=this.players[b.owner];if(o.team!==p.team&&len(o.x-p.x,o.y-p.y)<2.8&&(o.x-gx)*d<(this.map.sbox||this.map.box).d+2&&this.inOwnBox(p)&&Math.random()<(this.map.fmt<=6&&this.aloneVs(p,o)?.45:.3)*(diff.save||.7)){this.gkRush(p);return;}}// mano a mano en el área chica
   if(b.owner===idx){p.dvx=p.dvy=0;p.face=d>0?0:Math.PI;p.hold+=dt;
    if(p.hold>.95)this.gkDistribute(p);
    return;}
@@ -1127,6 +1130,8 @@ class Match{
   if(b.owner<0&&vt>4){const tHit=Math.abs(b.x-tx)/vt;const yHit=b.y+b.vy*tHit;
    if(Math.abs(yHit)<this.gw+1.6&&tHit<1.6){ty=clamp(yHit,-this.gw-.3,this.gw+.3);sp=this.spd*1.3*diff.speed;}}
   if(b.owner<0&&this.inOwnBox(p,b.x,b.y)&&len(b.x-p.x,b.y-p.y)<7&&len(b.vx,b.vy)<12){tx=b.x;ty=b.y;sp=this.spd*1.05;}
+  if(this.map.fmt<=6&&b.owner>=0){const o=this.players[b.owner];if(o.team!==p.team&&this.inOwnBox(p,o.x,o.y)&&this.aloneVs(p,o)){// mano a mano: sale a achicar
+   const dx=o.x-gx,dy=o.y,dl=len(dx,dy)||1,k=Math.min(dl-1.3,3.2);tx=gx+dx/dl*k;ty=dy/dl*k;sp=this.spd*1.1*diff.speed;}}
   if(b.owner<0&&vt>7&&(p.gkDive||0)<=0&&p.down<=0&&b.lastTeam!==p.team){const tP=Math.abs(b.x-p.x)/vt,yP=b.y+b.vy*tP,g=yP-p.y,R0=this.gkReach();
    if(tP<.42&&Math.abs(g)>R0*.95&&Math.abs(g)<R0+2.4&&Math.abs(yP)<this.gw+.8&&Math.random()<.5+diff.react){// se tira hacia donde va la pelota
     const ang=Math.atan2(g,Math.sign(b.x-p.x)*Math.abs(g)*.2);const tt=Math.max(tP,.16);this.gkDiveTo(p,ang,clamp(Math.abs(g)/(tt*.82),5,11),tt+.18);return;}}
@@ -1239,9 +1244,12 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
     this.ballTo(best);best.hold=.01;this.ev.push({k:'save',soft:1});return;}
    if(b.gkRoll!==bi){b.gkRoll=bi;const diff=this.aiFactor(best.team);const hard=sp>12?(sp-12)/18:0;
     const dv=best.gkDive>0,far=bd>.6;// tirado o estirado ataja menos y rebota más
-    const dk=b.from?len(b.from.x-best.x,b.from.y-best.y):9,close=this.map.fmt<=6&&dk<5?(5-dk)*.1:0;// tiro de cerca: menos tiempo para reaccionar
+    const dk=b.from?len(b.from.x-best.x,b.from.y-best.y):9,small=this.map.fmt<=6;let close=small&&dk<5?(5-dk)*.1:0;// tiro de cerca: menos tiempo para reaccionar
+    let mano=false;if(small){const pw=b.pow??.6;
+     if(dk<7&&pw>.85&&b.solo){close+=.25;mano=true;}// mano a mano fuerte en el área: más chance de gol
+     if(dk>9){const bonus=Math.min(.35,(dk-9)*.035),keep=pw>.92?(b.curved?0:.5):1;close-=bonus*keep;}}// de lejos se ataja más, salvo a toda potencia y con comba
     if(Math.random()<diff.save+.12-hard*.45-(dv?.25:0)-(far&&!dv?.1:0)-close){this.ballTo(best);best.gkDive=0;best.hold=.01;best.vx*=.2;best.vy*=.2;this.ev.push({k:'save'});}
-    else if(Math.random()<(dv?.6:.55)){b.vx*=-.35;b.vy=b.vy*.4+rnd(-6,6);b.vz=rnd(1,3);best.cool=.5;b.last=bi;b.lastTeam=best.team;this.ev.push({k:'parry'});}
+    else if(Math.random()<(mano?.3:dv?.6:.55)){b.vx*=-.35;b.vy=b.vy*.4+rnd(-6,6);b.vz=rnd(1,3);best.cool=.5;b.last=bi;b.lastTeam=best.team;this.ev.push({k:'parry'});}
     else best.cool=.6;}
    return;}
   if(sp>19&&best.slide<=0){b.vx*=-.25;b.vy=b.vy*.3+rnd(-3,3);best.cool=.25;b.last=bi;b.lastTeam=best.team;this.ev.push({k:'bounce'});return;}
