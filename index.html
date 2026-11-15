@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.46.0';
+const VERSION='1.47.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -903,8 +903,8 @@ class Match{
   if(!nx)return;H.swSeen.add(this.idx(nx));this.switchTo(H,nx);H.swCd=1.4;}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
-  const m=len(inp.mx,inp.my);let sp=this.spd*(own?1.1:1)*(p.boost>0?1.22:1);if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
-  if(inp.s&&H.stam>0&&m>.15){sp*=1.16;H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
+  const m=len(inp.mx,inp.my);let sp=this.spd*(own?.96:1)*(p.boost>0?1.1:1);/* con pelota se va un poco más lento; la adelantada da un turbo corto */if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
+  if(inp.s&&H.stam>0&&m>.15){sp*=own?1.104:1.16;/* correr: +16 % sin pelota, con pelota queda ~106 */H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
   if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;}
   const anyB=i=>i.k||i.p||i.t||i.c||i.e||i.x;
@@ -1193,7 +1193,7 @@ class Match{
   for(const o of this.players)if(o.team!==p.team){const ox=(o.x-p.x)*d;if(ox>-.6){const dd=len(o.x-p.x,o.y-p.y);if(dd<nd){nd=dd;near=o;}}}
   let ty=p.y*.82;if(near&&nd<4.5)ty=p.y+(p.y>near.y?1:-1)*4;
   ty=clamp(ty,-this.hw+1,this.hw-1);
-  this.setMove(p,gx,ty,this.spd*diff.speed*1.06);
+  this.setMove(p,gx,ty,this.spd*diff.speed*.96);/* la máquina con pelota, mismas reglas que las personas */
   if(p.aiT>0)return;p.aiT=diff.react*(.6+Math.random()*.8);
   const ang=Math.atan2(-p.y,gx-p.x);
   if(dist<this.shootRange&&Math.abs(angDiff(d>0?0:Math.PI,ang))<1.05){
