@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.47.0';
+const VERSION='1.47.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -686,7 +686,7 @@ const FORM={
  9:[['gk',-.94,0],['f',-.62,-.52],['f',-.66,0],['f',-.62,.52],['f',-.22,-.64],['f',-.26,0],['f',-.22,.64],['f',.26,-.32],['f',.26,.32]],
  11:[['gk',-.95,0],['f',-.64,-.68],['f',-.68,-.24],['f',-.68,.24],['f',-.64,.68],['f',-.24,-.68],['f',-.28,-.22],['f',-.28,.22],['f',-.24,.68],['f',.2,-.22],['f',.2,.22]],
 };
-const DIFF={facil:{speed:.8,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:.9,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1,react:.18,err:.2,tackle:.32,save:.88}};
+const DIFF={facil:{speed:.8,gks:.8,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:1,gks:.9,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1.08,gks:1,react:.18,err:.2,tackle:.32,save:.88}};
 
 /* =========================================================
    SIMULACIÓN
@@ -1213,10 +1213,10 @@ class Match{
   let tx=gx+d*clamp(distB*.12,.6,this.map.box.d*.5),ty=clamp(b.y*.5,-this.gw*.9,this.gw*.9),sp=this.spd*.85;
   const vt=-b.vx*d;
   if(b.owner<0&&vt>4){const tHit=Math.abs(b.x-tx)/vt;const yHit=b.y+b.vy*tHit;
-   if(Math.abs(yHit)<this.gw+1.6&&tHit<1.6){ty=clamp(yHit,-this.gw-.3,this.gw+.3);sp=this.spd*1.3*diff.speed;}}
+   if(Math.abs(yHit)<this.gw+1.6&&tHit<1.6){ty=clamp(yHit,-this.gw-.3,this.gw+.3);sp=this.spd*1.3*diff.gks;}}
   if(b.owner<0&&this.inOwnBox(p,b.x,b.y)&&len(b.x-p.x,b.y-p.y)<7&&len(b.vx,b.vy)<12){tx=b.x;ty=b.y;sp=this.spd*1.05;}
   if(this.map.fmt<=6&&b.owner>=0){const o=this.players[b.owner];if(o.team!==p.team&&this.inOwnBox(p,o.x,o.y)&&this.aloneVs(p,o)){// mano a mano: sale a achicar
-   const dx=o.x-gx,dy=o.y,dl=len(dx,dy)||1,k=Math.min(dl-1.3,3.2);tx=gx+dx/dl*k;ty=dy/dl*k;sp=this.spd*1.1*diff.speed;}}
+   const dx=o.x-gx,dy=o.y,dl=len(dx,dy)||1,k=Math.min(dl-1.3,3.2);tx=gx+dx/dl*k;ty=dy/dl*k;sp=this.spd*1.1*diff.gks;}}
   if(b.owner<0&&vt>7&&(p.gkDive||0)<=0&&p.down<=0&&b.lastTeam!==p.team){const tP=Math.abs(b.x-p.x)/vt,yP=b.y+b.vy*tP,g=yP-p.y,R0=this.gkReach();
    if(tP<.42&&Math.abs(g)>R0*.95&&Math.abs(g)<R0+2.4&&Math.abs(yP)<this.gw+.8&&Math.random()<.5+diff.react){// se tira hacia donde va la pelota
     const ang=Math.atan2(g,Math.sign(b.x-p.x)*Math.abs(g)*.2);const tt=Math.max(tP,.16);this.gkDiveTo(p,ang,clamp(Math.abs(g)/(tt*.82),5,11),tt+.18);return;}}
