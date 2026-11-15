@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.48.0';
+const VERSION='1.49.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -906,6 +906,10 @@ class Match{
   const m=len(inp.mx,inp.my);let sp=this.spd*(own?.96:1)*(p.boost>0?1.1:1);/* con pelota se va un poco más lento; la adelantada da un turbo corto */if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
   if(inp.s&&H.stam>0&&m>.15){sp*=own?1.104:1.16;/* correr: +16 % sin pelota, con pelota queda ~106 */H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
+  if(b.owner<0&&b.passTo===idx&&b.lastTeam===p.team&&b.z<1.2){const bv=len(b.vx,b.vy);if(bv>1){/* recepción asistida: se acomoda a la línea de la pelota si no tirás para otro lado */
+   const t=clamp(((p.x-b.x)*b.vx+(p.y-b.y)*b.vy)/(bv*bv),0,1.5),qx=b.x+b.vx*t,qy=b.y+b.vy*t,dx=qx-p.x,dy=qy-p.y,dq=len(dx,dy);
+   const okDir=m<=.15||dq<.12||(inp.mx*dx+inp.my*dy)/(m*dq)>-.35;/* solo deja de ayudar si tirás claramente para afuera de la línea de la pelota */
+   if(okDir&&dq>.12){const v=Math.min(sp,dq*6);p.dvx=dx/dq*v;p.dvy=dy/dq*v;if(m<=.15)p.face=Math.atan2(b.y-p.y,b.x-p.x);}}}
   if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;}
   const anyB=i=>i.k||i.p||i.t||i.c||i.e||i.x;
   if(own&&this.koHold){// saque del medio: siempre es un pase a un compañero
@@ -972,8 +976,8 @@ class Match{
   else{const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95);b.vx=dx/d*v;b.vy=dy/d*v;b.vz=0;b.z=0;}
   this.ev.push({k:'kick',v:.35});
  }
- passTo(p,m,power=1,cross=false){let tx=m.x+m.vx*.6,ty=m.y+m.vy*.6,d=len(tx-p.x,ty-p.y);
-  if(!cross)for(let i=0;i<3;i++){const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95),t=clamp(d/(v*.82),.12,1.4);tx=m.x+m.vx*t;ty=m.y+m.vy*t;d=len(tx-p.x,ty-p.y);}
+ passTo(p,m,power=1,cross=false){const ld=cross?1:.5;let tx=m.x+m.vx*.6*ld,ty=m.y+m.vy*.6*ld,d=len(tx-p.x,ty-p.y);/* adelanto a la mitad: queda más a los pies */
+  if(!cross)for(let i=0;i<3;i++){const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95),t=clamp(d/(v*.82),.12,1.4);tx=m.x+m.vx*t*ld;ty=m.y+m.vy*t*ld;d=len(tx-p.x,ty-p.y);}
   tx=clamp(tx,-this.hl+.6,this.hl-.6);ty=clamp(ty,-this.hw+.6,this.hw-.6);
   if(p.role==='gk'&&this.cfg.mode==='club'){const dd=this.dirOf(p.team);if(tx*dd>-.8)tx=-.8*dd;}
   const bl=this.blocked(p,tx,ty),gkLob=p.role==='gk'&&p.ctrl==null&&d>5&&(bl<2.2||this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<7));
@@ -1328,7 +1332,7 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
   let best=null,bd=1e9,bestGK=false;
   for(const p of this.players){if(p.cool>0||p.stun>0)continue;if(b.knock>0&&p.team!==b.lastTeam)continue;// se la adelantó: pasa entre los rivales
    const gk=p.role==='gk'&&this.inOwnBox(p)&&b.last!==this.idx(p);const d=len(p.x-b.x,p.y-b.y);
-   const reach=gk?(p.gkDive>0?1.25:this.gkReach()):(p.slide>0?.9:.72),zmax=gk?(p.gkDive>0?2.2:2.7)*(this.map.fmt<=6?this.map.goalH/2.1:1):.9;// en cancha chica el arquero llega en proporción a la altura del arco
+   const reach=gk?(p.gkDive>0?1.25:this.gkReach()):(p.slide>0?.9:(b.passTo===this.idx(p)&&b.lastTeam===p.team?1.1:.72)),zmax=gk?(p.gkDive>0?2.2:2.7)*(this.map.fmt<=6?this.map.goalH/2.1:1):.9;// en cancha chica el arquero llega en proporción a la altura del arco
    if(d<reach&&b.z<zmax&&d<bd){best=p;bd=d;bestGK=gk;}}
   if(!best){if(b.gkRoll>=0){const g=this.players[b.gkRoll];if(len(g.x-b.x,g.y-b.y)>1.6)b.gkRoll=-1;}return;}
   const sp=len(b.vx,b.vy),bi=this.idx(best);
