@@ -233,7 +233,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
 .mode.m-club{background:linear-gradient(135deg,#1aa356,#0c5f2c)}
 .mode.m-club::before{content:'';position:absolute;right:0;top:0;bottom:0;width:12px;background:linear-gradient(180deg,#138a3f 0 33%,#f4f4f4 33% 66%,#c8102e 66%)}
 .mode.m-lide{background:linear-gradient(135deg,#d3203a,#6d0a19)}
-.mode.m-lpf{background:linear-gradient(135deg,#16306e 0 45%,#c8102e 45% 55%,#16306e 55%)}
+.mode.m-lpf{background:linear-gradient(135deg,#1c3f95,#0b1d4a)}
 .mode.sel{outline:3px solid var(--acc);outline-offset:2px}
 .catrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .cat{border:2px solid transparent;border-radius:14px;background:rgba(0,0,0,.25);padding:14px 8px;text-align:center;color:#fff}
@@ -323,7 +323,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    <button class="mode m-cole" data-mode="cole"><span class="mico">🏫</span><span><b>Fulbito en el Cole!</b><small>Instituto María Auxiliadora, San Francisco, Marianista y Pío IX</small></span></button>
    <button class="mode m-club" data-mode="club"><span class="mico">⚽</span><span><b>Club Italiano</b><small>Semillitas, Cebollitas e Infantiles · Fútbol 5 sintético</small></span></button>
    <button class="mode m-lide" data-mode="lide"><span class="mico">🏆</span><span><b>LIDE · Italiano</b><small>Fútbol 11 · Cancha 1, Cancha 2 o de visitante</small></span></button>
-   <button class="mode m-lpf" data-mode="lpf" style="display:none"><span class="mico">⭐</span><span><b>LPF · Clásico de Boedo</b><small>San Lorenzo vs Huracán · Fútbol 11 con los planteles reales</small></span></button>
+   <button class="mode m-lpf" data-mode="lpf" style="display:none"><span class="mico">⭐</span><span><b>LPF</b><small>Fútbol 11 con los equipos y planteles reales</small></span></button>
   </div>
  </div>
 </section>
@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.43.1';
+const VERSION='1.44.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -406,21 +406,21 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,midCol:'#f2c230',dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,basket:true,
+ {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,basket:true,
   th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
- {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
- {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#8fa3b8',line:'#ffffff',wall:'#e2ddd2',wallDark:'#b9b2a3',brick:false,text:'INSTITUTO AMÉRICA DEL SUR',textCol:'#b4491a'}},
- {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#b98a6a',line:'#ffffff',wall:'#c96f55',wallDark:'#994c37',brick:true,text:'INSTITUTO SAGRADO CORAZÓN',textCol:'#fff3e0'}},
- {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.2},spot:6,netD:1.1,
+ {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#a7adb3',line:'#ffffff',lineDark:true,wall:'#e8ecef',wallDark:'#bcc4ca',brick:false,text:'ESCUELA ORT',textCol:'#1e4ea8'}},
- {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:40,W:25,fence:{side:1,end:1.6},goalW:6,goalH:4,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:6,w:13},spot:6,netD:1.1,gkSpot:3,
+ {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:40,W:25,fence:{side:1,end:1.6},goalW:6,goalH:4,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:5,w:12},spot:6,netD:1.1,gkSpot:3,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
  {id:'prelide',name:'Club Italiano · Prelide',sub:'3 canchitas infantiles juntas · Fútbol 9',fmt:9,L:60,W:32,goalW:6,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:6,box:{d:9,w:21},sbox:{d:3.5,w:11},spot:8,netD:1.3,gkSpot:4,under:true,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff',uline:'rgba(255,236,120,.15)'}},
@@ -510,11 +510,51 @@ const lideZone=st=>LIDE_ZONES[st.lideTeam]||LIDE_RIVALS;
 function itaLideKit(t){if(!t||t==='blanco')return ITA_BLANCO;const n=LIDE_TEAMS.find(x=>x[0]===t);return{...ITA_BLANCO,id:'ita-lide-'+t,name:n?n[1]:'Italiano',short:'ITA'};}// mismo conjunto: son distintas ligas
 const ROSTERS={};
 const POSN={def:'Def',med:'Med',del:'Del'};
-const MODES=[{id:'cole',name:'Fulbito en el Cole'},{id:'club',name:'Club Italiano'},{id:'lide',name:'LIDE · Italiano'},{id:'lpf',name:'LPF · Clásico'}];
-/* ---------------- modo secreto LPF (se habilita tocando 0 en el menú) ---------------- */
+const MODES=[{id:'cole',name:'Fulbito en el Cole'},{id:'club',name:'Club Italiano'},{id:'lide',name:'LIDE · Italiano'},{id:'lpf',name:'LPF'}];
+/* ---------------- modo secreto LPF (se habilita tocando la pelota del menú o el 0) ---------------- */
 // titulares en orden de la formación: arquero y después cada línea de izquierda a derecha
 const LPF_TEAMS={
- casla:{name:'San Lorenzo',short:'CASLA',stadium:'Nuevo Gasómetro',dt:'Gorosito',form:'4-4-2',
+ boca:{name:'Boca Juniors',short:'BOCA',stadium:'La Bombonera',dt:'Arruabarrena',form:'4-4-2',
+  kits:{tit:{shirt:'#0d2f74',sleeve:'#0d2f74',shorts:'#0d2f74',socks:'#0d2f74',hoop:'#f4bf1a'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',stripes:'#1c3f95',thin:true}},
+  xi:['Montero','Blanco','Costa','Di Lollo','Lozano','Aranda','Paredes','Ascacíbar','Delgado','Merentiel','Flores'],
+  bench:['Brey','Marchesín','García','Figal','Gorosito','Pellegrino','Battaglia','Palacios','Belmonte','Alarcón','Rey','Braida','Velasco','Giménez','Romero','Bareiro','Valencia']},
+ river:{name:'River Plate',short:'RIVER',stadium:'Mâs Monumental',dt:'Coudet',form:'4-2-3-1',
+  kits:{tit:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#1b1b1f',socks:'#f4f4f2',sash:'#d4122a'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#1b1b1f',socks:'#1b1b1f',stripes:'#d4122a'}},
+  xi:['Beltrán','Acuña','Otamendi','Martínez Q.','Montiel','Moreno','Vera','Galván','Almada','Correa','Driussi'],
+  bench:['Centurión','Palacio','Ortega','González','Rivero','Arambarri','Meza','Espíndola','Ruberto','Silva','Andrada','Borré','Pereyra']},
+ racing:{name:'Racing Club',short:'RACING',stadium:'El Cilindro',dt:'S. Romero',form:'4-4-2',
+  kits:{tit:{shirt:'#78bde8',sleeve:'#78bde8',shorts:'#1b1b1f',socks:'#f4f4f2',stripes:'#f4f4f2'},
+        sup:{shirt:'#17224d',sleeve:'#17224d',shorts:'#17224d',socks:'#17224d',collar:true,collarCol:'#78bde8',badge:'#f4f4f2'}},
+  xi:['Cambeses','I. Rodríguez','Di Cesare','Mat. Martínez','Cannavo','Conechny','Ortegoza','Kranevitter','Zaracho','A. Martínez','Torres'],
+  bench:['Gómez','Tagliamonte','G. Pérez','Conti','Barinaga','Espino','Volpe','Forneris','Miljevic','Lodico','Carboni','Tello','Vergara','Díaz']},
+ indep:{name:'Independiente',short:'INDEP',stadium:'Libertadores de América',dt:'J. Viera',form:'4-4-2',
+  kits:{tit:{shirt:'#d50f1e',sleeve:'#d50f1e',shorts:'#d50f1e',socks:'#d50f1e',collar:true,collarCol:'#f4f4f2',badge:'#f4f4f2'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',collar:true,collarCol:'#d50f1e',badge:'#d50f1e'}},
+  xi:['Rey','Zabala','Valdez','Fedorco','Godoy','Montiel','Marcone','Pérez Curci','Millán','Abaldo','Ávila'],
+  bench:['Blázquez','Mele','Tasso','Calderón','Arias','Banegas','Arrayago','Meza','Cabral','Machuca','Cruz','Palais','Martino','Meléndez','Morales','Tempone']},
+ velez:{name:'Vélez Sarsfield',short:'VÉLEZ',stadium:'José Amalfitani',dt:'B. Schelotto',form:'4-2-3-1',
+  kits:{tit:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#1e3f9e',socks:'#f4f4f2',vee:'#1e3f9e'},
+        sup:{shirt:'#14204a',sleeve:'#14204a',shorts:'#14204a',socks:'#14204a',vee:'#2f5fd0'}},
+  xi:['Marchiori','Gómez','Magallán','Mammana','García','Aliendro','Valdés','Pellegrini','Lanzini','Robertone','Martínez'],
+  bench:['Sanguinetti','Villalba','Escobar','Gordon','Silveor','Baeza','Policella','Feler','Bussio','Godoy','Verón','Piola','Arias','Aguirre']},
+ ferro:{name:'Ferro Carril Oeste',short:'FERRO',stadium:'Arq. Ricardo Etcheverry',dt:'J. Sara',form:'4-4-2',
+  kits:{tit:{shirt:'#0b7a3b',sleeve:'#0b7a3b',shorts:'#f4f4f2',socks:'#0b7a3b',collar:true,collarCol:'#f4f4f2',badge:'#f4f4f2'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',hoop:'#0b7a3b',hoops:2}},
+  xi:['Monetti','Orellana','Canto','Tévez','Nazareno','Kabalín','Obradovich','Hoyos','González','Ozuna','Parisi'],
+  bench:['Ruiz','Biafore','Corda','Tarón','Torrent','Zubowicz','Gómez','Castellani','Campos','Cuzzani','Marra','Olguín','Dening','Reniero','Menéndez']},
+ central:{name:'Rosario Central',short:'CENTRAL',stadium:'Gigante de Arroyito',dt:'J. Almirón',form:'4-2-3-1',
+  kits:{tit:{shirt:'#1a3c8f',sleeve:'#1a3c8f',shorts:'#1a3c8f',socks:'#1a3c8f',stripes:'#f5c400'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',collar:true,collarCol:'#1a3c8f',badge:'#f5c400'}},
+  xi:['Ledesma','Sández','Ávila','Ovando','Coronel','Ibarra','Pizarro','Campaz','Di María','Cervi','Copetti'],
+  bench:['Werner','Zaracho','Komar','Mallo','Soto','Ramos','Raffin','J. Fernández','Segovia','Navarro','Ruben','Badaloni','Cantizano','G. Duarte']},
+ newells:{name:"Newell's Old Boys",short:'NEWELLS',stadium:'Marcelo Bielsa',dt:'F. Kudelka',form:'4-2-3-1',
+  kits:{tit:{shirt:'#d3121f',sleeve:'#d3121f',shorts:'#1b1b1f',socks:'#d3121f',half:'#1b1b1f'},
+        sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',collar:true,collarCol:'#1b1b1f',badge:'#d3121f'}},
+  xi:['Reinatti','Russo','Goitea','Salcedo','Ortega','Regiardo','Herrera','Gauch','Soñora','Mazzantti','Cóccaro'],
+  bench:['Arias','Glavinovich','Luciano','Gianetti','Salomón','Escobar','Cabrera','A. Montero','Sotelo','Carrizo','Esponda','Núñez','Ramírez','Ríos']},
+ casla:{name:'San Lorenzo',short:'CASLA',stadium:'Nuevo Gasómetro',dt:'Insúa',form:'4-4-2',
   kits:{tit:{shirt:'#16306e',sleeve:'#16306e',shorts:'#16306e',socks:'#16306e',stripes:'#c8102e'},
         sup:{shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#f4f4f2',socks:'#f4f4f2',collar:true,collarCol:'#16306e',badge:'#c8102e'}},
   xi:['Devecchi','Rodríguez P.','Amor','Arboleda','E. Herrera','Reali','Tripichio','I. Perruzzi','J. Álvarez','Auzmendi','Cuello'],
@@ -524,8 +564,16 @@ const LPF_TEAMS={
         sup:{shirt:'#d1102c',sleeve:'#d1102c',shorts:'#f4f4f2',socks:'#d1102c',collar:true,collarCol:'#f4f4f2',badge:'#f4f4f2'}},
   xi:['Galíndez','Ibáñez','Palazzo','Nervo','Blondel','Cortés','R. Fernández','Mora','Uribe','Pussetto','Bisanz'],
   bench:['Meza','Durán','F. Pereyra','Zabala','F. Vera','F. Martínez','I. Campo','Ó. Romero','F. Waller','Kalinger','L. Gil','T. Peralta','Caicedo','Barticciotto']}};
-const LPF_IDS=['casla','cah'];
+const LPF_IDS=['boca','river','racing','indep','casla','cah','velez','ferro','central','newells'];
+const LPF_OLD_DT={casla:'Gorosito'};// DT que quedó guardado y ya no está
 function lpfKit(t,w){const T=LPF_TEAMS[t];return{id:'lpf-'+t+'-'+w,lpf:t,lpfKit:w,name:T.name,short:T.short,...T.kits[w]};}
+function mixHex(a,b,k){const A=hexRGB(a),B=hexRGB(b);return'#'+A.map((v,i)=>Math.round(v*(1-k)+B[i]*k).toString(16).padStart(2,'0')).join('');}
+function kitLook(k){const p=k.stripes||k.half||k.hoop||k.center||k.vee||k.sash;if(!p)return k.shirt;// color que se ve de lejos (camiseta + dibujo)
+ const w=k.half?.5:k.stripes?(k.thin?.2:.45):k.hoop?.3*(k.hoops||1):k.center?.3:.25;return mixHex(k.shirt,p,w);}
+function lpfPair(h,v,K){// visitante: si choca con el local usa la otra (la que más se diferencie)
+ const A=lpfKit(h,K[h]==='sup'?'sup':'tit');let B=lpfKit(v,K[v]==='sup'?'sup':'tit');
+ if(colDist(kitLook(A),kitLook(B))<120){const o=lpfKit(v,B.lpfKit==='sup'?'tit':'sup');if(colDist(kitLook(A),kitLook(o))>colDist(kitLook(A),kitLook(B)))B=o;}
+ return[A,B];}
 let LPF_ON=false;store.set('fa.lpf','0');// se habilita solo hasta recargar la página
 function lpfOn(){return LPF_ON;}
 function lpfSquad(t){const T=LPF_TEAMS[t];return T?[...T.xi,...T.bench]:[];}
@@ -536,7 +584,7 @@ function clashFix(fixed,k){if(colDist(fixed.shirt,k.shirt)>=120)return k;// colo
  const bib=BIBS.map(c=>[c,Math.min(colDist(c,fixed.shirt),colDist(c,fixed.shorts||'#000'))]).sort((a,b)=>b[1]-a[1])[0][0];
  return{...k,shirt:bib,sleeve:k.shirt,sash:null,badge:null,crest:false,collar:false,bib:true,alt:true};}
 function rivalOptions(st){
- if(st.mode==='lpf'){const h=LPF_IDS.includes(st.lpfHome)?st.lpfHome:'casla';return[lpfKit(h==='casla'?'cah':'casla','tit')];}
+ if(st.mode==='lpf')return[lpfKit(st.lpfAway||'cah','tit')];
  if(st.mode==='cole'){const me=mapById(st.school).school;return KITSETS.colegio.all.filter(k=>k.id!==me);}
  if(st.mode==='club'){const c=CATS[st.cat];return[...c.rivals.map(r=>CLUB_RIVALS[r]),...c.ita.filter(x=>x!==st.ita).map(italKit)];}
  return lideZone(st);}
@@ -544,9 +592,8 @@ function resolveSetup(st){
  let map,A,B,itaTeam=0;
  if(st.mode==='cole'){map=st.school;const M=mapById(map);A=KITSETS.colegio.all.find(k=>k.id===M.school);const o=rivalOptions(st);B=o.find(k=>k.id===st.coleRival)||o[0];}
  else if(st.mode==='club'){map='itainf';A=italKit(st.ita);const o=rivalOptions(st);B=o.find(k=>k.id===st.clubRival)||o[0];}
- else if(st.mode==='lpf'){const h=LPF_IDS.includes(st.lpfHome)?st.lpfHome:'casla',v=h==='casla'?'cah':'casla',K=st.lpfKits||{};map='lpf:'+h;
-  A=lpfKit(h,K[h]==='sup'?'sup':'tit');B=lpfKit(v,K[v]==='sup'?'sup':'tit');
-  if(colDist(A.shirt,B.shirt)<120)B=lpfKit(v,B.lpfKit==='sup'?'tit':'sup');}// si se parecen, el visitante usa la otra
+ else if(st.mode==='lpf'){const h=LPF_IDS.includes(st.lpfHome)?st.lpfHome:'casla';let v=LPF_IDS.includes(st.lpfAway)?st.lpfAway:'cah';if(v===h)v=LPF_IDS.find(x=>x!==h);map='lpf:'+h;
+  [A,B]=lpfPair(h,v,st.lpfKits||{});}
  else{const Z=lideZone(st),rv=Z.find(r=>r.id===st.lideRival)||Z[0],IK=itaLideKit(st.lideTeam);if(st.venue==='away'){map='away:'+rv.id;A=rv;B=IK;itaTeam=1;}else{map=st.venue==='home1'?'ita1':'ita11';A=IK;B=rv;}}
  if(st.mode==='lpf'){}else if(itaTeam===0)B=clashFix(A,B);else A=clashFix(B,A); // si se parecen, cambia la del rival
  const ball=st.mode==='club'?'naranja':st.mode==='lide'||st.mode==='lpf'?'blanca':(BALLS[st.ballCole]?st.ballCole:'comun');
@@ -559,7 +606,8 @@ function normalizeSettings(st){
  if(!['home1','home','away'].includes(st.venue))st.venue='home1';
  if(!LIDE_ZONES[st.lideTeam])st.lideTeam='blanco';
  if(st.mode==='lpf'&&!lpfOn())st.mode='cole';
- if(!LPF_IDS.includes(st.lpfHome))st.lpfHome='casla';if(!st.lpfKits||typeof st.lpfKits!=='object')st.lpfKits={casla:'tit',cah:'tit'};
+ if(!LPF_IDS.includes(st.lpfHome))st.lpfHome='casla';if(!LPF_IDS.includes(st.lpfAway)||st.lpfAway===st.lpfHome)st.lpfAway=st.lpfHome==='cah'?'casla':st.lpfHome==='casla'?'cah':LPF_IDS.find(x=>x!==st.lpfHome);
+ if(!st.lpfKits||typeof st.lpfKits!=='object')st.lpfKits={};
  if(st.mode!=='lpf'){const key=st.mode+'Rival',opts=rivalOptions(st);if(!opts.find(k=>k.id===st[key]))st[key]=opts[0].id;}
  if(st.play!=='rival')st.play='ita';if(st.ctrl!=='fijo')st.ctrl='libre';st.loose=+st.loose===1?1:0;st.onebtn=+st.onebtn===1?1:0;if(!['seca','mojada','barro'].includes(st.weather))st.weather='seca';
  const R=resolveSetup(st);st.map=R.map;st.np=R.np;{const M0=mapById(R.map);if(st.weather==='barro'&&(M0.surf==='cement'||/Sintético/.test(M0.sub||'')))st.weather='seca';}st.side=st.play==='ita'?R.itaTeam:1-R.itaTeam;
@@ -569,7 +617,7 @@ function normalizeSettings(st){
  st.lineupT=st.keyT.map((k,t)=>{let L=st.lineups[k];const T=LPF_TEAMS[R.kits[t].lpf];
   if(!Array.isArray(L)||L.length!==R.np)L=st.lineups[k]=T?T.xi.slice():Array(R.np).fill('');
   else if(T&&L.every(x=>!x))L.splice(0,L.length,...T.xi);// plantel real precargado
-  if(T&&!(k in st.dts))st.dts[k]=T.dt;
+  if(T&&(!(k in st.dts)||st.dts[k]===LPF_OLD_DT[R.kits[t].lpf]))st.dts[k]=T.dt;
   if(T&&!st.forms[k])st.forms[k]=T.form;return L;});
  st.formT=st.keyT.map(k=>{if(!FORMS[R.np].includes(st.forms[k]))st.forms[k]=FORMS[R.np][0];return st.forms[k];});
  const lk=st.lkey=st.keyT[st.side];st.lineup=st.lineupT[st.side];st.form=st.formT[st.side];
@@ -612,6 +660,9 @@ function mapById(id){
  if(typeof id==='string'&&id.startsWith('away:')){if(AWAYC[id])return AWAYC[id];const R=ALL_LIDE.find(r=>r.id===id.slice(5))||LIDE_RIVALS[0],T=AWAY_T[R.field];
   return AWAYC[id]={...T,id,name:'Cancha de '+R.name,sub:(R.field==='nat'?'Pasto natural':'Sintético')+' · Fútbol 11',th:{...T.th,bannerText:R.name.toUpperCase().replace(/"/g,''),bannerCols:[R.shirt,'#f4f4f4',R.sash||R.shorts]}};}
  return MAPS.find(m=>m.id===id)||MAPS[0];}
+// área: rectángulo, o D de futsal (arcos de radio d desde ±dPost) en los patios
+function inArea(M,dx,ay,m){const b=M.box;if(!M.dArea)return dx<b.d+m&&ay<b.w/2+m;const gp=M.dPost||M.goalW/2;return ay<=gp?dx<b.d+m:len(dx,ay-gp)<b.d+m;}
+function areaDepth(M,ay){const b=M.box;if(!M.dArea)return ay<b.w/2?b.d:0;const gp=M.dPost||M.goalW/2;if(ay<=gp)return b.d;const r=ay-gp;return r<b.d?Math.sqrt(b.d*b.d-r*r):0;}
 function hexRGB(h){const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255];}
 function colDist(a,b){const A=hexRGB(a),B=hexRGB(b);return len(A[0]-B[0],A[1]-B[1],A[2]-B[2]);}
 function gkKitFor(own,other,alt){const opts=['#20c9b8','#ff6fb5','#9aa0aa','#f0e130','#ff8c1a','#5ad15a'];let k=0;
@@ -687,7 +738,7 @@ class Match{
   this.pnames=this.players.map(p=>p.nm||null);
   this.homes={};for(const h of this.humans.values())this.homes[h.id]=h.slot!=null?h.home:-1;
  }
- inOwnBox(p,x=p.x,y=p.y){const gx=-this.dirOf(p.team)*this.hl;return Math.abs(x-gx)<this.map.box.d+.3&&Math.abs(y)<this.map.box.w/2+.3;}
+ inOwnBox(p,x=p.x,y=p.y){const gx=-this.dirOf(p.team)*this.hl;return inArea(this.map,Math.abs(x-gx),Math.abs(y),.3);}
  aiFactor(t){if(this.cfg.solo&&this.cfg.humans&&this.cfg.humans.length){if(t!==this.cfg.humans[0].team)return DIFF[this.cfg.diff]||DIFF.normal;}return DIFF.normal;}
  nameOf(p){if(p.ctrl!=null){const h=this.humans.get(p.ctrl);if(h)return h.name;}if(p.nm)return p.nm;return p.role==='gk'?'el arquero':'#'+(p.i+1);}
 
@@ -1205,7 +1256,8 @@ class Match{
    else{p.x=clamp(p.x,-hl-3,hl+3);p.y=clamp(p.y,-hw-3,hw+3);}
    if(p.role==='gk'&&this.ball.owner===this.idx(p)){const d=this.dirOf(p.team),gx=-d*hl;if((p.x-gx)*d<.35)p.x=gx+d*.35;}
    if(p.role==='gk'&&this.ball.owner===this.idx(p)&&(p.hold>0||p.lock>0)){const z=p.gkKick?(M.sbox||M.box):(M.fmt>=11?M.box:(M.sbox||M.box)),d=this.dirOf(p.team),gx=-d*hl;
-    p.x=gx+d*clamp((p.x-gx)*d,.3,z.d);p.y=clamp(p.y,-z.w/2,z.w/2);}
+    p.x=gx+d*clamp((p.x-gx)*d,.3,z.d);p.y=clamp(p.y,-z.w/2,z.w/2);
+    if(z===M.box&&M.dArea){const gp=M.dPost||M.goalW/2,ay=Math.abs(p.y),dx=(p.x-gx)*d;if(ay>gp){const r=len(dx,ay-gp);if(r>z.d){const k=z.d/r;p.x=gx+d*dx*k;p.y=Math.sign(p.y)*(gp+(ay-gp)*k);}}}}
    else if(p.role==='gk'&&this.ball.owner!==this.idx(p)){const gx=-this.dirOf(p.team)*hl;const lim=M.box.d+2;
     if(Math.abs(p.x-gx)>lim)p.x=gx+this.dirOf(p.team)*lim;p.y=clamp(p.y,-M.box.w/2-1.5,M.box.w/2+1.5);
     if((p.x-gx)*this.dirOf(p.team)<.2)p.x=gx+this.dirOf(p.team)*.2;}
@@ -1294,7 +1346,7 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
   // con la pelota en las manos los rivales pueden estar adentro (pero no le pueden sacar la pelota). Los compañeros, siempre libres.
   if(M.fmt>=11&&!g.gkKick)return;
   const z=g.gkKick?M.box:(M.sbox||M.box),d=this.dirOf(g.team),gx=-d*this.hl;
-  for(const q of this.players){if(q.team===g.team)continue;if((q.x-gx)*d<z.d+.5&&Math.abs(q.y)<z.w/2+.5)q.x=gx+d*(z.d+.5);}}
+  for(const q of this.players){if(q.team===g.team)continue;if(z===M.box&&M.dArea){if(inArea(M,(q.x-gx)*d,Math.abs(q.y),.5))q.x=gx+d*(areaDepth(M,Math.abs(q.y))+.5);continue;}if((q.x-gx)*d<z.d+.5&&Math.abs(q.y)<z.w/2+.5)q.x=gx+d*(z.d+.5);}}
  gkDistribute(p){const d=this.dirOf(p.team),club=this.cfg.mode==='club';
   if(this.players.some(o=>o.team!==p.team&&len(o.x-p.x,o.y-p.y)<6)){// lo apuran: la tira lejos, por arriba, al compañero más adelantado
    let best=null,bs=-1e9;for(const m of this.players){if(m.team!==p.team||m===p||m.role==='gk')continue;if(club&&m.x*d>-1.5)continue;
@@ -1338,9 +1390,9 @@ function fieldLines(g,M,col,lw){
  g.strokeRect(-hl,-hw,M.L,M.W);g.beginPath();g.moveTo(0,-hw);g.lineTo(0,hw);g.stroke();
  g.beginPath();g.arc(0,0,M.cR,0,TAU);g.stroke();g.beginPath();g.arc(0,0,.15,0,TAU);g.fill();
  for(const s of[-1,1]){const x0=s*hl;
-  if(M.dArea){const d=M.box.d;g.beginPath();
-   if(s<0){g.arc(x0,-gw,d,-Math.PI/2,0,false);g.lineTo(x0+d,gw);g.arc(x0,gw,d,0,Math.PI/2,false);}
-   else{g.arc(x0,-gw,d,-Math.PI/2,-Math.PI,true);g.lineTo(x0-d,gw);g.arc(x0,gw,d,Math.PI,Math.PI/2,true);}
+  if(M.dArea){const d=M.box.d,gp=M.dPost||gw;g.beginPath();
+   if(s<0){g.arc(x0,-gp,d,-Math.PI/2,0,false);g.lineTo(x0+d,gp);g.arc(x0,gp,d,0,Math.PI/2,false);}
+   else{g.arc(x0,-gp,d,-Math.PI/2,-Math.PI,true);g.lineTo(x0-d,gp);g.arc(x0,gp,d,Math.PI,Math.PI/2,true);}
    g.stroke();g.beginPath();g.arc(x0-s*(M.spot||6),0,.13,0,TAU);g.fill();}
   else{const b=M.box;g.strokeRect(s<0?x0:x0-b.d,-b.w/2,b.d,b.w);
    if(M.sbox)g.strokeRect(s<0?x0:x0-M.sbox.d,-M.sbox.w/2,M.sbox.d,M.sbox.w);
@@ -1438,17 +1490,23 @@ function drawCement(g,M,mg,R){
  const sl=g.createLinearGradient(-hl,0,-hl+.9,0);sl.addColorStop(0,'rgba(0,0,0,.2)');sl.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sl;g.fillRect(-hl,-hw,.9,M.W);
  // rejilla
  g.fillStyle='#3b3b3b';g.fillRect(hl-4,hw-.55,1.4,.4);g.strokeStyle='#777';g.lineWidth=.04;for(let x=hl-3.9;x<hl-2.6;x+=.18){g.beginPath();g.moveTo(x,hw-.52);g.lineTo(x,hw-.18);g.stroke();}
- if(M.basket){const bl=th.bline;g.strokeStyle=bl;g.lineWidth=.08;const L2=14,W2=7.5;g.strokeRect(-L2,-W2,L2*2,W2*2);g.beginPath();g.arc(0,0,1.8,0,TAU);g.stroke();
-  for(const s of[-1,1]){const x0=s*L2;g.strokeRect(s<0?x0:x0-5.8,-2.45,5.8,4.9);g.beginPath();g.arc(x0-s*5.8,0,1.8,0,TAU);g.stroke();
-   const hx=x0-s*1.575;g.beginPath();if(s<0)g.arc(hx,0,6.75,-1.2,1.2);else g.arc(hx,0,6.75,Math.PI-1.2,Math.PI+1.2);g.stroke();
-   const ex=hx-s*Math.cos(1.2)*6.75,ey=Math.sin(1.2)*6.75;g.beginPath();g.moveTo(x0,-ey);g.lineTo(ex,-ey);g.moveTo(x0,ey);g.lineTo(ex,ey);g.stroke();}}
+ if(M.basket){g.save();g.globalAlpha=.42;g.strokeStyle=th.bline;g.lineWidth=.07;const L2=14,W2=7.5;// cancha FIBA: 28 x 15
+  g.strokeRect(-L2,-W2,L2*2,W2*2);g.beginPath();g.arc(0,0,1.8,0,TAU);g.stroke();
+  for(const s of[-1,1]){const x0=s*L2,hx=x0-s*1.575;g.strokeRect(s<0?x0:x0-5.8,-2.45,5.8,4.9);g.beginPath();g.arc(x0-s*5.8,0,1.8,0,TAU);g.stroke();// zona 5,8 x 4,9 y círculo de libre
+   const cy=6.6,cx=Math.sqrt(6.75*6.75-cy*cy),a0=Math.atan2(cy,cx);// triple: rectas a 0,9 m del lateral y arco de 6,75 desde el aro
+   g.beginPath();if(s<0)g.arc(hx,0,6.75,-a0,a0);else g.arc(hx,0,6.75,Math.PI-a0,Math.PI+a0);g.stroke();
+   g.beginPath();g.moveTo(x0,-cy);g.lineTo(hx-s*cx,-cy);g.moveTo(x0,cy);g.lineTo(hx-s*cx,cy);g.stroke();
+   g.beginPath();if(s<0)g.arc(hx,0,1.25,-Math.PI/2,Math.PI/2);else g.arc(hx,0,1.25,Math.PI/2,Math.PI*1.5);g.stroke();}// semicírculo de no cargar
+  g.restore();}
  if(th.lineDark)fieldLines(g,M,'rgba(40,40,40,.28)',.2);
  fieldLines(g,M,th.line,.1);
+ if(M.midCol){g.strokeStyle=M.midCol;g.lineWidth=.12;g.beginPath();g.moveTo(0,-M.W/2);g.lineTo(0,M.W/2);g.stroke();}// línea del medio pintada de otro color
+ if(M.rectArea){g.strokeStyle='rgba(255,255,255,.2)';g.lineWidth=.08;const r=M.rectArea;for(const s of[-1,1])g.strokeRect(s<0?-M.L/2:M.L/2-r.d,-r.w/2,r.d,r.w);}// área rectangular vieja, apenas marcada
  // arcos metidos en la pared
  drawGoalsStatic(g,M,'rgba(25,25,25,.85)');
- if(M.basket){for(const s of[-1,1]){const x0=s*14;g.strokeStyle='#fafafa';g.lineWidth=.1;g.beginPath();g.moveTo(x0-s*1.2,-.9);g.lineTo(x0-s*1.2,.9);g.stroke();
+ if(M.basket){g.save();g.globalAlpha=.55;for(const s of[-1,1]){const x0=s*14;g.strokeStyle='#fafafa';g.lineWidth=.1;g.beginPath();g.moveTo(x0-s*1.2,-.9);g.lineTo(x0-s*1.2,.9);g.stroke();
   g.strokeStyle='#ff7a1a';g.lineWidth=.05;g.beginPath();g.arc(x0-s*1.575,0,.23,0,TAU);g.stroke();
-  g.fillStyle='rgba(0,0,0,.18)';g.beginPath();g.ellipse(x0-s*1.9,.5,.9,.3,0,0,TAU);g.fill();}}
+  g.fillStyle='rgba(0,0,0,.18)';g.beginPath();g.ellipse(x0-s*1.9,.5,.9,.3,0,0,TAU);g.fill();}g.restore();}
  // texto pintado en la pared
  g.save();g.fillStyle=th.textCol;g.textAlign='center';g.textBaseline='middle';g.font=`900 ${mg*.52}px Inter, sans-serif`;
  g.save();g.translate(0,hw+mg/2);g.rotate(Math.PI);g.fillText(th.text.split('').join(String.fromCharCode(8202)),0,.05);g.restore();
@@ -1615,8 +1673,12 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
   const e=SPR.get(key,2*B,2*B,2,g=>{g.translate(B,B);g.lineCap='round';g.lineJoin='round';
  const gr=g.createLinearGradient(.15*s,-.25*s,-.15*s,.3*s);gr.addColorStop(0,shade(sh,.32));gr.addColorStop(.55,sh);gr.addColorStop(1,shade(sh,-.25));
  g.fillStyle=gr;g.strokeStyle=OL;g.lineWidth=Math.max(1,.025*s);g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.fill();g.stroke();
- if((kit.stripes||kit.center)&&!isGK){g.save();g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.clip();g.fillStyle=kit.stripes||kit.center;// rayas verticales: vistas de arriba van de pecho a espalda
-  const ys=kit.stripes?[-.21,-.07,.07,.21]:[0],w=(kit.stripes?.07:.12)*s;for(const y of ys)g.fillRect(-.2*s,y*s-w/2,.4*s,w);
+ if((kit.stripes||kit.center||kit.hoop||kit.vee||kit.half)&&!isGK){g.save();g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.clip();// dibujo de la camiseta visto de arriba
+  if(kit.half){g.fillStyle=kit.half;g.fillRect(-.2*s,0,.4*s,.32*s);}
+  if(kit.stripes){g.fillStyle=kit.stripes;const ys=kit.thin?[-.24,-.16,-.08,0,.08,.16,.24]:[-.21,-.07,.07,.21],w=(kit.thin?.022:.07)*s;for(const y of ys)g.fillRect(-.2*s,y*s-w/2,.4*s,w);}// rayas verticales: de pecho a espalda
+  if(kit.center){g.fillStyle=kit.center;g.fillRect(-.2*s,-.06*s,.4*s,.12*s);}
+  if(kit.hoop){g.fillStyle=kit.hoop;const xs=(kit.hoops||1)>1?[-.08,.07]:[.02],w=((kit.hoops||1)>1?.055:.1)*s;for(const x of xs)g.fillRect(x*s-w/2,-.32*s,w,.64*s);}// franja horizontal que cruza el pecho
+  if(kit.vee){g.strokeStyle=kit.vee;g.lineWidth=.06*s;g.lineCap='butt';g.beginPath();g.moveTo(-.04*s,-.27*s);g.lineTo(.15*s,0);g.lineTo(-.04*s,.27*s);g.stroke();}
   const sg=g.createLinearGradient(.15*s,-.25*s,-.15*s,.3*s);sg.addColorStop(0,'rgba(255,255,255,.18)');sg.addColorStop(.55,'rgba(0,0,0,0)');sg.addColorStop(1,'rgba(0,0,0,.22)');g.fillStyle=sg;g.fillRect(-.2*s,-.32*s,.4*s,.64*s);g.restore();
   g.strokeStyle=OL;g.lineWidth=Math.max(1,.025*s);g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.stroke();}
  if(kit.sash&&!isGK){g.save();g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.clip();g.strokeStyle=kit.sash;g.lineWidth=.11*s;g.beginPath();g.moveTo(-.12*s,-.34*s);g.lineTo(.16*s,.34*s);g.stroke();g.restore();}// banda de hombro a cadera, cruzando el pecho
@@ -2008,7 +2070,7 @@ function leaveOnline(silent){Net.leaving=true;G.hid2=null;try{if(Net.hostConn)Ne
 /* =========================================================
    UI / PANTALLAS
    ========================================================= */
-const SKEYS=['lpfHome','lpfKits','halves','hand','twoP','ctl','sensible','lideTeam','dts','mode','school','cat','ita','venue','coleRival','clubRival','lideRival','dur','diff','play','ctrl','coleNp','ballCole','onebtn','loose','weather','lineups','mes','forms'];
+const SKEYS=['lpfHome','lpfAway','lpfKits','halves','hand','twoP','ctl','sensible','lideTeam','dts','mode','school','cat','ita','venue','coleRival','clubRival','lideRival','dur','diff','play','ctrl','coleNp','ballCole','onebtn','loose','weather','lineups','mes','forms'];
 function loadSettings(){let o={};try{o=JSON.parse(store.get('fa.settings','{}'))||{};}catch(e){}return{halves:'si',mode:'cole',school:'maria',cat:'infantiles',ita:'rojo',venue:'home1',dur:3,diff:'normal',play:'ita',ctrl:'libre',hand:'diestro',twoP:'off',sensible:'off',lineups:{},mes:{},...o};}
 function saveSettings(){if(S.fromHost)return;const o={};for(const k of SKEYS)o[k]=S.settings[k];store.set('fa.settings',JSON.stringify(o));}
 const S={name:store.get('picado.name',''),mode:null,settings:loadSettings()};
@@ -2026,9 +2088,19 @@ const THUMBS={};
 function thumb(M){if(THUMBS[M.id])return THUMBS[M.id];const f=buildField(M,Math.min(10,620/(M.L+fieldMargin(M)*2)));
  const c=document.createElement('canvas');c.width=f.img.height;c.height=f.img.width;const g=c.getContext('2d');g.translate(0,c.height);g.rotate(-Math.PI/2);g.drawImage(f.img,0,0);
  try{THUMBS[M.id]=c.toDataURL('image/png');}catch(e){THUMBS[M.id]='';}return THUMBS[M.id];}
+function kitBg(k){const a=k.shirt;// fondo de la ficha del jugador con el dibujo de la camiseta
+ if(k.half)return`linear-gradient(90deg,${a} 50%,${k.half} 50%)`;
+ if(k.stripes)return k.thin?`repeating-linear-gradient(90deg,${a} 0 3px,${k.stripes} 3px 4px)`:`repeating-linear-gradient(90deg,${a} 0 4px,${k.stripes} 4px 7px)`;
+ if(k.center)return`linear-gradient(90deg,${a} 36%,${k.center} 36% 64%,${a} 64%)`;
+ if(k.hoop)return(k.hoops||1)>1?`linear-gradient(180deg,${a} 25%,${k.hoop} 25% 38%,${a} 38% 62%,${k.hoop} 62% 75%,${a} 75%)`:`linear-gradient(180deg,${a} 38%,${k.hoop} 38% 62%,${a} 62%)`;
+ if(k.vee)return`linear-gradient(135deg,${a} 40%,${k.vee} 40% 52%,${a} 52%)`;
+ if(k.sash)return`linear-gradient(135deg,${a} 42%,${k.sash} 42% 58%,${a} 58%)`;return a;}
 function kitSVG(k){return`<svg viewBox="0 0 40 46"><path d="M10 4 L16 2 Q20 6 24 2 L30 4 L38 12 L33 17 L30 14 L30 28 L10 28 L10 14 L7 17 L2 12 Z" fill="${k.shirt}" stroke="#0006" stroke-width="1.2"/>`+
  (k.sleeve&&k.sleeve!==k.shirt?`<path d="M2 12 L7 17 L10 14 L10 6 Z M38 12 L33 17 L30 14 L30 6 Z" fill="${k.sleeve}"/>`:'')+
- (k.stripes?`<g fill="${k.stripes}"><rect x="12" y="2" width="3" height="26"/><rect x="18.5" y="3" width="3" height="25"/><rect x="25" y="2" width="3" height="26"/></g>`:'')+
+ (k.half?`<path d="M20 5.5 Q22 4.5 24 2 L30 4 L38 12 L33 17 L30 14 L30 28 L20 28 Z" fill="${k.half}"/>`:'')+
+ (k.stripes?(k.thin?`<g fill="${k.stripes}">${[12,15,18,21,24,27].map(x=>`<rect x="${x}" y="3" width="1" height="25"/>`).join('')}</g>`:`<g fill="${k.stripes}"><rect x="12" y="2" width="3" height="26"/><rect x="18.5" y="3" width="3" height="25"/><rect x="25" y="2" width="3" height="26"/></g>`):'')+
+ (k.hoop?((k.hoops||1)>1?`<g fill="${k.hoop}"><rect x="10" y="9" width="20" height="3"/><rect x="10" y="17" width="20" height="3"/></g>`:`<rect x="10" y="12" width="20" height="5" fill="${k.hoop}"/>`):'')+
+ (k.vee?`<path d="M11 4 L20 16 L29 4" fill="none" stroke="${k.vee}" stroke-width="3"/>`:'')+
  (k.center?`<rect x="17" y="3.5" width="6" height="24.5" fill="${k.center}"/>`:'')+
  (k.sash?`<path d="M29 5 L12 27" stroke="${k.sash}" stroke-width="5"/>`:'')+
  (k.badge?`<circle cx="${k.badgePos==='center'?20:25.5}" cy="${k.badgePos==='center'?13:11}" r="3" fill="none" stroke="${k.badge}" stroke-width="1.3"/>`+(k.badge2?`<circle cx="${k.badgePos==='center'?20:25.5}" cy="${k.badgePos==='center'?13:11}" r="1.4" fill="${k.badge2}"/>`:''):'')+(k.collar?`<path d="M16 2 Q20 6.5 24 2" fill="none" stroke="${k.collarCol||'#fff'}" stroke-width="2.2"/><path d="M16 2 Q20 6.5 24 2" fill="none" stroke="#e3c41b" stroke-width="1"/>`:'')+
@@ -2041,7 +2113,7 @@ function formChips(np,form,ro,attr){return`<div class="chips formc">${FORMS[np].
 function lineupHTML(L,kit,np,form,me,canEdit,canMe,humans){
  const F=buildForm(np,form);let h=`<div class="lu"><div class="lu-pitch"><i class="ar t"></i><i class="ar b"></i>`;
  F.forEach((f,i)=>{const top=90-(f[1]+.93)*62,left=50+f[2]*38,nm=L[i]||'',hu=humans&&humans[i];
-  h+=`<div class="tok ${i===me?'me':''} ${i===0?'gk':''}" data-slot="${i}" style="top:${top}%;left:${left}%"><span class="dot" style="background:${i===0?'#20c9b8':kit.stripes?`repeating-linear-gradient(90deg,${kit.shirt} 0 4px,${kit.stripes} 4px 7px)`:kit.center?`linear-gradient(90deg,${kit.shirt} 36%,${kit.center} 36% 64%,${kit.shirt} 64%)`:kit.shirt}">${i===0?'🧤':(i===me?'★':'')}</span><span class="tn2">${esc(nm||(i===0?'Arquero':'—'))}</span>${hu?`<span class="hum">🎮 ${esc(hu)}</span>`:''}</div>`;});
+  h+=`<div class="tok ${i===me?'me':''} ${i===0?'gk':''}" data-slot="${i}" style="top:${top}%;left:${left}%"><span class="dot" style="background:${i===0?'#20c9b8':kitBg(kit)}">${i===0?'🧤':(i===me?'★':'')}</span><span class="tn2">${esc(nm||(i===0?'Arquero':'—'))}</span>${hu?`<span class="hum">🎮 ${esc(hu)}</span>`:''}</div>`;});
  h+=`</div><div class="lu-edit"></div><div class="hint" style="text-align:center">${canEdit?'Tocá un jugador para escribir su nombre'+(canMe?' o marcarte':'')+'. Arrastralo arriba de otro para cambiarlos de lugar.':'Tocá un jugador para elegir quién sos.'}</div></div>`;
  return h;}
 function bindLineup(root,o){
@@ -2083,9 +2155,10 @@ function renderSettings(el,ro){
   h+=sec(n++,'Categoría')+`<div class="catrow">`+CAT_ORDER.filter(c=>!ro||c===st.cat).map(c=>{const C=CATS[c];return`<button class="cat ${c===st.cat?'sel':''}" data-cat="${c}" ${ro?'disabled':''}><b>${C.name}</b><small>Fútbol ${C.np} · ${C.np-1} + arquero</small></button>`;}).join('')+
    `</div><div class="hint">Se juega en las canchitas de sintético de 5 del club (son 4 iguales).</div></section>`;}
  else if(st.mode==='lpf'){
-  h+=sec(n++,'Estadio',ro?'':'<small>El dueño de casa juega de local</small>')+`<div class="cards">`;
-  for(const t of LPF_IDS){if(ro&&t!==st.lpfHome)continue;const M=mapById('lpf:'+t);h+=mapCard(M,t===st.lpfHome,`data-lpfhome="${t}"`,ro,M.name,LPF_TEAMS[t].name+' de local');}
-  h+=`</div></section>`;}
+  const tchips=(attr,cur,skip)=>`<div class="chips">${LPF_IDS.filter(t=>t!==skip&&(!ro||t===cur)).map(t=>`<button class="chip ${t===cur?'sel':''}" ${attr}="${t}" ${ro?'disabled':''}>${esc(LPF_TEAMS[t].name)}</button>`).join('')}</div>`;
+  h+=sec(n++,'Partido de la Liga','<small>Se juega en la cancha del local</small>')+`<div class="lbl">Local</div>`+tchips('data-lpfhome',st.lpfHome,null)+`<div class="lbl" style="margin-top:10px">Visitante</div>`+tchips('data-lpfaway',st.lpfAway,st.lpfHome);
+  {const M=mapById('lpf:'+st.lpfHome);h+=`<div class="cards" style="margin-top:10px">`+mapCard(M,true,'',true,M.name,LPF_TEAMS[st.lpfHome].name+' de local')+`</div>`;}
+  h+=`</section>`;}
  else{const Z=lideZone(st),rv=Z.find(r=>r.id===st.lideRival)||Z[0];
   h+=sec(n++,'Dónde jugamos')+`<div class="cards three">`;
   if(!ro||st.venue==='home1')h+=mapCard(mapById('ita1'),st.venue==='home1',`data-venue="home1"`,ro,'De local · Cancha 1','Pasto natural');
@@ -2130,9 +2203,10 @@ function renderSettings(el,ro){
  on('[data-ita]',d=>st.ita=d.ita);on('[data-rival]',d=>st[st.mode+'Rival']=d.rival);on('[data-play]',d=>{st.play=d.play;});
  on('.chip[data-k]',d=>{st[d.k]=d.k==='dur'?+d.v:d.v;});
  on('[data-form]',d=>{st.forms[st.lkey]=d.form;});
- on('[data-lpfhome]',d=>{st.lpfHome=d.lpfhome;});on('[data-rform]',d=>{st.forms[st.keyT[1-st.side]]=d.rform;});
+ on('[data-lpfhome]',d=>{st.lpfHome=d.lpfhome;if(st.lpfAway===d.lpfhome)st.lpfAway=LPF_IDS.find(x=>x!==d.lpfhome);});on('[data-lpfaway]',d=>{st.lpfAway=d.lpfaway;});on('[data-rform]',d=>{st.forms[st.keyT[1-st.side]]=d.rform;});
  on('[data-lpfkit]',d=>{const[t,w]=d.lpfkit.split(':');st.lpfKits={...st.lpfKits,[t]:w};// si choca con el otro, el otro se cambia
-  const o=t==='casla'?'cah':'casla',ow=st.lpfKits[o]==='sup'?'sup':'tit';if(colDist(lpfKit(t,w).shirt,lpfKit(o,ow).shirt)<120)st.lpfKits[o]=ow==='sup'?'tit':'sup';});
+  const o=t===st.lpfHome?st.lpfAway:st.lpfHome,ow=st.lpfKits[o]==='sup'?'sup':'tit',ok=lpfKit(o,ow==='sup'?'tit':'sup');
+  if(colDist(kitLook(lpfKit(t,w)),kitLook(lpfKit(o,ow)))<120&&colDist(kitLook(lpfKit(t,w)),kitLook(ok))>=120)st.lpfKits[o]=ok.lpfKit;});
  on('[data-ctl]',d=>{ctlOf(st)[d.ctl]=d.v;});
  el.querySelectorAll('.dtIn').forEach(i=>i.oninput=()=>{if(!st.dts||typeof st.dts!=='object')st.dts={};st.dts[i.dataset.dtkey]=cleanRaw(i.value);saveSettings();});
  const bench=t=>{const T=R.kits[t]&&R.kits[t].lpf;if(!T)return null;const L=st.lineupT[t];return lpfSquad(T).filter(x=>!L.includes(x));};
@@ -2284,7 +2358,7 @@ function togglePause(force){const on=force!=null?force:!$('#sPause').classList.c
  $('#pauseNote').textContent=G.mode==='solo'?'':'El partido sigue corriendo para los demás.';
  $('#bRestart').style.display=G.mode==='solo'||G.mode==='host'?'':'none';
  $('#bQuit').textContent=G.mode==='solo'?'‹ Volver al armado del partido':(G.mode==='host'?'‹ Volver a la sala':'Salir de la sala');}
-$('#verHome').textContent='v'+VERSION;$('#verHome').onclick=lpfToggle;lpfShow();$('#verPause').textContent='v'+VERSION;
+$('#verHome').textContent='v'+VERSION;{const bi=document.querySelector('#sHome .ballico');if(bi){bi.style.cursor='pointer';bi.addEventListener('click',lpfToggle);}}lpfShow();$('#verPause').textContent='v'+VERSION;
 $('#pauseBtn').onclick=()=>togglePause(true);$('#bResume').onclick=()=>togglePause(false);
 $('#bRestart').onclick=()=>{if(G.mode!=='solo'&&G.mode!=='host')return;togglePause(false);if(G.mode==='solo')startSolo();else hostStartMatch();};$('#bFull').onclick=()=>goFullscreen(true);
 function backToSetup(){exitGame();S.mode='solo';showScreen('sSetup');renderSettings($('#soloSettings'),false);}
