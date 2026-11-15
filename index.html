@@ -386,7 +386,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.41.0';
+const VERSION='1.41.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -404,19 +404,19 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,basket:true,
+ {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,basket:true,
   th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
- {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
- {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#8fa3b8',line:'#ffffff',wall:'#e2ddd2',wallDark:'#b9b2a3',brick:false,text:'INSTITUTO AMÉRICA DEL SUR',textCol:'#b4491a'}},
- {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#b98a6a',line:'#ffffff',wall:'#c96f55',wallDark:'#994c37',brick:true,text:'INSTITUTO SAGRADO CORAZÓN',textCol:'#fff3e0'}},
- {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:5,goalH:2.1,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
+ {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6.25,goalH:2.6,walls:true,dArea:true,surf:'cement',kit:'colegio',cR:3,box:{d:5,w:14},spot:6,netD:1.1,
   th:{floor:'#a7adb3',line:'#ffffff',lineDark:true,wall:'#e8ecef',wallDark:'#bcc4ca',brick:false,text:'ESCUELA ORT',textCol:'#1e4ea8'}},
  {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:45,W:23.75,fence:{side:1,end:1.6},goalW:5,goalH:2.1,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:4.5,w:9},spot:6,netD:1.1,gkSpot:3,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
