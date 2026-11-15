@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.53.0';
+const VERSION='1.54.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1101,11 +1101,11 @@ class Match{
   const fx=Math.cos(o.dir),fy=Math.sin(o.dir),ahead=dx*fx+dy*fy;
   if(d<.5||(ahead<.25&&d<.8)){const sp=len(o.vx,o.vy),push=Math.max(sp*1.35,sp+1.2);b.vx=fx*push;b.vy=fy*push;b.x=o.x+fx*.5;b.y=o.y+fy*.5;b.z=0;b.vz=0;}}
  throughBall(p,c=.33){const d=this.dirOf(p.team),f=this.map.fmt,lead=(f>=11?9:f>=9?7:4.5)*(.75+.75*c);/* toque: corto · mantenida: más largo */
-  if(Math.cos(p.dir)*d<.35){this.passBest(p,true,c*.69);return;}/* de perfil o para atrás: pase normal (mantenida: pase fuerte), nunca centro */
+  const fw=Math.cos(p.dir)*d>=.35,ux=fw?d:Math.cos(p.dir),uy=fw?0:Math.sin(p.dir);/* para adelante: filtrado hacia el arco · de perfil o para atrás: filtrado hacia donde apuntás */
   let best=null,bs=-1e9;
   for(const m of this.players){if(m.team!==p.team||m===p||m.role==='gk')continue;const dx=m.x-p.x,dy=m.y-p.y,dd=len(dx,dy);if(dd<3)continue;
-   const ang=Math.abs(angDiff(p.dir,Math.atan2(dy,dx)));if(ang>1.1)continue;const sc=(m.x-p.x)*d*.4-ang*8-Math.abs(dd-lead*2)*.1;if(sc>bs){bs=sc;best=m;}}
-  let tx,ty;if(best){tx=best.x+d*lead+best.vx*.4;ty=best.y+best.vy*.4;}else{tx=p.x+Math.cos(p.dir)*lead*2.2;ty=p.y+Math.sin(p.dir)*lead*2.2;}
+   const ang=Math.abs(angDiff(p.dir,Math.atan2(dy,dx)));if(ang>1.1)continue;const sc=(fw?(m.x-p.x)*d*.4:0)-ang*8-Math.abs(dd-lead*2)*.1;if(sc>bs){bs=sc;best=m;}}
+  let tx,ty;if(best){tx=best.x+ux*lead+best.vx*.4;ty=best.y+uy*lead+best.vy*.4;}else{tx=p.x+Math.cos(p.dir)*lead*2.2;ty=p.y+Math.sin(p.dir)*lead*2.2;}
   tx=clamp(tx,-this.hl+1,this.hl-1);ty=clamp(ty,-this.hw+1,this.hw-1);
   this.kickTo(p,tx,ty,false,1.05*(1-.3*c));/* más larga pero no más rápida: que llegue el compañero */if(best){this.ball.passTo=this.idx(best);best.req=null;}}
  blocked(p,tx,ty){let o=99;for(const q of this.players)if(q.team!==p.team)o=Math.min(o,segDist(q.x,q.y,p.x,p.y,tx,ty));return o;}
