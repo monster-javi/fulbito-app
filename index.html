@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.51.0';
+const VERSION='1.52.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -936,11 +936,11 @@ class Match{
    else if(inp.p&&!prev.p&&p.charge<0)p.pch=0;
    if(inp.c&&p.cch>=0){p.cch=Math.min(1,p.cch+dt/.75);p.pch=.7+.3*p.cch;}
    if(!inp.c&&prev.c&&p.cch>=0){const c=.7+.3*p.cch;p.cch=-1;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);return;}
-   // X: pase al espacio, como un tiro: sale hacia donde apuntás (mantené para más fuerza)
+   // X: toque = adelantarla · mantenida = profundidad, igual que la Y del joystick (más carga, más larga)
    if(p.role!=='gk'){if(inp.x&&!prev.x&&p.charge<0&&p.pch<0)p.xch=0;
     if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.55);
     if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;
-     if(c<.28&&p.lock<=0)this.knockOn(p,p.dir);else this.aimPass(p,c);return;}}// toque cortito: se la adelanta
+     if(c<.28&&p.lock<=0)this.knockOn(p,p.dir);else this.throughBall(p,Math.max(0,(c-.28)/.72));return;}}// toque cortito: se la adelanta · mantenida: profundidad (igual que la Y)
    if(inp.t&&p.tch>=0)p.tch=Math.min(1,p.tch+dt/.6);
    if(!inp.t&&prev.t&&p.tch>=0){const c=p.tch;p.tch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.throughBall(p,c);return;}
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
@@ -1574,14 +1574,14 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
  else{mini.style.display='none';G.mini=false;}
 }
 const kbSet=(z=G.zurdo)=>!z?{mv:'<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd>',P:'Z',X:'X',C:'C',arrows:['▲','◀','▼','▶']}:{mv:'<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>',P:'J',X:'K',C:'L',arrows:['W','A','S','D']};
-const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase · sin pelota: cambiar</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
+const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase · sin pelota: cambiar</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · mantené: profundidad · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
 const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad (mantené: más larga)</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const zv=G.kbPrev??G.zurdo,K=kbSet(zv);// en la pausa se puede ver cómo sería diestro o zurdo (solo visual)
  const pk=$('#pauseKeys');pk.style.display='';
  const key=(k,l,c='')=>`<div class="kk"><span class="kc big ${c}">${k}</span><small>${l}</small></div>`;
  const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
  const kbArt=`<div class="ptitle prow">⌨️ Teclado<span class="hsw"><b data-kh="0" class="${zv?'':'on'}">Diestro</b><b data-kh="1" class="${zv?'on':''}">Zurdo</b></span></div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
-   <div class="plist">${row(kc(K.P),'Pase · cambiar (2 veces: arquero)')}${row(kc(K.X),'Adelantar · al espacio · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
+   <div class="plist">${row(kc(K.P),'Pase · cambiar (2 veces: arquero)')}${row(kc(K.X),'Adelantar · profundidad · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
  const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte<br><small>a fondo: correr</small></div></div><div class="kgrp k3"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
  const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
  const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="0 0 640 420" aria-hidden="true">
