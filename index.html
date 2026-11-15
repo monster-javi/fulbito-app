@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.49.0';
+const VERSION='1.50.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -976,7 +976,7 @@ class Match{
   else{const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95);b.vx=dx/d*v;b.vy=dy/d*v;b.vz=0;b.z=0;}
   this.ev.push({k:'kick',v:.35});
  }
- passTo(p,m,power=1,cross=false){const ld=cross?1:.5;let tx=m.x+m.vx*.6*ld,ty=m.y+m.vy*.6*ld,d=len(tx-p.x,ty-p.y);/* adelanto a la mitad: queda más a los pies */
+ passTo(p,m,power=1,cross=false,lead=.5){const ld=cross?1:lead;let tx=m.x+m.vx*.6*ld,ty=m.y+m.vy*.6*ld,d=len(tx-p.x,ty-p.y);/* adelanto a la mitad: queda más a los pies */
   if(!cross)for(let i=0;i<3;i++){const v=Math.min(clamp(7+d*.95,10.5,this.shotMax*.82)*power,this.shotMax*.95),t=clamp(d/(v*.82),.12,1.4);tx=m.x+m.vx*t*ld;ty=m.y+m.vy*t*ld;d=len(tx-p.x,ty-p.y);}
   tx=clamp(tx,-this.hl+.6,this.hl-.6);ty=clamp(ty,-this.hw+.6,this.hw-.6);
   if(p.role==='gk'&&this.cfg.mode==='club'){const dd=this.dirOf(p.team);if(tx*dd>-.8)tx=-.8*dd;}
@@ -1121,7 +1121,7 @@ class Match{
     const s=-ang*15-d*.2+(m.role==='gk'?-14:0)+(m.ctrl!=null?1:0)-(this.blocked(p,m.x,m.y)<.7?3:0);
     if(s>bs){bs=s;best=m;}}
    if(best)break;}
-  if(best){this.passTo(p,best,power,cross);if(cross)this.ev.push({k:'cross'});return true;}
+  if(best){this.passTo(p,best,power,cross,c>=.25?1:.5);/* pase fuerte (A/Z mantenido): adelanta al compañero */if(cross)this.ev.push({k:'cross'});return true;}
   if(cross){this.kickTo(p,p.x+Math.cos(p.dir)*16,p.y+Math.sin(p.dir)*16,true,1.3);this.ev.push({k:'cross'});return true;}
   const v=15*power;this.release(p);const b=this.ball;b.vx=Math.cos(p.dir)*v;b.vy=Math.sin(p.dir)*v;b.vz=0;this.ev.push({k:'kick',v:.3});return true;
  }
