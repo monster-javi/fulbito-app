@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.43.0';
+const VERSION='1.43.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -526,7 +526,8 @@ const LPF_TEAMS={
   bench:['Meza','Durán','F. Pereyra','Zabala','F. Vera','F. Martínez','I. Campo','Ó. Romero','F. Waller','Kalinger','L. Gil','T. Peralta','Caicedo','Barticciotto']}};
 const LPF_IDS=['casla','cah'];
 function lpfKit(t,w){const T=LPF_TEAMS[t];return{id:'lpf-'+t+'-'+w,lpf:t,lpfKit:w,name:T.name,short:T.short,...T.kits[w]};}
-function lpfOn(){return store.get('fa.lpf','0')==='1';}
+let LPF_ON=false;store.set('fa.lpf','0');// se habilita solo hasta recargar la página
+function lpfOn(){return LPF_ON;}
 function lpfSquad(t){const T=LPF_TEAMS[t];return T?[...T.xi,...T.bench]:[];}
 const SCHOOL_MAPS=['maria','sanfran','marianista','pio','americasur','sagrado','ort'];
 function rosterOf(st,kit){if(!kit)return null;if(kit.id==='ita-blanco')return ROSTERS['ita-blanco'];if(st.mode==='club')return ROSTERS[st.cat+':'+kit.id]||null;return null;}
@@ -2013,7 +2014,7 @@ function saveSettings(){if(S.fromHost)return;const o={};for(const k of SKEYS)o[k
 const S={name:store.get('picado.name',''),mode:null,settings:loadSettings()};
 normalizeSettings(S.settings);
 function lpfShow(){const b=document.querySelector('#sMode .m-lpf');if(b)b.style.display=lpfOn()?'':'none';}
-function lpfToggle(){const on=!lpfOn();store.set('fa.lpf',on?'1':'0');if(!on&&S.settings.mode==='lpf'){S.settings.mode='cole';normalizeSettings(S.settings);saveSettings();}
+function lpfToggle(){const on=!lpfOn();LPF_ON=on;if(!on&&S.settings.mode==='lpf'){S.settings.mode='cole';normalizeSettings(S.settings);saveSettings();}
  lpfShow();toast(on?'⭐ Modo secreto LPF habilitado':'Modo secreto LPF deshabilitado');}
 addEventListener('keydown',e=>{if(e.code!=='Digit0'&&e.code!=='Numpad0')return;if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
  if(G.mode)return;if(!['#sHome','#sMode'].some(q=>$(q).classList.contains('on')))return;e.preventDefault();lpfToggle();});
