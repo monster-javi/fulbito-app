@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.44.1';
+const VERSION='1.45.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -412,6 +412,8 @@ const MAPS=[
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
  {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#d4d6d6',line:'#2a6fc9',tiles:true,goalCol:'#7cc8ee',wall:'#eef0f1',wallDark:'#c4c9cd',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
+ {id:'marianistagym',school:'mar',name:'Colegio Marianista',sub:'Gimnasio · techado',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,basket:true,
+  th:{floor:'#8a4a42',line:'#f2c230',bline:'#f4f4f0',basketAlpha:.26,gym:true,mosaic:true,goalCols:['#f4f4f0','#22408a'],wall:'#ecebe6',wallDark:'#b9b6ad',brick:false,text:'COLEGIO MARIANISTA · GIMNASIO',textCol:'#1d4ed8'}},
  {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},rectSmall:{d:2,w:8},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
  {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
@@ -577,7 +579,7 @@ function lpfPair(h,v,K){// visitante: si choca con el local usa la otra (la que 
 let LPF_ON=false;store.set('fa.lpf','0');// se habilita solo hasta recargar la página
 function lpfOn(){return LPF_ON;}
 function lpfSquad(t){const T=LPF_TEAMS[t];return T?[...T.xi,...T.bench]:[];}
-const SCHOOL_MAPS=['maria','sanfran','marianista','pio','americasur','sagrado','ort'];
+const SCHOOL_MAPS=['maria','sanfran','marianista','marianistagym','pio','americasur','sagrado','ort'];
 function rosterOf(st,kit){if(!kit)return null;if(kit.id==='ita-blanco')return ROSTERS['ita-blanco'];if(st.mode==='club')return ROSTERS[st.cat+':'+kit.id]||null;return null;}
 const BIBS=['#ff7a1a','#f0e130','#b6f23a','#ff4fa3','#36c5f0','#a855f7'];
 function clashFix(fixed,k){if(colDist(fixed.shirt,k.shirt)>=120)return k;// colores parecidos: el rival se pone pechera
@@ -1401,6 +1403,7 @@ function fieldLines(g,M,col,lw){
   if(!M.walls){const cr=M.fmt===11?1:.5;for(const sy of[-1,1]){g.beginPath();g.arc(x0,sy*hw,cr,s<0?(sy<0?0:-Math.PI/2):(sy<0?Math.PI/2:Math.PI),s<0?(sy<0?Math.PI/2:0):(sy<0?Math.PI:Math.PI*1.5));g.stroke();}}
  }
 }
+function goalColOf(M,s){const t=M.th||{};return t.goalCols?t.goalCols[s<0?0:1]:(t.goalCol||'#ffffff');}// cada arco puede tener su color
 function drawGoalsStatic(g,M,back){
  const hl=M.L/2,gw=M.goalW/2,nd=M.netD;
  for(const s of[-1,1]){const x0=s*hl,x1=s*(hl+nd);
@@ -1408,7 +1411,7 @@ function drawGoalsStatic(g,M,back){
   g.strokeStyle='rgba(255,255,255,.45)';g.lineWidth=.03;
   for(let x=0;x<=nd+.001;x+=.25){g.beginPath();g.moveTo(x0+s*x,-gw);g.lineTo(x0+s*x,gw);g.stroke();}
   for(let y=-gw;y<=gw+.001;y+=.25){g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();}
-  const gc=(M.th&&M.th.goalCol)||'#ffffff';
+  const gc=goalColOf(M,s);
   g.strokeStyle=gc;g.globalAlpha=.85;g.lineWidth=.06;g.beginPath();g.moveTo(x0,-gw);g.lineTo(x1,-gw*.92);g.lineTo(x1,gw*.92);g.lineTo(x0,gw);g.stroke();g.globalAlpha=1;
   g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=.2;g.beginPath();g.moveTo(x0,-gw);g.lineTo(x0,gw);g.stroke();
   g.strokeStyle=gc;g.lineWidth=.14;g.beginPath();g.moveTo(x0,-gw);g.lineTo(x0,gw);g.stroke();
@@ -1460,6 +1463,7 @@ function drawCement(g,M,mg,R){
   for(let y=-hw-mg;y<hw+mg;y+=.28,r++){g.beginPath();g.moveTo(-hl-mg,y);g.lineTo(hl+mg,y);g.stroke();
    for(let x=-hl-mg+(r%2)*.3;x<hl+mg;x+=.6){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+.28);g.stroke();}}}
  else noise(g,R,-hl-mg,-hw-mg,M.L+mg*2,M.W+mg*2,M.L*M.W*.4,.1,.05,.06);
+ if(th.mosaic){const cs=['#1f3f8f','#2a2d33','#4a78c8','#8a8f96'];for(let k=0;k<(M.L+M.W)*mg*40;k++){g.fillStyle=cs[k%4];g.globalAlpha=.55;g.fillRect(rnd2(R,-hl-mg,hl+mg),rnd2(R,-hw-mg,hw+mg),.07,.07);}g.globalAlpha=1;}// venecitas
  if(th.roof){g.strokeStyle='rgba(40,55,60,.16)';g.lineWidth=.05;for(let x=-hl-mg;x<hl+mg;x+=.28){g.beginPath();g.moveTo(x,-hw-mg);g.lineTo(x,hw+mg);g.stroke();}
   g.fillStyle='rgba(120,60,40,.18)';for(let k=0;k<16;k++)g.fillRect(rnd2(R,-hl-mg,hl+mg),R()<.5?rnd2(R,-hw-mg,-hw):rnd2(R,hw,hw+mg),.15+R()*.3,.08);}
  // borde superior del muro
@@ -1469,7 +1473,9 @@ function drawCement(g,M,mg,R){
  for(let i=0;i<46;i++){const x=rnd2(R,-hl,hl),y=rnd2(R,-hw,hw),r=.6+R()*3;const gr=g.createRadialGradient(x,y,0,x,y,r);const w=R()<.5;
   gr.addColorStop(0,w?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}
  noise(g,R,-hl,-hw,M.L,M.W,M.L*M.W*3,.06,.07,.08);
- if(th.tiles){// baldosas graníticas de 40 cm y franjas gris oscuro que arman rectángulos grandes
+ if(th.gym){const t=.3;for(let x=-hl;x<hl;x+=t)for(let y=-hw;y<hw;y+=t){const v=R();if(v<.18){g.fillStyle=v<.09?'rgba(0,0,0,.07)':'rgba(255,255,255,.04)';g.fillRect(x,y,t,t);}}
+  g.strokeStyle='rgba(40,15,10,.18)';g.lineWidth=.012;for(let x=-hl;x<=hl;x+=t){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}for(let y=-hw;y<=hw;y+=t){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}}
+ else if(th.tiles){// baldosas graníticas de 40 cm y franjas gris oscuro que arman rectángulos grandes
   g.fillStyle='rgba(60,62,66,.09)';for(let k=0;k<M.L*M.W*6;k++)g.fillRect(rnd2(R,-hl,hl),rnd2(R,-hw,hw),.035,.035);
   g.strokeStyle='rgba(90,95,100,.16)';g.lineWidth=.015;for(let x=-hl;x<=hl;x+=.4){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}for(let y=-hw;y<=hw;y+=.4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}
   g.strokeStyle='#3d4045';g.lineWidth=.3;g.lineCap='butt';for(let x=-hl;x<=hl+.01;x+=M.L/6){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}for(let y=-hw;y<=hw+.01;y+=M.W/4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}g.lineCap='round';}
@@ -1494,7 +1500,7 @@ function drawCement(g,M,mg,R){
  const sl=g.createLinearGradient(-hl,0,-hl+.9,0);sl.addColorStop(0,'rgba(0,0,0,.2)');sl.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=sl;g.fillRect(-hl,-hw,.9,M.W);
  // rejilla
  g.fillStyle='#3b3b3b';g.fillRect(hl-4,hw-.55,1.4,.4);g.strokeStyle='#777';g.lineWidth=.04;for(let x=hl-3.9;x<hl-2.6;x+=.18){g.beginPath();g.moveTo(x,hw-.52);g.lineTo(x,hw-.18);g.stroke();}
- if(M.basket){g.save();g.globalAlpha=.42;g.strokeStyle=th.bline;g.lineWidth=.07;const L2=14,W2=7.5;// cancha FIBA: 28 x 15
+ if(M.basket){g.save();g.globalAlpha=th.basketAlpha||.42;g.strokeStyle=th.bline;g.lineWidth=.07;const L2=14,W2=7.5;// cancha FIBA: 28 x 15
   g.strokeRect(-L2,-W2,L2*2,W2*2);g.beginPath();g.arc(0,0,1.8,0,TAU);g.stroke();
   for(const s of[-1,1]){const x0=s*L2,hx=x0-s*1.575;g.strokeRect(s<0?x0:x0-5.8,-2.45,5.8,4.9);g.beginPath();g.arc(x0-s*5.8,0,1.8,0,TAU);g.stroke();// zona 5,8 x 4,9 y círculo de libre
    const cy=6.6,cx=Math.sqrt(6.75*6.75-cy*cy),a0=Math.atan2(cy,cx);// triple: rectas a 0,9 m del lateral y arco de 6,75 desde el aro
@@ -1789,7 +1795,7 @@ function netOver(b,s0,s){// pelota adentro del arco: la red se dibuja por encima
  const sx=Math.sign(b.x),x0=sx*hl,x1=sx*(hl+nd),R=1.1;ctx.save();{const[bx,by]=w2s(b.x,b.y),r=Math.max(3.5,.18*s*(1+b.z*.1))+1;ctx.beginPath();ctx.arc(bx,by-b.z*.55*s/1.45,r,0,TAU);ctx.clip();}ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=Math.max(1,.035*s0);ctx.beginPath();
  for(let x=0;x<=nd+.001;x+=.25){const wx=x0+sx*x;if(Math.abs(wx-b.x)>R)continue;const y0=Math.max(-gw,b.y-R),y1=Math.min(gw,b.y+R);if(y1<=y0)continue;let[a1,a2]=w2s(wx,y0),[c1,c2]=w2s(wx,y1);ctx.moveTo(a1,a2);ctx.lineTo(c1,c2);}
  for(let y=-gw;y<=gw+.001;y+=.25){if(Math.abs(y-b.y)>R)continue;const xa=Math.min(x0,x1),xb=Math.max(x0,x1),u0=Math.max(xa,b.x-R),u1=Math.min(xb,b.x+R);if(u1<=u0)continue;let[a1,a2]=w2s(u0,y),[c1,c2]=w2s(u1,y);ctx.moveTo(a1,a2);ctx.lineTo(c1,c2);}
- ctx.stroke();const gc=(M.th&&M.th.goalCol)||'#ffffff';ctx.strokeStyle=gc;ctx.lineWidth=Math.max(2,.14*s0);ctx.beginPath();{const[a1,a2]=w2s(x0,-gw),[c1,c2]=w2s(x0,gw);ctx.moveTo(a1,a2);ctx.lineTo(c1,c2);}ctx.stroke();ctx.restore();}
+ ctx.stroke();const gc=goalColOf(M,sx);ctx.strokeStyle=gc;ctx.lineWidth=Math.max(2,.14*s0);ctx.beginPath();{const[a1,a2]=w2s(x0,-gw),[c1,c2]=w2s(x0,gw);ctx.moveTo(a1,a2);ctx.lineTo(c1,c2);}ctx.stroke();ctx.restore();}
 function drawBall(bx,by,z,s){const r=Math.max(3.5,.18*s*(1+z*.1)),y=by-z*.55*s/1.45;
  // la pelota se dibuja en un canvas chiquito aparte y se estampa: así el canvas principal no tiene recortes ni muchas formas chicas
  const pad=2,W=2*r+2*pad,k=DPR,pw=Math.ceil(W*k);const B=drawBall.cv||(drawBall.cv=document.createElement('canvas'));if(B.width<pw||B.height<pw){B.width=B.height=Math.max(pw,64);}
