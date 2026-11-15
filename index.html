@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.50.0';
+const VERSION='1.51.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -707,7 +707,7 @@ class Match{
   this.players=[];
   this.forms=cfg.forms||[null,null];
   for(let t=0;t<2;t++)buildForm(this.np,this.forms[t]).forEach((fm,i)=>this.players.push({team:t,i,role:fm[0],ha:fm[1],hy:fm[2],x:0,y:0,vx:0,vy:0,dvx:0,dvy:0,dir:t?Math.PI:0,face:null,
-   ctrl:null,cool:0,stun:0,slide:0,dive:false,obT:-1,recv:0,charge:-1,pch:-1,cch:-1,run:0,aiT:Math.random()*.3,hold:0,lock:0,req:null,aiHold:0}));
+   ctrl:null,cool:0,stun:0,slide:0,dive:false,obT:-1,recv:0,charge:-1,pch:-1,cch:-1,tch:-1,run:0,aiT:Math.random()*.3,hold:0,lock:0,req:null,aiHold:0}));
   this.ball={x:0,y:0,z:0,vx:0,vy:0,vz:0,owner:-1,last:-1,lastTeam:-1,gkRoll:-1,passTo:-1};
   this.score=[0,0];this.time=cfg.dur*60;this.phase='kickoff';this.phaseT=1.5;
   this.humans=new Map();this.ev=[];this.restart=null;this.chaser=[null,null];this.second=[null,null];
@@ -910,7 +910,7 @@ class Match{
    const t=clamp(((p.x-b.x)*b.vx+(p.y-b.y)*b.vy)/(bv*bv),0,1.5),qx=b.x+b.vx*t,qy=b.y+b.vy*t,dx=qx-p.x,dy=qy-p.y,dq=len(dx,dy);
    const okDir=m<=.15||dq<.12||(inp.mx*dx+inp.my*dy)/(m*dq)>-.35;/* solo deja de ayudar si tirás claramente para afuera de la línea de la pelota */
    if(okDir&&dq>.12){const v=Math.min(sp,dq*6);p.dvx=dx/dq*v;p.dvy=dy/dq*v;if(m<=.15)p.face=Math.atan2(b.y-p.y,b.x-p.x);}}}
-  if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;}
+  if(inp.e){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;p.tch=-1;}
   const anyB=i=>i.k||i.p||i.t||i.c||i.e||i.x;
   if(own&&this.koHold){// saque del medio: siempre es un pase a un compañero
    if(anyB(inp)&&!anyB(prev)){this.kickoffPass(p,m>.15?p.face:p.dir);this.koHold=false;}return;}
@@ -920,8 +920,8 @@ class Match{
    if(!anyB(inp)&&anyB(prev)&&p.charge>=0){if(p.face!=null)p.dir=p.face;this.shoot(p,Math.max(.35,p.charge),true);p.charge=-1;this.penHold=false;}
    return;}
   if(own&&p.role==='gk'){// el arquero no puede patear para su propio arco: si apunta para atrás, no pasa nada
-   const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(inp.t&&!prev.t)||(inp.e&&!prev.e)||(!inp.x&&prev.x);
-   if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;return;}}
+   const aim=m>.15?p.face:p.dir,back=Math.cos(aim)*this.dirOf(p.team)<-.15,rel=(!inp.k&&prev.k)||(!inp.p&&prev.p)||(!inp.c&&prev.c)||(!inp.t&&prev.t)||(inp.e&&!prev.e)||(!inp.x&&prev.x);
+   if(back&&rel){p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;p.tch=-1;return;}}
   if(own&&p.role==='gk'&&((inp.e&&!prev.e)||(!inp.x&&prev.x)||(inp.pad&&inp.t&&!prev.t))){if(p.face!=null&&m>.15)p.dir=p.face;p.xch=-1;this.gkThrow(p);return;}
   if(own&&inp.kn&&!prev.kn&&p.role!=='gk'&&p.lock<=0&&(m>.15||inp.kx||inp.ky)){let a=(inp.kx||inp.ky)?Math.atan2(inp.ky,inp.kx):Math.atan2(inp.my,inp.mx);const run=m>.15?Math.atan2(inp.my,inp.mx):p.dir;if(Math.abs(angDiff(a,run))<1.05)a=run;this.knockOn(p,a);return;}// stick derecho (joystick) o doble toque
   if(!own&&((inp.e&&!prev.e)||(inp.x&&!prev.x))){this.push(p);return;}
@@ -931,7 +931,7 @@ class Match{
    if(inp.k&&!prev.k)p.charge=0;
    if(inp.k&&p.charge>=0)p.charge=Math.min(1,p.charge+dt/.55);
    if(!inp.k&&prev.k&&p.charge>=0){if(p.face!=null)p.dir=p.face;this.shoot(p,p.charge,true);p.charge=-1;}
-   else if(inp.t&&!prev.t&&p.charge<0){if(p.face!=null&&m>.15)p.dir=p.face;this.throughBall(p);return;}
+   else if(inp.t&&!prev.t&&p.charge<0&&p.pch<0)p.tch=0;/* Y: profundidad cargable, como en el FIFA */
    else if(inp.c&&!prev.c&&p.charge<0&&p.pch<0)p.cch=0;
    else if(inp.p&&!prev.p&&p.charge<0)p.pch=0;
    if(inp.c&&p.cch>=0){p.cch=Math.min(1,p.cch+dt/.75);p.pch=.7+.3*p.cch;}
@@ -941,10 +941,12 @@ class Match{
     if(inp.x&&p.xch>=0)p.xch=Math.min(1,p.xch+dt/.55);
     if(!inp.x&&prev.x&&p.xch>=0){const c=p.xch;p.xch=-1;if(p.face!=null&&m>.15)p.dir=p.face;
      if(c<.28&&p.lock<=0)this.knockOn(p,p.dir);else this.aimPass(p,c);return;}}// toque cortito: se la adelanta
+   if(inp.t&&p.tch>=0)p.tch=Math.min(1,p.tch+dt/.6);
+   if(!inp.t&&prev.t&&p.tch>=0){const c=p.tch;p.tch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.throughBall(p,c);return;}
    if(inp.p&&p.pch>=0)p.pch=Math.min(1,p.pch+dt/.75);
    if(!inp.p&&prev.p&&p.pch>=0){const c=p.pch;p.pch=-1;if(p.face!=null&&m>.15)p.dir=p.face;this.passBest(p,true,c);}
   }else{
-   p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;
+   p.charge=-1;p.pch=-1;p.cch=-1;p.xch=-1;p.tch=-1;
    if(inp.sw&&!prev.sw&&this.cfg.ctrl!=='fijo'){this.manualSwitch(H);return;}// LB del joystick: cambiar de jugador (como el FIFA)
    if(inp.pad){if(inp.k&&!prev.k){this.push(p);return;}if(inp.c&&!prev.c){this.fireNoBall(p);return;}}// joystick sin pelota: B hace cuerpo/empuja, X barrida
    else if(inp.k&&!prev.k)this.fireNoBall(p);
@@ -1098,12 +1100,12 @@ class Match{
   if(d>2.6){b.owner=-1;b.last=this.idx(o);b.lastTeam=o.team;return;}
   const fx=Math.cos(o.dir),fy=Math.sin(o.dir),ahead=dx*fx+dy*fy;
   if(d<.5||(ahead<.25&&d<.8)){const sp=len(o.vx,o.vy),push=Math.max(sp*1.35,sp+1.2);b.vx=fx*push;b.vy=fy*push;b.x=o.x+fx*.5;b.y=o.y+fy*.5;b.z=0;b.vz=0;}}
- throughBall(p){const d=this.dirOf(p.team),f=this.map.fmt,lead=f>=11?9:f>=9?7:4.5;let best=null,bs=-1e9;
+ throughBall(p,c=.33){const d=this.dirOf(p.team),f=this.map.fmt,lead=(f>=11?9:f>=9?7:4.5)*(.75+.75*c);/* toque: corto · mantenida: más largo */let best=null,bs=-1e9;
   for(const m of this.players){if(m.team!==p.team||m===p||m.role==='gk')continue;const dx=m.x-p.x,dy=m.y-p.y,dd=len(dx,dy);if(dd<3)continue;
    const ang=Math.abs(angDiff(p.dir,Math.atan2(dy,dx)));if(ang>1.1)continue;const sc=(m.x-p.x)*d*.4-ang*8-Math.abs(dd-lead*2)*.1;if(sc>bs){bs=sc;best=m;}}
   let tx,ty;if(best){tx=best.x+d*lead+best.vx*.4;ty=best.y+best.vy*.4;}else{tx=p.x+Math.cos(p.dir)*lead*2.2;ty=p.y+Math.sin(p.dir)*lead*2.2;}
   tx=clamp(tx,-this.hl+1,this.hl-1);ty=clamp(ty,-this.hw+1,this.hw-1);
-  this.kickTo(p,tx,ty,false,1.05);if(best){this.ball.passTo=this.idx(best);best.req=null;}}
+  this.kickTo(p,tx,ty,false,1.05*(1-.3*c));/* más larga pero no más rápida: que llegue el compañero */if(best){this.ball.passTo=this.idx(best);best.req=null;}}
  blocked(p,tx,ty){let o=99;for(const q of this.players)if(q.team!==p.team)o=Math.min(o,segDist(q.x,q.y,p.x,p.y,tx,ty));return o;}
  passBest(p,human,c=0){
   const cross=c>=.7,power=c<.25?1:1+(Math.min(c,.7)-.25)/.45*.45,f=this.map.fmt;
@@ -1573,7 +1575,7 @@ function computePPM(){const M=G.map,mg=fieldMargin(M);
 }
 const kbSet=(z=G.zurdo)=>!z?{mv:'<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd>',P:'Z',X:'X',C:'C',arrows:['▲','◀','▼','▶']}:{mv:'<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>',P:'J',X:'K',C:'L',arrows:['W','A','S','D']};
 const keysKB=()=>{const k=kbSet();return`<span>${k.mv} mover</span><span class="sep">|</span><span><kbd>${k.P}</kbd> pase · sin pelota: cambiar</span><span class="sep">|</span><span><kbd>${k.X}</kbd> toque: adelantar · cargado: al espacio · empujón</span><span class="sep">|</span><span><kbd>${k.C}</kbd> tiro · barrida</span><span class="sep">|</span><span><kbd>Shift</kbd> correr</span><span class="sep">|</span><span><kbd>Esc</kbd> pausa</span>`;};
-const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
+const KEYS_PAD=`<span>🕹️ palanca moverse</span><span class="sep">|</span><span><kbd>A</kbd> pase</span><span class="sep">|</span><span><kbd>B</kbd> tiro · hacer cuerpo</span><span class="sep">|</span><span><kbd>X</kbd> centro · barrida</span><span class="sep">|</span><span><kbd>Y</kbd> profundidad (mantené: más larga)</span><span class="sep">|</span><span><kbd>LB</kbd> cambiar jugador</span><span class="sep">|</span><span><kbd>RT</kbd> correr</span><span class="sep">|</span><span>stick derecho: adelantarla</span><span class="sep">|</span><span><kbd>Start</kbd> pausa</span>`;
 function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keysKB();const zv=G.kbPrev??G.zurdo,K=kbSet(zv);// en la pausa se puede ver cómo sería diestro o zurdo (solo visual)
  const pk=$('#pauseKeys');pk.style.display='';
  const key=(k,l,c='')=>`<div class="kk"><span class="kc big ${c}">${k}</span><small>${l}</small></div>`;
@@ -1615,10 +1617,10 @@ function setupView(cfg,roster){
 function rosterFor(np){const r=[];for(let t=0;t<2;t++)buildForm(np).forEach((f,i)=>r.push({team:t,role:f[0],i}));return r;}
 function viewFromMatch(m){
  const b=m.ball;return{ph:m.phase,hf:m.half,tm:m.time,sc:m.score,b:{x:b.x,y:b.y,z:b.z},
-  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,thr:!!p.throwIn&&b.owner===i,cel:m.isCel(p),hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:-1),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
+  P:m.players.map((p,i)=>({x:p.x,y:p.y,dir:p.dir,slide:p.slide>0,down:p.down>0||p.gkDive>0,prone:!!p.prone&&p.down>0,push:p.push>0,thr:!!p.throwIn&&b.owner===i,cel:m.isCel(p),hold:p.hold>0&&b.owner===i&&!p.gkKick,charge:p.charge>=0?p.charge:(p.xch>=0?p.xch:(p.tch>=0?p.tch:-1)),pch:p.pch,ctrl:p.ctrl,lock:p.lock>0&&b.owner===i}))};
 }
 function encodeSnap(m,ev){const P=[];const b=m.ball;
- m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0)|(p.throwIn&&b.owner===i?128:0)|(m.isCel(p)?32:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
+ m.players.forEach((p,i)=>{P.push(Math.round(p.x*20),Math.round(p.y*20),Math.round(p.dir*20),(p.slide>0?1:0)|(p.hold>0&&b.owner===i&&!p.gkKick?2:0)|(p.lock>0&&b.owner===i?4:0)|(p.down>0||p.gkDive>0?8:0)|(p.prone&&p.down>0?64:0)|(p.push>0?16:0)|(p.throwIn&&b.owner===i?128:0)|(m.isCel(p)?32:0),p.charge>=0?Math.round(p.charge*20):p.xch>=0?Math.round(p.xch*20):p.tch>=0?Math.round(p.tch*20):p.pch>=0?21+Math.round(p.pch*20):-1);});
  const C=[];for(const H of m.humans.values())if(H.pi>=0)C.push(H.pi,H.id);
  return{t:'s',ph:m.phase,hf:m.half,tm:Math.round(m.time*10),sc:m.score,b:[Math.round(b.x*50),Math.round(b.y*50),Math.round(b.z*50)],p:P,c:C,ev};}
 function decodeSnap(s){const P=[];for(let i=0;i<s.p.length;i+=5)P.push({x:s.p[i]/20,y:s.p[i+1]/20,dir:s.p[i+2]/20,slide:!!(s.p[i+3]&1),down:!!(s.p[i+3]&8),prone:!!(s.p[i+3]&64),push:!!(s.p[i+3]&16),thr:!!(s.p[i+3]&128),cel:!!(s.p[i+3]&32),hold:!!(s.p[i+3]&2),lock:!!(s.p[i+3]&4),charge:s.p[i+4]<0||s.p[i+4]>20?-1:s.p[i+4]/20,pch:s.p[i+4]>20?(s.p[i+4]-21)/20:-1,ctrl:null});
