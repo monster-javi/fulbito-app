@@ -386,7 +386,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.40.1';
+const VERSION='1.40.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1624,8 +1624,10 @@ function render(v,dt){
   drawPlayer(ctx,s,p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}
  // DT de cada equipo, parado afuera de la cancha junto a su mitad (no en el colegio)
  // árbitro (no en el colegio): sigue la jugada en diagonal
- if(G.cmode&&G.cmode!=='cole'){const tx=clamp(v.b.x*.85,-G.map.L/2+2,G.map.L/2-2),ty=clamp(v.b.y+(v.b.y>0?-1:1)*Math.min(9,G.map.W*.28),-G.map.W/2+1,G.map.W/2-1);
-  if(!G.ref)G.ref={x:tx,y:ty,dir:0,run:0};const R0=G.ref,k=Math.min(1,dt*1.4),ox=R0.x,oy=R0.y;R0.x+=(tx-R0.x)*k;R0.y+=(ty-R0.y)*k;const vv=len(R0.x-ox,R0.y-oy)/Math.max(dt,.001);R0.run+=vv*dt*1.6;
+ if(G.cmode&&G.cmode!=='cole'){if(!G.ref)G.ref={x:0,y:-Math.min(9,G.map.W*.28),dir:0,run:0,side:-1};const R0=G.ref;
+  if(Math.abs(v.b.y)>3)R0.side=v.b.y>0?-1:1;// cambia de lado solo cuando la pelota se fue bien para un costado (no en el saque del medio)
+  const tx=clamp(v.b.x*.85,-G.map.L/2+2,G.map.L/2-2),ty=clamp(v.b.y+R0.side*Math.min(9,G.map.W*.28),-G.map.W/2+1,G.map.W/2-1);
+  const ox=R0.x,oy=R0.y;{const dx=tx-R0.x,dy=ty-R0.y,dl=len(dx,dy),mv=Math.min(dl*Math.min(1,dt*1.4),7*dt);if(dl>.05){R0.x+=dx/dl*mv;R0.y+=dy/dl*mv;}}const vv=len(R0.x-ox,R0.y-oy)/Math.max(dt,.001);// corre como una persona: máximo 7 m/sconst vv=len(R0.x-ox,R0.y-oy)/Math.max(dt,.001);R0.run+=vv*dt*1.6;
   R0.dir=lerpAng(R0.dir,Math.atan2(v.b.y-R0.y,v.b.x-R0.x),.15);const[rx,ry]=w2s(R0.x,R0.y);
   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(rx+.1*s,ry+.13*s,.36*s,.28*s,0,0,TAU);ctx.fill();
   ctx.save();ctx.translate(rx,ry);drawPlayer(ctx,s,{dir:R0.dir,slide:false,down:false,push:false},{shirt:'#141414',sleeve:'#141414',shorts:'#141414',socks:'#141414',collar:true},G.gk[0],50,{spd:Math.min(vv,6),run:R0.run},false,0);ctx.restore();}
