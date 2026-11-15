@@ -388,7 +388,7 @@ body.zurdo #bPass{right:auto;left:calc(134px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.44.0';
+const VERSION='1.44.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -406,19 +406,19 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}ca
 
 /* ---------------- canchas ---------------- */
 const MAPS=[
- {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
+ {id:'sanfran',school:'sfr',name:'Colegio San Francisco de Sales',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},rectSmall:{d:2,w:8},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#a95d47',line:'#ffffff',wall:'#b9573f',wallDark:'#8a3c2a',brick:true,text:'COLEGIO SAN FRANCISCO',textCol:'#fff6e0'}},
- {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,midCol:'#f2c230',dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
+ {id:'maria',school:'ima',name:'Instituto María Auxiliadora',sub:'Patio del colegio · Almagro',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,spotDash:true,midCol:'#f2c230',dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#cdbf9f',line:'#ffffff',lineDark:true,wall:'#aebcc2',wallDark:'#8d9ba1',roof:true,brick:false,band:true,rombos:true,goalCol:'#f5a623',text:'INSTITUTO MARÍA AUXILIADORA · ALMAGRO',textCol:'#1e3a5f',tree:true}},
- {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,basket:true,
-  th:{floor:'#4b7f63',line:'#ffffff',bline:'#f0a830',wall:'#dcd6c6',wallDark:'#b3ab98',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
- {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
+ {id:'marianista',school:'mar',name:'Colegio Marianista',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
+  th:{floor:'#d4d6d6',line:'#2a6fc9',tiles:true,goalCol:'#7cc8ee',wall:'#eef0f1',wallDark:'#c4c9cd',brick:false,text:'COLEGIO MARIANISTA',textCol:'#1d4ed8'}},
+ {id:'pio',school:'pio',name:'Pío IX',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},rectSmall:{d:2,w:8},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#9ea6ae',line:'#ffffff',lineDark:true,wall:'#d8cfbf',wallDark:'#b3a891',brick:false,text:'COLEGIO PÍO IX',textCol:'#7a1f2b'}},
  {id:'americasur',school:'ias',name:'Instituto América del Sur',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#8fa3b8',line:'#ffffff',wall:'#e2ddd2',wallDark:'#b9b2a3',brick:false,text:'INSTITUTO AMÉRICA DEL SUR',textCol:'#b4491a'}},
  {id:'sagrado',school:'isc',name:'Instituto Sagrado Corazón',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#b98a6a',line:'#ffffff',wall:'#c96f55',wallDark:'#994c37',brick:true,text:'INSTITUTO SAGRADO CORAZÓN',textCol:'#fff3e0'}},
- {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
+ {id:'ort',school:'ort',name:'Escuela ORT',sub:'Patio del colegio',fmt:5,L:40,W:25,goalW:6,goalH:4,walls:true,dArea:true,rectArea:{d:5,w:12},rectSmall:{d:2,w:8},dPost:1.58,surf:'cement',kit:'colegio',cR:3,box:{d:6,w:15.16},spot:6,netD:1.1,
   th:{floor:'#a7adb3',line:'#ffffff',lineDark:true,wall:'#e8ecef',wallDark:'#bcc4ca',brick:false,text:'ESCUELA ORT',textCol:'#1e4ea8'}},
  {id:'itainf',name:'Club Italiano · Infantil',sub:'Sintético · Fútbol 5',fmt:5,L:40,W:25,fence:{side:1,end:1.6},goalW:6,goalH:4,walls:false,surf:'grass',kit:'infantil',cR:3,box:{d:5,w:12},spot:6,netD:1.1,gkSpot:3,
   th:{g1:'#35a346',g2:'#2f953e',run:'#267a32',line:'#ffffff'}},
@@ -1393,7 +1393,7 @@ function fieldLines(g,M,col,lw){
   if(M.dArea){const d=M.box.d,gp=M.dPost||gw;g.beginPath();
    if(s<0){g.arc(x0,-gp,d,-Math.PI/2,0,false);g.lineTo(x0+d,gp);g.arc(x0,gp,d,0,Math.PI/2,false);}
    else{g.arc(x0,-gp,d,-Math.PI/2,-Math.PI,true);g.lineTo(x0-d,gp);g.arc(x0,gp,d,Math.PI,Math.PI/2,true);}
-   g.stroke();g.beginPath();g.arc(x0-s*(M.spot||6),0,.13,0,TAU);g.fill();}
+   g.stroke();if(M.spotDash){g.save();g.lineCap='butt';g.lineWidth=.12;g.beginPath();g.moveTo(x0-s*((M.spot||6)-.35),0);g.lineTo(x0-s*((M.spot||6)+.35),0);g.stroke();g.restore();}else{g.beginPath();g.arc(x0-s*(M.spot||6),0,.13,0,TAU);g.fill();}}
   else{const b=M.box;g.strokeRect(s<0?x0:x0-b.d,-b.w/2,b.d,b.w);
    if(M.sbox)g.strokeRect(s<0?x0:x0-M.sbox.d,-M.sbox.w/2,M.sbox.d,M.sbox.w);
    const sp=M.spot||b.d*.65;if(!M.noSpot){g.beginPath();g.arc(x0-s*sp,0,.14,0,TAU);g.fill();}
@@ -1469,9 +1469,13 @@ function drawCement(g,M,mg,R){
  for(let i=0;i<46;i++){const x=rnd2(R,-hl,hl),y=rnd2(R,-hw,hw),r=.6+R()*3;const gr=g.createRadialGradient(x,y,0,x,y,r);const w=R()<.5;
   gr.addColorStop(0,w?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}
  noise(g,R,-hl,-hw,M.L,M.W,M.L*M.W*3,.06,.07,.08);
- g.strokeStyle='rgba(0,0,0,.13)';g.lineWidth=.035;
+ if(th.tiles){// baldosas graníticas de 40 cm y franjas gris oscuro que arman rectángulos grandes
+  g.fillStyle='rgba(60,62,66,.09)';for(let k=0;k<M.L*M.W*6;k++)g.fillRect(rnd2(R,-hl,hl),rnd2(R,-hw,hw),.035,.035);
+  g.strokeStyle='rgba(90,95,100,.16)';g.lineWidth=.015;for(let x=-hl;x<=hl;x+=.4){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}for(let y=-hw;y<=hw;y+=.4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}
+  g.strokeStyle='#3d4045';g.lineWidth=.3;g.lineCap='butt';for(let x=-hl;x<=hl+.01;x+=M.L/6){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}for(let y=-hw;y<=hw+.01;y+=M.W/4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}g.lineCap='round';}
+ else{g.strokeStyle='rgba(0,0,0,.13)';g.lineWidth=.035;
  for(let x=-hl+4;x<hl;x+=4){g.beginPath();g.moveTo(x,-hw);g.lineTo(x,hw);g.stroke();}
- for(let y=-hw+4;y<hw;y+=4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}
+ for(let y=-hw+4;y<hw;y+=4){g.beginPath();g.moveTo(-hl,y);g.lineTo(hl,y);g.stroke();}}
  if(th.band){g.strokeStyle='rgba(80,75,62,.32)';g.lineWidth=.55;g.strokeRect(-hl+.3,-hw+.3,M.L-.6,M.W-.6);
   g.strokeStyle='rgba(80,75,62,.18)';g.lineWidth=.06;g.strokeRect(-hl+.75,-hw+.75,M.L-1.5,M.W-1.5);}
  if(th.rombos){// rombos del piso, muy suaves
@@ -1500,8 +1504,8 @@ function drawCement(g,M,mg,R){
   g.restore();}
  if(th.lineDark)fieldLines(g,M,'rgba(40,40,40,.28)',.2);
  fieldLines(g,M,th.line,.1);
- if(M.midCol){g.strokeStyle=M.midCol;g.lineWidth=.12;g.beginPath();g.moveTo(0,-M.W/2);g.lineTo(0,M.W/2);g.stroke();}// línea del medio pintada de otro color
- if(M.rectArea){g.strokeStyle='rgba(255,255,255,.2)';g.lineWidth=.08;const r=M.rectArea;for(const s of[-1,1])g.strokeRect(s<0?-M.L/2:M.L/2-r.d,-r.w/2,r.d,r.w);}// área rectangular vieja, apenas marcada
+ if(M.midCol){g.save();g.lineCap='butt';g.strokeStyle=M.midCol;g.lineWidth=.1;g.beginPath();g.moveTo(0,-M.W/2+.05);g.lineTo(0,M.W/2-.05);g.stroke();g.restore();g.fillStyle=th.line;g.beginPath();g.arc(0,0,.15,0,TAU);g.fill();}// línea del medio de otro color; el punto central queda blanco encima
+ if(M.rectArea){g.strokeStyle='rgba(255,255,255,.2)';g.lineWidth=.08;const r=M.rectArea;for(const s of[-1,1]){g.strokeRect(s<0?-M.L/2:M.L/2-r.d,-r.w/2,r.d,r.w);const q=M.rectSmall;if(q)g.strokeRect(s<0?-M.L/2:M.L/2-q.d,-q.w/2,q.d,q.w);}}// áreas rectangulares de fútbol 5, apenas marcadas
  // arcos metidos en la pared
  drawGoalsStatic(g,M,'rgba(25,25,25,.85)');
  if(M.basket){g.save();g.globalAlpha=.55;for(const s of[-1,1]){const x0=s*14;g.strokeStyle='#fafafa';g.lineWidth=.1;g.beginPath();g.moveTo(x0-s*1.2,-.9);g.lineTo(x0-s*1.2,.9);g.stroke();
