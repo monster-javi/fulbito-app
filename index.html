@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.73.0';
+const VERSION='1.74.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -796,7 +796,7 @@ class Match{
   if(kind==='arco')taker=this.players.find(p=>p.team===team&&p.role==='gk');
   else{let bd=1e9;for(const p of this.players)if(p.team===team&&p.role!=='gk'){const d=len(p.x-x,p.y-y);if(d<bd){bd=d;taker=p;}}}
   // hacia adentro de la cancha
-  let ix=-x,iy=-y;if(kind==='lateral'){ix=this.dirOf(team)*3;iy=-Math.sign(y)*6;}else if(kind==='libre'){ix=this.dirOf(team);iy=-y*.04;}
+  let ix=-x,iy=-y;if(kind==='corner'){const d=this.dirOf(team),sp=this.map.spot||this.map.box.d*.65;ix=d*this.hl-d*sp-x;iy=-y;}/* córner: mirando al punto del penal, no a la mitad de la cancha */else if(kind==='lateral'){ix=this.dirOf(team)*3;iy=-Math.sign(y)*6;}else if(kind==='libre'){ix=this.dirOf(team);iy=-y*.04;}
   const il=len(ix,iy)||1;ix/=il;iy/=il;
   taker.x=x-ix*.55;taker.y=y-iy*.55;taker.dir=taker.face=Math.atan2(iy,ix);taker.vx=taker.vy=0;taker.charge=-1;
   const R=(kind==='libre'||kind==='corner')?this.restDist():this.map.fmt===11?6:3.5;
@@ -1597,7 +1597,7 @@ function drawGrass(g,M,mg,R){
  }
  if(th.lpf){// LPF: carteles en los cuatro lados, fotógrafos detrás de los arcos y alcanzapelotas
   const cols=th.bannerCols,txt=th.bannerText,board=(x,y,w,h,col,t,rot)=>{g.fillStyle=col;g.fillRect(x,y,w,h);g.fillStyle=colDist(col,'#ffffff')<200?'#1b1e26':'#fff';g.font='900 .62px Inter, sans-serif';
-   const L=rot?h:w,tw=g.measureText(t).width,sc=Math.min(1,(L-.5)/tw);g.save();g.translate(x+w/2,y+h/2);if(rot)g.rotate(-Math.PI/2);g.scale(sc,1);g.fillText(t,0,.02);g.restore();};
+   const L=rot?h:w,tw=g.measureText(t).width,sc=Math.min(1,(L-.5)/tw);g.save();g.translate(x+w/2,y+h/2);if(rot)g.rotate(Math.PI/2);g.scale(sc,1);g.fillText(t,0,.02);g.restore();};
   g.textAlign='center';g.textBaseline='middle';
   {const y=hw+mg-2.1,segs=Math.floor((M.L+4)/8);for(let i=0;i<segs;i++){const x=-hl-2+i*8,k2=(i+1)%3;board(x+.2,y,7.6,1,cols[k2],k2===2?'LPF':txt,false);}}
   for(const s of[-1,1]){const x=s>0?hl+mg-2.1:-hl-mg+1.1,n=Math.floor((M.W+2)/8);for(let i=0;i<n;i++){const y=-(n*8)/2+i*8,k2=i%3;board(x,y+.2,1,7.6,cols[k2],k2===2?'FÚTBOL':txt,true);}
