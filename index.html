@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.71.0';
+const VERSION='1.72.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1748,7 +1748,7 @@ function updateKeysLegend(){const el=$('#keys');el.innerHTML=G.pad?KEYS_PAD:keys
  const kc=k=>`<span class="pk">${k}</span>`,row=(k,l)=>`<div class="pr">${k}<small>${l}</small></div>`;
  const kbArt=`<div class="ptitle prow">⌨️ Teclado<span class="hsw"><b data-kh="0" class="${zv?'':'on'}">Diestro</b><b data-kh="1" class="${zv?'on':''}">Zurdo</b></span></div><div class="pgrid"><div class="parr"><i></i>${kc(K.arrows[0])}<i></i>${kc(K.arrows[1])}${kc(K.arrows[2])}${kc(K.arrows[3])}<small>Moverte</small></div>
    <div class="plist">${row(kc(K.P),'Pase · cambiar (2 veces: arquero)')}${row(kc(K.X),'Adelantar · profundidad · empujón')}${row(kc(K.C),'Tiro · barrida')}${row(kc('⇧'),'Shift: correr')}${row(kc('Esc'),'Pausa')}</div></div>`;
- const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte<br><small>a fondo: correr</small></div></div><div class="kgrp k3 wrap"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb green">TOQUE</span><small>Toque: adelantarla · mantené: filtrado</small></div><div class="kk"><span class="tb two">✌️</span><small>Los dos juntos: empujón</small></div></div></div>`;
+ const touchArt=`<div class="ptitle">📱 Celu</div><div class="kart"><div class="kgrp"><div class="tjoy"><i></i></div><div class="kl">Moverte<br><small>a fondo: correr</small></div></div><div class="kgrp k3 wrap"><div class="kk"><span class="tb blue">PASE</span><small>Pase · cambiar</small></div><div class="kk"><span class="tb red">PATEAR</span><small>Tiro · barrida</small></div><div class="kk"><span class="tb green">TOQUE</span><small>Adelantarla · mantené: filtrado</small></div><div class="kk"><span class="tb two">💪</span><small><b>Empujón:</b> TOQUE sin pelota (o PASE + PATEAR)</small></div></div></div>`;
  const bd=(k,c)=>`<span class="pd ${c}">${k}</span>`;
  const padArt=`<div class="ptitle">🎮 Joystick</div><svg class="padsvg" viewBox="0 0 640 420" aria-hidden="true">
    <rect x="110" y="6" width="150" height="70" rx="26" fill="#4b5058"/><rect x="380" y="6" width="150" height="70" rx="26" fill="#4b5058"/>
