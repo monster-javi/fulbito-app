@@ -33,6 +33,10 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .brand{text-align:center;margin:22px 0 22px}
 .ballico{width:64px;height:64px;margin:0 auto 6px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-6px) rotate(14deg)}}
+.bshine{animation:bshine 7s ease-in-out infinite}.bstar{opacity:0;transform-box:fill-box;transform-origin:center;animation:bstar 7s ease-out infinite}
+@keyframes bshine{0%,74%{transform:translateX(0)}90%,100%{transform:translateX(118px)}}
+@keyframes bstar{0%,84%{opacity:0;transform:scale(.2) rotate(0)}89%{opacity:1;transform:scale(1.6) rotate(45deg)}96%,100%{opacity:0;transform:scale(.3) rotate(90deg)}}
+@media (prefers-reduced-motion:reduce){.bshine,.bstar{animation:none}}
 .logo{font-family:Bungee,Impact,'Arial Black',sans-serif;font-weight:400;margin:0;line-height:.88;font-size:clamp(52px,15vw,92px);letter-spacing:.01em;
  background:linear-gradient(180deg,#fff6c9 0%,#ffd23f 45%,#ff9f1c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 #0a3d1d) drop-shadow(0 12px 18px rgba(0,0,0,.45))}
 .logo em{display:inline-block;font-style:normal;font-family:Inter,sans-serif;font-weight:900;font-size:.26em;letter-spacing:.32em;color:#06110b;background:var(--acc);-webkit-text-fill-color:#06110b;padding:.28em .5em .28em .8em;border-radius:999px;vertical-align:middle;transform:translateY(-.4em);filter:none}
@@ -295,7 +299,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
 <section class="screen on" id="sHome">
  <div class="wrap narrow">
   <header class="brand">
-   <svg class="ballico" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="bgr" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#eceeea"/><stop offset="1" stop-color="#8e9592"/></radialGradient><radialGradient id="bsh" cx="36%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><clipPath id="bcl"><circle cx="32" cy="32" r="29"/></clipPath></defs><circle cx="32" cy="32" r="29" fill="url(#bgr)"/><g clip-path="url(#bcl)"><path d="M32.00 22.80 L32.00 15.60 M39.80 28.47 L46.65 26.24 M36.82 37.63 L41.05 43.46 M27.18 37.63 L22.95 43.46 M24.20 28.47 L17.35 26.24" stroke="#6b716e" stroke-width="1.3" fill="none"/><path d="M32.00 22.80 L39.80 28.47 L36.82 37.63 L27.18 37.63 L24.20 28.47 Z M32.00 15.60 L24.20 9.93 L27.18 0.77 L36.82 0.77 L39.80 9.93 Z M46.65 26.24 L49.63 17.07 L59.26 17.07 L62.24 26.24 L54.44 31.91 Z M41.05 43.46 L50.69 43.46 L53.67 52.63 L45.87 58.29 L38.07 52.63 Z M22.95 43.46 L25.93 52.63 L18.13 58.29 L10.33 52.63 L13.31 43.46 Z M17.35 26.24 L9.56 31.91 L1.76 26.24 L4.74 17.07 L14.37 17.07 Z" fill="#1c1f24" stroke="#1c1f24" stroke-width="1" stroke-linejoin="round"/><circle cx="32" cy="32" r="29" fill="url(#bsh)"/></g><circle cx="32" cy="32" r="29" fill="none" stroke="#141619" stroke-width="2.6"/></svg>
+   <svg class="ballico" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="bgr" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#eceeea"/><stop offset="1" stop-color="#8e9592"/></radialGradient><radialGradient id="bsh" cx="36%" cy="28%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><clipPath id="bcl"><circle cx="32" cy="32" r="29"/></clipPath><linearGradient id="bsg" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#ffe066" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><circle cx="32" cy="32" r="29" fill="url(#bgr)"/><g clip-path="url(#bcl)"><path d="M32.00 22.80 L32.00 15.60 M39.80 28.47 L46.65 26.24 M36.82 37.63 L41.05 43.46 M27.18 37.63 L22.95 43.46 M24.20 28.47 L17.35 26.24" stroke="#6b716e" stroke-width="1.3" fill="none"/><path d="M32.00 22.80 L39.80 28.47 L36.82 37.63 L27.18 37.63 L24.20 28.47 Z M32.00 15.60 L24.20 9.93 L27.18 0.77 L36.82 0.77 L39.80 9.93 Z M46.65 26.24 L49.63 17.07 L59.26 17.07 L62.24 26.24 L54.44 31.91 Z M41.05 43.46 L50.69 43.46 L53.67 52.63 L45.87 58.29 L38.07 52.63 Z M22.95 43.46 L25.93 52.63 L18.13 58.29 L10.33 52.63 L13.31 43.46 Z M17.35 26.24 L9.56 31.91 L1.76 26.24 L4.74 17.07 L14.37 17.07 Z" fill="#1c1f24" stroke="#1c1f24" stroke-width="1" stroke-linejoin="round"/><circle cx="32" cy="32" r="29" fill="url(#bsh)"/></g><g clip-path="url(#bcl)"><g transform="rotate(25 32 32)"><rect class="bshine" x="-38" y="-12" width="20" height="88" fill="url(#bsg)" style="mix-blend-mode:multiply"/><rect class="bshine" x="-34" y="-12" width="8" height="88" fill="url(#bsg)"/></g></g><circle cx="32" cy="32" r="29" fill="none" stroke="#141619" stroke-width="2.6"/><path class="bstar" d="M47 9 L48.4 13.6 L53 15 L48.4 16.4 L47 21 L45.6 16.4 L41 15 L45.6 13.6 Z" fill="#ffe066" style="filter:drop-shadow(0 0 2px #fff)"/></svg>
    <h1 class="logo">FULBITO <em>APP</em></h1>
    <p class="tag">Fútbol arcade de patio y de club · solo o con amigos</p>
   </header>
@@ -391,7 +395,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.63.0';
+const VERSION='1.64.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1646,7 +1650,7 @@ addEventListener('resize',resize);resize();
 // cancha guardada como imagen: en celu igual que siempre; en compu a la resolución real de la pantalla (con tope) para que se vea nítida
 function fieldPPM(M){const mg=fieldMargin(M),wM=M.L+mg*2,hM=M.W+mg*2,old=Math.min(30,2300/wM);if(isTouch)return old;
  const want=G.ppm*DPR,cap=3000/wM;/* tope: más grande cuesta más si el navegador dibuja con el procesador */return Math.max(old,Math.min(want,cap));}
-function makeField(){const M=G.map;if(!M)return;const f=buildField(M,fieldPPM(M));G.field=f;G.stad=M.th&&M.th.lpf?buildStadium(M,M.th.lpf):null;if(G.stad&&window.createImageBitmap){const st=G.stad;createImageBitmap(st.img).then(bm=>{if(G.stad===st)st.img=bm;}).catch(()=>{});}if(window.createImageBitmap)createImageBitmap(f.img).then(bm=>{if(G.field===f)f.img=bm;}).catch(()=>{});}
+function makeField(){const M=G.map;if(!M)return;const f=buildField(M,fieldPPM(M));G.field=f;if(window.createImageBitmap)createImageBitmap(f.img).then(bm=>{if(G.field===f)f.img=bm;}).catch(()=>{});}
 function computePPM(){const M=G.map,mg=fieldMargin(M);
  // cancha vertical: el largo va de abajo (arco propio) hacia arriba
  const fitW=VW/(M.W+mg*2),fitAll=Math.min(fitW,VH/(M.L+mg*2));
@@ -1808,12 +1812,13 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  c.restore();
 }
 // ---- presentación LPF: el estadio entero unos segundos y después un zoom suave hasta la cámara del partido
-function startIntro(){const S=G.stad;if(!S)return;
+function startIntro(){const M0=G.map;if(!M0||!M0.th||!M0.th.lpf)return;G.stad=buildStadium(M0,M0.th.lpf);const S=G.stad;if(!S)return;/* el estadio entero existe solo durante la intro */
  const wide=Math.min(VH/S.wM,VW/S.hM),R=mulberry(hashStr('pap'+G.map.id)),geo=S.geo,cols=['#ffffff','#ffffff','#ffffff',G.kits[0].shirt,kitLook(G.kits[0])];const pap=[];
  for(let i=0;i<600&&pap.length<260;i++){const o=R()*geo.dm*.9,pts=rrPts(geo.Ax+o,geo.Ay+o,geo.rc+o,6),p=pts[Math.floor(R()*pts.length)],b0=[p[0]-p[2]*o,p[1]-p[3]*o];if(o>=geo.depth(b0[0],b0[1])||geo.S.palcos===geo.side(b0[0],b0[1]))continue;pap.push({x:p[0],y:p[1],ph:R()*TAU,c:cols[Math.floor(R()*cols.length)],sz:.35+R()*.35});}
  G.intro={t:0,T1:1.6,T2:1.3,wide,pap};document.body.classList.add('intro');
  try{if(SFX.ac)SFX.cheer();}catch(e){}}
-function endIntro(){G.intro=null;document.body.classList.remove('intro');}
+function endIntro(){G.intro=null;document.body.classList.remove('intro');freeStadium();}
+function freeStadium(){const S=G.stad;if(!S)return;G.stad=null;try{if(S.img.close)S.img.close();else{S.img.width=0;S.img.height=0;}}catch(e){}}// se descarga al terminar la intro: durante el partido solo queda la cancha
 function introPPM(real){const I=G.intro,a=I.wide,b=a*1.05;if(I.t<I.T1)return a*(1+.05*I.t/I.T1);
  const u=Math.min(1,(I.t-I.T1)/I.T2),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;return Math.exp(Math.log(b)+(Math.log(real)-Math.log(b))*e);}
 function introSkip(){const I=G.intro;if(!I)return;if(I.t<I.T1){I.t=I.T1;I.T2=.6;}}
@@ -1861,7 +1866,7 @@ function renderCore(v,dt){
  {const bs=$('#bigScore'),on=v.ph==='goal';if(on&&!bs.classList.contains('on')){const kA=G.kits[0],kB=G.kits[1];bs.innerHTML=`<span class="bt" style="border-bottom:4px solid ${kA.shirt}">${esc(kA.short||'LOC')}</span><span class="bn">${v.sc[0]}</span><span class="bd">-</span><span class="bn">${v.sc[1]}</span><span class="bt" style="border-bottom:4px solid ${kB.shirt}">${esc(kB.short||'VIS')}</span>`;}bs.classList.toggle('on',on);}// resultado grande después del gol
  updateCamera(v,dt);
  const M=G.map,s0=G.ppm,s=s0*1.45,f=G.field;
- ctx.save();ctx.translate(VW/2,VH/2);ctx.rotate(G.flip?Math.PI/2:-Math.PI/2);ctx.imageSmoothingEnabled=true;if(G.stad&&(G.intro||G.cam.x-VH/2/s0<f.ox||G.cam.x+VH/2/s0>f.ox+f.wM||G.cam.y-VW/2/s0<f.oy||G.cam.y+VW/2/s0>f.oy+f.hM)){const f2=G.stad,ex=VH/2/s0+1,ey=VW/2/s0+1,x0=Math.max(f2.ox,G.cam.x-ex),x1=Math.min(f2.ox+f2.wM,G.cam.x+ex),y0=Math.max(f2.oy,G.cam.y-ey),y1=Math.min(f2.oy+f2.hM,G.cam.y+ey);
+ ctx.save();ctx.translate(VW/2,VH/2);ctx.rotate(G.flip?Math.PI/2:-Math.PI/2);ctx.imageSmoothingEnabled=true;if(G.stad&&G.intro){const f2=G.stad,ex=VH/2/s0+1,ey=VW/2/s0+1,x0=Math.max(f2.ox,G.cam.x-ex),x1=Math.min(f2.ox+f2.wM,G.cam.x+ex),y0=Math.max(f2.oy,G.cam.y-ey),y1=Math.min(f2.oy+f2.hM,G.cam.y+ey);
   if(x1>x0&&y1>y0){const k=f2.ppm;ctx.drawImage(f2.img,(x0-f2.ox)*k,(y0-f2.oy)*k,(x1-x0)*k,(y1-y0)*k,(x0-G.cam.x)*s0,(y0-G.cam.y)*s0,(x1-x0)*s0,(y1-y0)*s0);}}
   {// solo la parte visible de la cancha (con la cancha nítida la imagen es grande)
   const ex=VH/2/s0+1,ey=VW/2/s0+1,x0=Math.max(f.ox,G.cam.x-ex),x1=Math.min(f.ox+f.wM,G.cam.x+ex),y0=Math.max(f.oy,G.cam.y-ey),y1=Math.min(f.oy+f.hM,G.cam.y+ey);
