@@ -391,7 +391,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.61.0';
+const VERSION='1.62.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -690,7 +690,7 @@ const FORM={
  11:[['gk',-.95,0],['f',-.64,-.68],['f',-.68,-.24],['f',-.68,.24],['f',-.64,.68],['f',-.24,-.68],['f',-.28,-.22],['f',-.28,.22],['f',-.24,.68],['f',.2,-.22],['f',.2,.22]],
 };
 const AI_RUN=false;// la máquina corre (pique con aguante): apagado por ahora
-const DIFF={facil:{speed:.8,gks:.8,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:.9,gks:.9,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1,gks:1,react:.18,err:.2,tackle:.32,save:.88}};
+const DIFF={facil:{speed:.8,gks:.8,acc:.75,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:.9,gks:.9,acc:.8,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1,gks:1,acc:.85,react:.18,err:.2,tackle:.32,save:.88}};
 
 /* =========================================================
    SIMULACIÓN
@@ -1257,7 +1257,7 @@ class Match{
    else if(p.kb>0){p.kb-=dt;p.vx*=.9;p.vy*=.9;}
    else if(p.slide>0){p.slide-=dt;p.vx*=this.slideK;p.vy*=this.slideK;if(p.slide<=0){p.stun=Math.max(p.stun,.25);p.dive=false;}}
    else{let dvx=p.dvx,dvy=p.dvy;if(p.stun>0){dvx*=.35;dvy*=.35;}
-    const ax=dvx-p.vx,ay=dvy-p.vy,a=len(ax,ay),maxA=34*this.accK*dt;
+    const ax=dvx-p.vx,ay=dvy-p.vy,a=len(ax,ay),maxA=34*this.accK*dt*(p.ctrl==null&&p.role!=='gk'?this.aiFactor(p.team).acc:1);/* la máquina arranca y dobla un poco más pesada */
     if(a>maxA){p.vx+=ax/a*maxA;p.vy+=ay/a*maxA;}else{p.vx=dvx;p.vy=dvy;}}
    p.x+=p.vx*dt;p.y+=p.vy*dt;
    const sp=len(p.vx,p.vy);
