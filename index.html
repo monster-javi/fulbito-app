@@ -391,7 +391,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.60.0';
+const VERSION='1.61.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1170,7 +1170,7 @@ class Match{
   const a=clamp(p.ha*.7+ballA*.45+bias,-.92,.88),y=clamp(p.hy*.9+this.ball.y/this.hw*.22,-.92,.92);
   return[a*this.hl*d,y*this.hw];}
  fieldAI(p,dt){
-  p.aiT-=dt;const b=this.ball,idx=this.idx(p),diff=this.aiFactor(p.team);
+  p.aiT-=dt;const b=this.ball,idx=this.idx(p),diff=this.aiFactor(p.team);if(p.aiSh&&(b.owner!==idx||this.phase!=='play')){p.aiSh=null;p.charge=-1;}
   {/* la máquina también corre (mismo cansancio que las personas): de contra con espacio, a una pelota suelta o apretando al que la lleva */
    const ow=b.owner>=0?this.players[b.owner]:null;let want=false;
    if(b.owner===idx){const d=this.dirOf(p.team);want=!this.players.some(o=>o.team!==p.team&&(o.x-p.x)*d>-.5&&len(o.x-p.x,o.y-p.y)<5);}
@@ -1214,12 +1214,13 @@ class Match{
   let ty=p.y*.82;if(near&&nd<4.5)ty=p.y+(p.y>near.y?1:-1)*4;
   ty=clamp(ty,-this.hw+1,this.hw-1);
   this.setMove(p,gx,ty,this.spd*diff.speed*.96*(p.runK||1));/* la máquina con pelota, mismas reglas que las personas */
+  if(p.aiSh){const a=p.aiSh;a.t+=dt;p.charge=Math.min(1,a.t/.55);/* carga la barra igual que una persona (0,55 s a fondo) */if(p.charge>=a.c){p.aiSh=null;p.charge=-1;this.shoot(p,a.c,false,Math.atan2(a.y-p.y,gx-p.x));}return;}
   if(p.aiT>0)return;p.aiT=diff.react*(.6+Math.random()*.8);
   const ang=Math.atan2(-p.y,gx-p.x);
   if(dist<this.shootRange&&Math.abs(angDiff(d>0?0:Math.PI,ang))<1.05){
    const gk=this.players.find(o=>o.team!==p.team&&o.role==='gk');const side=gk&&gk.y>0?-1:1;
    const aimY=side*this.gw*rnd(.3,.85)+rnd(-1,1)*diff.err*this.gw*.9;
-   const aim=Math.atan2(aimY-p.y,gx-p.x);this.shoot(p,clamp(dist/this.shootRange*.85+.25,.35,1),false,aim);return;}
+   p.aiSh={c:clamp(dist/this.shootRange*.85+.25,.35,1),t:0,y:aimY};p.charge=0;return;}
   if(nd<2.3&&Math.random()<.75&&this.aiPass(p,false,-3))return;
   if(Math.random()<.16)this.aiPass(p,false,3.5);
  }
@@ -1241,7 +1242,7 @@ class Match{
    if(tP<.42&&Math.abs(g)>R0*.95&&Math.abs(g)<R0+2.4&&Math.abs(yP)<this.gw+.8&&Math.random()<.5+diff.react){// se tira hacia donde va la pelota
     const ang=Math.atan2(g,Math.sign(b.x-p.x)*Math.abs(g)*.2);const tt=Math.max(tP,.16);this.gkDiveTo(p,ang,clamp(Math.abs(g)/(tt*.82),5,11),tt+.18);return;}}
   const o=b.owner>=0?this.players[b.owner]:null;
-  if(o&&o.team!==p.team&&distB<this.map.box.d*1.1){tx=gx+(b.x-gx)*.45;ty=b.y*.6;sp=this.spd;}
+  if(o&&o.team!==p.team&&distB<this.map.box.d*1.1){tx=gx+(b.x-gx)*.45;ty=b.y*.6;sp=this.spd*diff.gks;}
   this.setMove(p,tx,ty,sp);p.face=Math.atan2(b.y-p.y,b.x-p.x);
  }
 
