@@ -390,7 +390,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.57.0';
+const VERSION='1.58.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -906,7 +906,7 @@ class Match{
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
   const m=len(inp.mx,inp.my);const tb=p.boost>0&&!own;let sp=this.spd*(tb?1.16:own?.96:1);/* con pelota se va un poco más lento; la adelantada da un turbo corto */if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
-  if(inp.s&&H.stam>0&&m>.15){sp*=tb?125/116:own?110/96:1.16;/* velocidades: sin pelota 100 (corriendo 116) · con pelota 96 (110) · turbo 116 (125) */H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
+  if(inp.s&&H.stam>0&&m>.15){sp*=tb?130/116:own?110/96:1.16;/* velocidades: sin pelota 100 (corriendo 116) · con pelota 96 (110) · turbo 116 (130) */H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
   if(b.owner<0&&b.passTo===idx&&b.lastTeam===p.team&&b.z<1.2){const bv=len(b.vx,b.vy);if(bv>1){/* recepción asistida: se acomoda a la línea de la pelota si no tirás para otro lado */
    const t=clamp(((p.x-b.x)*b.vx+(p.y-b.y)*b.vy)/(bv*bv),0,1.5),qx=b.x+b.vx*t,qy=b.y+b.vy*t,dx=qx-p.x,dy=qy-p.y,dq=len(dx,dy);
