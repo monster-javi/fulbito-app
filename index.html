@@ -390,7 +390,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.55.0';
+const VERSION='1.56.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -698,7 +698,7 @@ class Match{
   this.cfg=cfg;const M=this.map=mapById(cfg.map);
   this.L=M.L;this.W=M.W;this.hl=M.L/2;this.hw=M.W/2;this.gw=M.goalW/2;
   const f=M.fmt;this.np=cfg.np||f;
-  this.spd=f===11?7.1:f===9?6.6:6.1;
+  this.spd=f===11?7.1:f===9?6.6:6.1;this.ownK=f<=5?1:.96;/* con pelota: 100 en fútbol 5, 96 en canchas grandes */
   this.shotMax=f===11?30:f===9?25:21;
   this.shootRange=f===11?25:f===9?17:11.5;
   this.fr0=M.surf==='grass'?2.3:1.9;this.fr1=M.surf==='grass'?.62:.55;
@@ -905,7 +905,7 @@ class Match{
   if(!nx)return;H.swSeen.add(this.idx(nx));this.switchTo(H,nx);H.swCd=1.4;}
  humanInput(p,H,dt){
   const inp=H.inp,prev=H.prev,b=this.ball,idx=this.idx(p),own=b.owner===idx;
-  const m=len(inp.mx,inp.my);let sp=this.spd*(own?.96:1)*(p.boost>0?1.1:1);/* con pelota se va un poco más lento; la adelantada da un turbo corto */if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
+  const m=len(inp.mx,inp.my);let sp=this.spd*(own?this.ownK:1)*(p.boost>0?1.15:1);/* con pelota se va un poco más lento; la adelantada da un turbo corto */if(own&&p.throwIn)sp=0;// con la pelota en las manos para el lateral no se camina
   if(inp.s&&H.stam>0&&m>.15){sp*=own?1.104:1.16;/* correr: +16 % sin pelota, con pelota queda ~106 */H.stam=Math.max(0,H.stam-dt);}else H.stam=Math.min(2.5,H.stam+dt*.5);
   if(m>.15){const k=Math.min(1,m);p.dvx=inp.mx/m*k*sp;p.dvy=inp.my/m*k*sp;p.face=Math.atan2(inp.my,inp.mx);}else{p.dvx=p.dvy=0;}
   if(b.owner<0&&b.passTo===idx&&b.lastTeam===p.team&&b.z<1.2){const bv=len(b.vx,b.vy);if(bv>1){/* recepción asistida: se acomoda a la línea de la pelota si no tirás para otro lado */
@@ -1211,7 +1211,7 @@ class Match{
   for(const o of this.players)if(o.team!==p.team){const ox=(o.x-p.x)*d;if(ox>-.6){const dd=len(o.x-p.x,o.y-p.y);if(dd<nd){nd=dd;near=o;}}}
   let ty=p.y*.82;if(near&&nd<4.5)ty=p.y+(p.y>near.y?1:-1)*4;
   ty=clamp(ty,-this.hw+1,this.hw-1);
-  this.setMove(p,gx,ty,this.spd*diff.speed*.96*(p.runK||1));/* la máquina con pelota, mismas reglas que las personas */
+  this.setMove(p,gx,ty,this.spd*diff.speed*this.ownK*(p.runK||1));/* la máquina con pelota, mismas reglas que las personas */
   if(p.aiT>0)return;p.aiT=diff.react*(.6+Math.random()*.8);
   const ang=Math.atan2(-p.y,gx-p.x);
   if(dist<this.shootRange&&Math.abs(angDiff(d>0?0:Math.PI,ang))<1.05){
