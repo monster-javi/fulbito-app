@@ -391,7 +391,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.62.0';
+const VERSION='1.63.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -690,7 +690,7 @@ const FORM={
  11:[['gk',-.95,0],['f',-.64,-.68],['f',-.68,-.24],['f',-.68,.24],['f',-.64,.68],['f',-.24,-.68],['f',-.28,-.22],['f',-.28,.22],['f',-.24,.68],['f',.2,-.22],['f',.2,.22]],
 };
 const AI_RUN=false;// la máquina corre (pique con aguante): apagado por ahora
-const DIFF={facil:{speed:.8,gks:.8,acc:.75,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:.9,gks:.9,acc:.8,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1,gks:1,acc:.85,react:.18,err:.2,tackle:.32,save:.88}};
+const DIFF={facil:{speed:.8,gks:.8,acc:.75,pow:.75,react:.5,err:.7,tackle:.1,save:.6},normal:{speed:.9,gks:.9,acc:.8,pow:.85,react:.32,err:.4,tackle:.2,save:.79},dificil:{speed:1,gks:1,acc:.85,pow:1,react:.18,err:.2,tackle:.32,save:.88}};
 
 /* =========================================================
    SIMULACIÓN
@@ -1219,8 +1219,9 @@ class Match{
   const ang=Math.atan2(-p.y,gx-p.x);
   if(dist<this.shootRange&&Math.abs(angDiff(d>0?0:Math.PI,ang))<1.05){
    const gk=this.players.find(o=>o.team!==p.team&&o.role==='gk');const side=gk&&gk.y>0?-1:1;
-   const aimY=side*this.gw*rnd(.3,.85)+rnd(-1,1)*diff.err*this.gw*.9;
-   p.aiSh={c:clamp(dist/this.shootRange*.85+.25,.35,1),t:0,y:aimY};p.charge=0;return;}
+   const c=Math.min(clamp(dist/this.shootRange*.85+.25,.35,1),diff.pow),far=dist/this.shootRange;/* potencia máxima según la dificultad */
+   const aimY=side*this.gw*rnd(.3,.85)+rnd(-1,1)*diff.err*this.gw*(.6+3.9*far*far);/* de lejos erra más */
+   p.aiSh={c,t:0,y:aimY};p.charge=0;return;}
   if(nd<2.3&&Math.random()<.75&&this.aiPass(p,false,-3))return;
   if(Math.random()<.16)this.aiPass(p,false,3.5);
  }
