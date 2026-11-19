@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.74.0';
+const VERSION='1.75.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -471,7 +471,7 @@ const KITSETS={
   {id:'mar',name:'Colegio Marianista',short:'MAR',shirt:'#7fb6e6',sleeve:'#7fb6e6',shorts:'#1f2a5a',socks:'#f2f2f2',badge:'#1f2a5a',collar:true},
   {id:'pio',name:'Pío IX',short:'PIO',shirt:'#1f4fa8',sleeve:'#1f4fa8',shorts:'#1b1e26',socks:'#1b1e26',badge:'#ffffff',collar:true},
   {id:'ias',name:'Instituto América del Sur',short:'IAS',shirt:'#f2f2f2',sleeve:'#f2f2f2',shorts:'#1f2a5a',socks:'#f2f2f2',badge:'#1f3b9a',badge2:'#c8102e',collar:true},
-  {id:'isc',name:'Instituto Sagrado Corazón',short:'ISC',shirt:'#c8102e',sleeve:'#c8102e',shorts:'#1b1e26',socks:'#1b1e26',badge:'#ffffff',collar:true},
+  {id:'isc',name:'Instituto Sagrado Corazón',short:'ISC',shirt:'#f4f4f2',sleeve:'#f4f4f2',shorts:'#1f3b7a',socks:'#f4f4f2',badge:'#c8102e',badgeShape:'heart',collar:true},
   {id:'ort',name:'Escuela ORT',short:'ORT',shirt:'#2a6fdb',sleeve:'#2a6fdb',shorts:'#f2f2f2',socks:'#2a6fdb',badge:'#ffffff',collar:true,collarCol:'#8fd3f4'}]},
  pechera:{all:['naranja','amarillo','fluor','celeste','rojo','azul'].map(c=>({id:c,name:NICE[c],short:NICE[c].slice(0,3).toUpperCase().replace('Ú','U'),shirt:COL[c],sleeve:'#f2f2f2',shorts:'#2b3344',socks:'#ececec',bib:true}))},
 };
@@ -483,11 +483,11 @@ const ITA_BLANCO={id:'ita-blanco',ita:true,name:'Italiano Blanco',short:'ITA',sh
 const CLUB_RIVALS={
  madre:{name:'Madre del Pueblo',short:'MDP',shirt:'#f3f3f0',sleeve:'#1f3b7a',shorts:'#1f3b7a',socks:'#f3f3f0'},
  regatasc:{name:'Regatas Celeste',short:'RGC',shirt:'#6cc4f0',sleeve:'#6cc4f0',shorts:'#f3f3f0',socks:'#6cc4f0'},
- regatas:{name:'Regatas de Avellaneda',short:'REG',shirt:'#1f3b7a',sleeve:'#1f3b7a',shorts:'#f3f3f0',socks:'#1f3b7a',sash:'#6cc4f0'},
- caballito:{name:'Caballito',short:'CAB',shirt:'#f7d21c',sleeve:'#f7d21c',shorts:'#18181b',socks:'#f7d21c'},
+ regatas:{name:'Regatas de Avellaneda',short:'REG',shirt:'#6cc4f0',sleeve:'#c8102e',shorts:'#f3f3f0',socks:'#6cc4f0',hoop:'#c8102e',hoopEdge:'#ffffff',tri:true,badge:'#6cc4f0',badgeSide:'r'},// rojo 30 %, blanco fino 10 %, celeste; escudo celeste a la izquierda
+ caballito:{name:'Caballito',short:'CAB',shirt:'#6a2c91',sleeve:'#6a2c91',shorts:'#18181b',socks:'#6a2c91',stripes:'#18181b'},// rayas violetas y negras
  cabnaranja:{name:'Caballito Naranja',short:'CAN',shirt:'#f77f00',sleeve:'#f77f00',shorts:'#18181b',socks:'#f77f00'},
  cabazul:{name:'Caballito Azul',short:'CAZ',shirt:'#2457d6',sleeve:'#2457d6',shorts:'#f3f3f0',socks:'#2457d6'},
- solis:{name:'Solís F.C.',short:'SOL',shirt:'#f3f3f0',sleeve:'#7a1f2b',shorts:'#7a1f2b',socks:'#f3f3f0'},
+ solis:{name:'Solís F.C.',short:'SOL',shirt:'#7d7488',sleeve:'#7d7488',shorts:'#2f2b36',socks:'#7d7488',center:'#c8102e'},// gris violáceo con una raya roja vertical en el medio
  union:{name:'Unión F.C.',short:'UNI',shirt:'#c8102e',sleeve:'#f3f3f0',shorts:'#f3f3f0',socks:'#c8102e'},
 };
 for(const k in CLUB_RIVALS)CLUB_RIVALS[k].id=k;
@@ -1867,7 +1867,8 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
   if(kit.half){g.fillStyle=kit.half;g.fillRect(-.2*s,0,.4*s,.32*s);}
   if(kit.stripes){g.fillStyle=kit.stripes;const ys=kit.thin?[-.24,-.16,-.08,0,.08,.16,.24]:[-.21,-.07,.07,.21],w=(kit.thin?.022:.07)*s;for(const y of ys)g.fillRect(-.2*s,y*s-w/2,.4*s,w);}// rayas verticales: de pecho a espalda
   if(kit.center){g.fillStyle=kit.center;g.fillRect(-.2*s,-.06*s,.4*s,.12*s);}
-  if(kit.hoop){g.fillStyle=kit.hoop;const xs=(kit.hoops||1)>1?[-.08,.07]:[.02],w=((kit.hoops||1)>1?.055:.1)*s;for(const x of xs)g.fillRect(x*s-w/2,-.32*s,w,.64*s);}// franja horizontal que cruza el pecho
+  if(kit.tri){g.fillStyle=kit.hoop;g.fillRect(-.2*s,-.32*s,.27*s,.64*s);g.fillStyle=kit.hoopEdge;g.fillRect(.07*s,-.32*s,.035*s,.64*s);}
+  else if(kit.hoop){g.fillStyle=kit.hoop;const xs=(kit.hoops||1)>1?[-.08,.07]:[.02],w=((kit.hoops||1)>1?.055:.1)*s;for(const x of xs)g.fillRect(x*s-w/2,-.32*s,w,.64*s);}// franja horizontal que cruza el pecho
   if(kit.vee){g.strokeStyle=kit.vee;g.lineWidth=.06*s;g.lineCap='butt';g.beginPath();g.moveTo(-.04*s,-.27*s);g.lineTo(.15*s,0);g.lineTo(-.04*s,.27*s);g.stroke();}
   const sg=g.createLinearGradient(.15*s,-.25*s,-.15*s,.3*s);sg.addColorStop(0,'rgba(255,255,255,.18)');sg.addColorStop(.55,'rgba(0,0,0,0)');sg.addColorStop(1,'rgba(0,0,0,.22)');g.fillStyle=sg;g.fillRect(-.2*s,-.32*s,.4*s,.64*s);g.restore();
   g.strokeStyle=OL;g.lineWidth=Math.max(1,.025*s);g.beginPath();g.ellipse(0,0,.18*s,.3*s,0,0,TAU);g.stroke();}
@@ -1876,7 +1877,8 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  if(!kit.bib&&s>15){g.save();g.translate(-.085*s,0);g.rotate(Math.PI/2);g.font=`900 ${.16*s}px Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';
   g.fillStyle=colDist(sh,'#ffffff')<200?'rgba(20,24,32,.85)':'rgba(255,255,255,.9)';g.fillText(String(isGK?1:idx+1),0,0);g.restore();}
  if(kit.collar&&!isGK){g.lineWidth=.03*s;g.strokeStyle=kit.collarCol||'#f4f4f4';g.beginPath();g.arc(-.01*s,0,.155*s,-1.3,1.3);g.stroke();g.strokeStyle=kit.badge||'#e3c41b';g.lineWidth=.015*s;g.beginPath();g.arc(-.01*s,0,.175*s,-1.2,1.2);g.stroke();}
- if(kit.badge&&!isGK&&s>10){const by=kit.badgePos==='center'?0:-.15,bx=kit.badgePos==='center'?.07:.05;g.strokeStyle=kit.badge;g.lineWidth=Math.max(1,.018*s);g.beginPath();g.arc(bx*s,by*s,.045*s,0,TAU);g.stroke();
+ if(kit.badge&&!isGK&&s>10&&kit.badgeShape==='heart'){const bx=.05*s,by=(kit.badgeSide==='r'?.15:-.15)*s,h=.055*s;g.fillStyle=kit.badge;g.beginPath();g.arc(bx-h*.2,by-h*.3,h*.36,0,TAU);g.arc(bx-h*.2,by+h*.3,h*.36,0,TAU);g.fill();g.beginPath();g.moveTo(bx-h*.25,by-h*.62);g.lineTo(bx+h*.75,by);g.lineTo(bx-h*.25,by+h*.62);g.closePath();g.fill();}// corazón
+ else if(kit.badge&&!isGK&&s>10){const by=kit.badgePos==='center'?0:kit.badgeSide==='r'?.15:-.15,bx=kit.badgePos==='center'?.07:.05;g.strokeStyle=kit.badge;g.lineWidth=Math.max(1,.018*s);g.beginPath();g.arc(bx*s,by*s,.045*s,0,TAU);g.stroke();
   if(kit.badge2){g.fillStyle=kit.badge2;g.beginPath();g.arc(bx*s,by*s,.022*s,0,TAU);g.fill();}}
  if(kit.crest&&!isGK&&s>11){const x=.04*s,y=-.15*s,w=.035*s,h=.09*s;g.fillStyle='#138a3f';g.fillRect(x,y,w,h);g.fillStyle='#fff';g.fillRect(x+w,y,w,h);g.fillStyle='#c8102e';g.fillRect(x+w*2,y,w,h);g.strokeStyle='#ffd23f';g.lineWidth=.012*s;g.strokeRect(x,y,w*3,h);}
   });c.drawImage(e.c,-B,-B,2*B,2*B);}
@@ -2342,6 +2344,7 @@ function thumb(M){if(THUMBS[M.id])return THUMBS[M.id];const f=buildField(M,Math.
  try{THUMBS[M.id]=c.toDataURL('image/png');}catch(e){THUMBS[M.id]='';}return THUMBS[M.id];}
 function kitBg(k){const a=k.shirt;// fondo de la ficha del jugador con el dibujo de la camiseta
  if(k.half)return`linear-gradient(90deg,${a} 50%,${k.half} 50%)`;
+ if(k.tri)return`linear-gradient(180deg,${k.hoop} 0 30%,${k.hoopEdge} 30% 40%,${a} 40%)`;
  if(k.stripes)return k.thin?`repeating-linear-gradient(90deg,${a} 0 3px,${k.stripes} 3px 4px)`:`repeating-linear-gradient(90deg,${a} 0 4px,${k.stripes} 4px 7px)`;
  if(k.center)return`linear-gradient(90deg,${a} 36%,${k.center} 36% 64%,${a} 64%)`;
  if(k.hoop)return(k.hoops||1)>1?`linear-gradient(180deg,${a} 25%,${k.hoop} 25% 38%,${a} 38% 62%,${k.hoop} 62% 75%,${a} 75%)`:`linear-gradient(180deg,${a} 38%,${k.hoop} 38% 62%,${a} 62%)`;
@@ -2350,12 +2353,13 @@ function kitBg(k){const a=k.shirt;// fondo de la ficha del jugador con el dibujo
 function kitSVG(k){return`<svg viewBox="0 0 40 46"><path d="M10 4 L16 2 Q20 6 24 2 L30 4 L38 12 L33 17 L30 14 L30 28 L10 28 L10 14 L7 17 L2 12 Z" fill="${k.shirt}" stroke="#0006" stroke-width="1.2"/>`+
  (k.sleeve&&k.sleeve!==k.shirt?`<path d="M2 12 L7 17 L10 14 L10 6 Z M38 12 L33 17 L30 14 L30 6 Z" fill="${k.sleeve}"/>`:'')+
  (k.half?`<path d="M20 5.5 Q22 4.5 24 2 L30 4 L38 12 L33 17 L30 14 L30 28 L20 28 Z" fill="${k.half}"/>`:'')+
+ (k.tri?`<path d="M10 4 L16 2 Q20 6 24 2 L30 4 L30 9.8 L10 9.8 Z" fill="${k.hoop}"/><rect x="10" y="9.8" width="20" height="2.6" fill="${k.hoopEdge}"/>`:'')+
  (k.stripes?(k.thin?`<g fill="${k.stripes}">${[12,15,18,21,24,27].map(x=>`<rect x="${x}" y="3" width="1" height="25"/>`).join('')}</g>`:`<g fill="${k.stripes}"><rect x="12" y="2" width="3" height="26"/><rect x="18.5" y="3" width="3" height="25"/><rect x="25" y="2" width="3" height="26"/></g>`):'')+
- (k.hoop?((k.hoops||1)>1?`<g fill="${k.hoop}"><rect x="10" y="9" width="20" height="3"/><rect x="10" y="17" width="20" height="3"/></g>`:`<rect x="10" y="12" width="20" height="5" fill="${k.hoop}"/>`):'')+
+ (k.hoop&&!k.tri?((k.hoops||1)>1?`<g fill="${k.hoop}"><rect x="10" y="9" width="20" height="3"/><rect x="10" y="17" width="20" height="3"/></g>`:`<rect x="10" y="12" width="20" height="5" fill="${k.hoop}"/>`):'')+
  (k.vee?`<path d="M11 4 L20 16 L29 4" fill="none" stroke="${k.vee}" stroke-width="3"/>`:'')+
  (k.center?`<rect x="17" y="3.5" width="6" height="24.5" fill="${k.center}"/>`:'')+
  (k.sash?`<path d="M29 5 L12 27" stroke="${k.sash}" stroke-width="5"/>`:'')+
- (k.badge?`<circle cx="${k.badgePos==='center'?20:25.5}" cy="${k.badgePos==='center'?13:11}" r="3" fill="none" stroke="${k.badge}" stroke-width="1.3"/>`+(k.badge2?`<circle cx="${k.badgePos==='center'?20:25.5}" cy="${k.badgePos==='center'?13:11}" r="1.4" fill="${k.badge2}"/>`:''):'')+(k.collar?`<path d="M16 2 Q20 6.5 24 2" fill="none" stroke="${k.collarCol||'#fff'}" stroke-width="2.2"/><path d="M16 2 Q20 6.5 24 2" fill="none" stroke="#e3c41b" stroke-width="1"/>`:'')+
+ (k.badge&&k.badgeShape==='heart'?`<path d="M25.5 14 L22.6 11 A1.6 1.6 0 0 1 25.5 8.9 A1.6 1.6 0 0 1 28.4 11 Z" fill="${k.badge}"/>`:k.badge?`<circle cx="${k.badgePos==='center'?20:k.badgeSide==='r'?14.5:25.5}" cy="${k.badgePos==='center'?13:k.tri?6.6:11}" r="${k.tri?2.4:3}" fill="none" stroke="${k.badge}" stroke-width="1.3"/>`+(k.badge2?`<circle cx="${k.badgePos==='center'?20:k.badgeSide==='r'?14.5:25.5}" cy="${k.badgePos==='center'?13:11}" r="1.4" fill="${k.badge2}"/>`:''):'')+(k.collar?`<path d="M16 2 Q20 6.5 24 2" fill="none" stroke="${k.collarCol||'#fff'}" stroke-width="2.2"/><path d="M16 2 Q20 6.5 24 2" fill="none" stroke="${k.badge||'#e3c41b'}" stroke-width="1"/>`:'')+
  (k.crest?`<rect x="22.5" y="8" width="2" height="5" fill="#138a3f"/><rect x="24.5" y="8" width="2" height="5" fill="#fff"/><rect x="26.5" y="8" width="2" height="5" fill="#c8102e"/>`:'')+
  `<rect x="10" y="28" width="20" height="8" fill="${k.shorts}" stroke="#0006" stroke-width="1"/><rect x="11" y="37" width="6" height="8" rx="1" fill="${k.socks}" stroke="#0005"/><rect x="23" y="37" width="6" height="8" rx="1" fill="${k.socks}" stroke="#0005"/></svg>`;}
 function mapCard(m,sel,attr,ro,title,sub){return`<button class="card ${sel?'sel':''}" ${attr} ${ro?'disabled tabindex="-1"':''}><div class="thw"><img class="th" src="${thumb(m)}" alt=""><span class="fmt">F${m.fmt}</span></div><div class="ti"><b>${esc(title||m.name)}</b><small>${esc(sub||m.sub)}</small></div></button>`;}
