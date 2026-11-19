@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.75.0';
+const VERSION='1.76.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -526,7 +526,7 @@ const LIDE_ZONES={blanco:LIDE_RIVALS,
   lr('trovbl','Círculo Trovador Blanco','TRO','#f3f3f0','#2457d6','#f3f3f0'),lr('arqui','Arquitectura Rojo','ARQ','#c8102e','#18181b','#c8102e'),lr('vilod','Vilo "D"','VIL','#f3f3f0','#c8102e','#169447',{sleeve:'#c8102e',field:'nat'}),
   lr('galicia','Centro Galicia Azul','GAL','#1f5fbf','#f3f3f0','#1f5fbf'),lr('bancob','Banco Ciudad Blanco','BCB','#f3f3f0','#18181b','#f3f3f0')],
  verde:[lr('argjps','Argentinos Jr. "J.P. Sorín"','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),RIVER('riverrd','R. Díaz'),lr('libce','Libertador F.C. Celeste','LIB','#6cc4f0','#18181b','#6cc4f0'),
-  lr('asturam','Centro Asturiano Amarillo','AST','#f7d21c','#1f5fbf','#f7d21c'),lr('afalpv','Afalp','AFA','#169447','#f3f3f0','#169447'),lr('regrojo','Regatas Rojo','REG','#c8102e','#f3f3f0','#c8102e',{field:'nat'}),
+  lr('asturam','Centro Asturiano Amarillo','AST','#f7d21c','#1f5fbf','#f7d21c'),lr('afalpv','Afalp','AFA','#169447','#f3f3f0','#169447'),lr('regrojo','Regatas Rojo','REG','#6cc4f0','#f3f3f0','#6cc4f0',{field:'nat',sleeve:'#c8102e',hoop:'#c8102e',hoopEdge:'#ffffff',tri:true,badge:'#6cc4f0',badgeSide:'r'}),
   lr('sitas','Sitas Verde','SIT','#169447','#f3f3f0','#169447',{field:'nat'}),lr('argng','Argentinos Jr. "N. González"','ARG','#d7263d','#f3f3f0','#d7263d',{field:'nat'}),lr('molinos','Los Molinos','MOL','#1f3b9a','#1f3b9a','#c8102e',{sleeve:'#c8102e'}),
   lr('bancoa','Banco Ciudad Azul','BCA','#2457d6','#18181b','#2457d6'),lr('banfield','C.A. Banfield Blanco','BAN','#f3f3f0','#f3f3f0','#138a3f',{sleeve:'#138a3f',field:'nat'})]};
 const LIDE_TEAMS=[['blanco','Italiano Blanco'],['rojo','Italiano Rojo'],['azul','Italiano Azul'],['verde','Italiano Verde']];
