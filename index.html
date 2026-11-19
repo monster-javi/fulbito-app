@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.76.0';
+const VERSION='1.77.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1853,11 +1853,11 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  if(p.thr){// lateral: brazos arriba, la pelota sobre la cabeza (las manos se dibujan encima de la pelota)
   for(const sd of[-1,1]){c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(-.02*s,sd*.17*s);c.stroke();
    c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(0,sd*.26*s,.1*s,0,TAU);c.fill();c.stroke();}}
- else for(const sd of[-1,1]){const ax=p.cel?-.04+Math.sin(ph)*.05*sd:p.push?.5:p.slide?-.22:-sw*sd*.75,ay=p.cel?.62:p.push?.2:.35;// festejo: corre con los brazos abiertos (avioncito)
+ else for(const sd of[-1,1]){const hd=p.hold&&isGK,ax=hd?.34:p.cel?-.04+Math.sin(ph)*.05*sd:p.push?.5:p.slide?-.22:-sw*sd*.75,ay=hd?.16:p.cel?.62:p.push?.2:.35;// arquero con la pelota en las manos: brazos adelante, abrazándola// festejo: corre con los brazos abiertos (avioncito)
   c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.strokeStyle=skin;c.lineWidth=.085*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(ax*.22*s,sd*.27*s,.1*s,0,TAU);c.fill();c.stroke();
-  c.fillStyle=isGK?gk.gloves:skin;c.beginPath();c.arc(ax*s,sd*(ay+.01)*s,(isGK?.085:.058)*s,0,TAU);c.fill();c.stroke();}
+  if(!hd){c.fillStyle=isGK?gk.gloves:skin;c.beginPath();c.arc(ax*s,sd*(ay+.01)*s,(isGK?.085:.058)*s,0,TAU);c.fill();c.stroke();}}
  // torso con volumen (guardado como imagen)
  {const num=isGK?1:idx+1,key=`T|${sh}|${isGK?1:0}|${num}|${s.toFixed(2)}|${isGK?'':kitSig(kit)}`,B=.42*s;
   const e=SPR.get(key,2*B,2*B,2,g=>{g.translate(B,B);g.lineCap='round';g.lineJoin='round';
@@ -1971,7 +1971,7 @@ function renderCore(v,dt){
    ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
  // pelota (sombra)
  const[bx,by]=w2s(v.b.x,v.b.y);{const zz=v.b.z,a=zz<.3?.38:Math.max(.14,.3-zz*.03),k=1+Math.min(zz,4)*.06;ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.beginPath();ctx.ellipse(bx+.06*s+zz*.25*s0,by+.08*s+zz*.15*s0,.2*s*k,.11*s*k,0,0,TAU);ctx.fill();}// sombrita (también con la pelota en el piso)
- const thrI=v.P.findIndex(p=>p.thr),ballLow=v.b.z<.35&&thrI<0;
+ const thrI=v.P.findIndex(p=>p.thr),holdI=v.P.findIndex(p=>p.hold),ballLow=v.b.z<.35&&thrI<0&&holdI<0;
  if(ballLow)drawBall(bx,by,v.b.z,s);
  for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
   drawPlayer(ctx,s,p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}
@@ -1994,7 +1994,9 @@ function renderCore(v,dt){
    ctx.save();ctx.translate(cx,cy);drawPlayer(ctx,s,{dir:opp?-Math.PI/2:Math.PI/2,slide:false,down:false,push:false},tr,G.gk[t],40+t,{spd:0,run:0},false,t);ctx.restore();
    const dn=G.dts&&G.dts[t];ctx.font='800 11px Inter, sans-serif';ctx.textAlign='center';const lab=G.intro?'':dn?'DT '+dn:'DT';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(lab,cx+1,cy-.62*s-5);ctx.fillStyle='#fff';ctx.fillText(lab,cx,cy-.62*s-6);}}
  if(G.cmode==='lpf')drawLPFExtras(v,dt,s);
- if(!ballLow)drawBall(bx,by,v.b.z,s);
+ if(!ballLow){const zh=holdI>=0?.2:v.b.z;drawBall(bx,by,zh,s);
+  if(holdI>=0){const P=v.P[holdI],gk=G.gk[G.roster[holdI].team],yl=zh*.55*s/1.45;// guantes encima de la pelota: se nota que la tiene en las manos
+   for(const sd of[-1,1]){const[gx,gy]=w2s(v.b.x+Math.cos(P.dir+sd*Math.PI/2)*.17,v.b.y+Math.sin(P.dir+sd*Math.PI/2)*.17);ctx.fillStyle=gk.gloves;ctx.strokeStyle='rgba(0,0,0,.55)';ctx.lineWidth=Math.max(1,.015*s);ctx.beginPath();ctx.arc(gx,gy-yl,.085*s,0,TAU);ctx.fill();ctx.stroke();}}}
  netOver(v.b,s0,s);
  if(thrI>=0){const p=v.P[thrI],r=G.roster[thrI],[x,y]=w2s(p.x,p.y),skin=SKINS[(r.i*7+r.team*3)%SKINS.length];// manos agarrando la pelota del lateral
   ctx.save();ctx.translate(x,y);ctx.rotate(p.dir-Math.PI/2+(G.flip?Math.PI:0));ctx.fillStyle=skin;ctx.strokeStyle=OL;ctx.lineWidth=Math.max(1,.015*s);
