@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.82.0';
+const VERSION='1.83.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1439,7 +1439,7 @@ if(p.role==='gk'&&this.inOwnBox(p))continue;
 /* =========================================================
    CANCHAS (dibujo)
    ========================================================= */
-function fieldMargin(M){return M.walls?1.6:M.four?4.8:(M.fmt===11?6:3.6);}
+function fieldMargin(M){return M.walls?1.6:M.four?5.6:(M.fmt===11?6:3.6);}
 // ---- estadios de la LPF vistos desde arriba (se dibujan una sola vez como imagen: no cuestan rendimiento)
 // rr: rectángulo redondeado alrededor de la cancha; d = profundidad de cada tribuna (xN/xP cabeceras, yN/yP laterales)
 const LPF_STAD={
@@ -1590,9 +1590,12 @@ function drawGrass(g,M,mg,R){
   if(n===1)for(let i=0;i<9;i++){const x=-hl-mg+2+i*(M.L+2*mg-4)/8+rnd2(R,-1,1),y=-hw-mg+.95;g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.arc(x+.6,y+.4,1.2,0,TAU);g.fill();g.fillStyle=R()<.5?'#2f6b2a':'#3b7d30';g.beginPath();g.arc(x,y,1.2,0,TAU);g.fill();}// árboles al costado de la 1
   {const fx=hl+1.6,y0=n===1?-FY:-hw-mg,y1=n===4?FY:hw+mg;g.fillStyle='rgba(8,20,14,.55)';g.fillRect(-hl-mg,y0,mg-1.6,y1-y0);g.fillRect(fx,y0,mg-1.6,y1-y0);g.strokeStyle='rgba(210,225,218,.75)';g.lineWidth=.09;for(const s of[-1,1]){g.beginPath();g.moveTo(s*fx,y0);g.lineTo(s*fx,y1);g.stroke();}}// alambrado en las cabeceras
   if(n===2||n===3){const cl=['#5b5f66','#6e6a63','#4f5a66','#7a6f62','#3f4650','#6a5a58','#8a3b3b','#2f5a8a'],wc=n===2?['#3d2718','#4a3020']:['#5a3c24','#6b4a2e'],GW=8,D=.55;// gradita de 4 tablones de madera (8 m) atrás de cada arco, con gente sentada
-   for(const sx of[-1,1]){const yc=rnd2(R,-1.5,1.5);g.fillStyle='rgba(0,0,0,.28)';g.fillRect(sx>0?hl+1.75:-(hl+1.75+4*D)-.15,yc-GW/2+.15,4*D+.15,GW);
-    for(let t=0;t<4;t++){const x=sx*(hl+1.75+t*D+D/2);g.fillStyle=wc[t%2];g.fillRect(x-D/2,yc-GW/2,D,GW);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x+sx*(D/2-.03)-.025,yc-GW/2,.05,GW);g.fillStyle='rgba(255,255,255,.06)';g.fillRect(x-D/2,yc-GW/2,D,.06);}// tablones en escalera
-    for(let t=0;t<4;t++){const x=sx*(hl+1.75+t*D+D/2);for(let y=yc-GW/2+.35;y<yc+GW/2-.2;y+=.78){if(R()<.4)continue;drawPerson(g,x,y+rnd2(R,-.06,.06),sx>0?Math.PI:0,{s:1.2,body:cl[Math.floor(R()*cl.length)],skin:SKINS[Math.floor(R()*SKINS.length)],hair:['#2a1c12','#4a2f1a','#7a5230','#c9a25e','#1a1a1a'][Math.floor(R()*5)],longHair:R()<.4});}}}}
+   for(const sx of[-1,1]){const yc=rnd2(R,-1.5,1.5);g.fillStyle='rgba(0,0,0,.28)';g.fillRect(sx>0?hl+2.6:-(hl+2.6+4*D)-.15,yc-GW/2+.15,4*D+.15,GW);
+    for(let t=0;t<4;t++){const x=sx*(hl+2.6+t*D+D/2);g.fillStyle=wc[t%2];g.fillRect(x-D/2,yc-GW/2,D,GW);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x+sx*(D/2-.03)-.025,yc-GW/2,.05,GW);g.fillStyle='rgba(255,255,255,.06)';g.fillRect(x-D/2,yc-GW/2,D,.06);}// tablones en escalera
+    const few=sx<0,seats=[];for(let t=0;t<4;t++)for(let y=yc-GW/2+.35;y<yc+GW/2-.2;y+=.78)seats.push([t,y]);const pick=few?seats.sort(()=>R()-.5).slice(0,3+Math.floor(R()*2)):seats.filter(()=>R()>=.4);// abajo, poca gente
+    for(const[t,y]of pick){const x=sx*(hl+2.6+t*D+D/2);{drawPerson(g,x,y+rnd2(R,-.06,.06),sx>0?Math.PI:0,{s:1.2,body:cl[Math.floor(R()*cl.length)],skin:SKINS[Math.floor(R()*SKINS.length)],hair:['#2a1c12','#4a2f1a','#7a5230','#c9a25e','#1a1a1a'][Math.floor(R()*5)],longHair:R()<.4});}}
+    if(few){const bc=['#2457d6','#d7263d','#169447','#f7d21c','#ffffff'];for(let k=0;k<5;k++){const t=Math.floor(R()*4),x=sx*(hl+2.6+t*D+D/2)+rnd2(R,-.15,.15),y=yc+rnd2(R,-GW/2+.4,GW/2-.4);g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.arc(x+.05,y+.06,.1,0,TAU);g.fill();g.fillStyle='rgba(190,225,245,.9)';g.beginPath();g.arc(x,y,.1,0,TAU);g.fill();g.fillStyle=bc[k];g.beginPath();g.arc(x,y,.055,0,TAU);g.fill();}// botellitas en la grada
+     for(const k of R()<.5?[1]:[-1,1]){const tx=-(hl+4.5),ty=yc+k*(GW/2+3);g.fillStyle='rgba(0,0,0,.28)';g.beginPath();g.arc(tx+.9,ty+.7,2.3,0,TAU);g.fill();g.fillStyle='#2f6b2a';g.beginPath();g.arc(tx,ty,2.3,0,TAU);g.fill();g.fillStyle='rgba(80,150,60,.55)';g.beginPath();g.arc(tx-.6,ty-.5,1.6,0,TAU);g.fill();}}}}// uno o dos árboles grandes cerca de la grada de abajo
   const bot=(x,y,c)=>{g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.arc(x+.05,y+.06,.1,0,TAU);g.fill();g.fillStyle='rgba(190,225,245,.9)';g.beginPath();g.arc(x,y,.1,0,TAU);g.fill();g.fillStyle=c;g.beginPath();g.arc(x,y,.055,0,TAU);g.fill();};
   const cs=['#2457d6','#d7263d','#169447','#f7d21c','#7b2cbf','#f77f00','#ffffff','#6cc4f0'];
   for(const sy of[-1,1])for(const xc of[-11,-4.5,5,12]){const k=2+Math.floor(R()*4);for(let j=0;j<k;j++)bot(xc+j*.27+rnd2(R,-.05,.05),sy*(hw+.5)+rnd2(R,-.18,.18),cs[Math.floor(R()*cs.length)]);}// botellitas de agua de los chicos
