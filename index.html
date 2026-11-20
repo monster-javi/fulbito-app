@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.84.0';
+const VERSION='1.85.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1804,7 +1804,7 @@ function setupView(cfg,roster){
   if(G.weather==='mojada')for(let i=0;i<90;i++)G.rain.push({x:Math.random(),y:Math.random(),v:.6+Math.random()*.5});}G.gk=[gkKitFor(kA,kB,0),gkKitFor(kB,kA,1)];
  G.roster=roster;G.vis=roster.map(()=>({run:0,spd:0,x:null,y:null}));
  freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
- G.cam.x=0;G.cam.y=0;G.ended=false;G.snaps=[];G.ballPrev=null;G.lin=null;G.ph=null;G.watch=makeWatchers(G.map);if(G.intro)endIntro();if(G.cmode==='lpf'&&G.mode==='solo')startIntro();
+ G.cam.x=0;G.cam.y=0;G.ended=false;G.snaps=[];G.ballPrev=null;G.lin=null;G.ph=null;{const ct=cfg&&cfg.mode==='club'?cfg.cat:null;G.kidK=ct==='semillitas'?.76:ct==='cebollitas'?.87:1;G.kidH=ct==='semillitas'?1.22:ct==='cebollitas'?1.1:1;}// chicos más chicos: cuerpo más chico y cabeza proporcionalmente más grandeG.watch=makeWatchers(G.map);if(G.intro)endIntro();if(G.cmode==='lpf'&&G.mode==='solo')startIntro();
  $('#swA').style.background=kA.shirt;$('#swB').style.background=kB.shirt;$('#nA').textContent=kA.short;$('#nB').textContent=kB.short;
  $('#sA').textContent='0';$('#sB').textContent='0';
  showGameUI(true);
@@ -1912,11 +1912,11 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  if(kit.crest&&!isGK&&s>11){const x=.04*s,y=-.15*s,w=.035*s,h=.09*s;g.fillStyle='#138a3f';g.fillRect(x,y,w,h);g.fillStyle='#fff';g.fillRect(x+w,y,w,h);g.fillStyle='#c8102e';g.fillRect(x+w*2,y,w,h);g.strokeStyle='#ffd23f';g.lineWidth=.012*s;g.strokeRect(x,y,w*3,h);}
   });c.drawImage(e.c,-B,-B,2*B,2*B);}
  // cabeza: orejas, pelo con brillo, cara (guardada como imagen, una por jugador)
- {const B=.2*s,e=SPR.get(`H|${skin}|${hair}|${s.toFixed(2)}`,2*B,2*B,2,g=>{g.translate(B,B);
-  g.fillStyle=skin;g.strokeStyle=OL;g.lineWidth=Math.max(1,.015*s);for(const sd of[-1,1]){g.beginPath();g.arc(.01*s,sd*.125*s,.035*s,0,TAU);g.fill();g.stroke();}
-  g.fillStyle=hair;g.beginPath();g.arc(-.015*s,0,.135*s,0,TAU);g.fill();g.stroke();
-  g.fillStyle='rgba(255,255,255,.16)';g.beginPath();g.ellipse(-.04*s,-.04*s,.06*s,.04*s,-.6,0,TAU);g.fill();
-  g.fillStyle=skin;g.beginPath();g.ellipse(.08*s,0,.05*s,.088*s,0,0,TAU);g.fill();});
+ {const sH=s*(G.kidHead||1),B=.2*sH,e=SPR.get(`H|${skin}|${hair}|${sH.toFixed(2)}`,2*B,2*B,2,g=>{g.translate(B,B);
+  g.fillStyle=skin;g.strokeStyle=OL;g.lineWidth=Math.max(1,.015*sH);for(const sd of[-1,1]){g.beginPath();g.arc(.01*sH,sd*.125*sH,.035*sH,0,TAU);g.fill();g.stroke();}
+  g.fillStyle=hair;g.beginPath();g.arc(-.015*sH,0,.135*sH,0,TAU);g.fill();g.stroke();
+  g.fillStyle='rgba(255,255,255,.16)';g.beginPath();g.ellipse(-.04*sH,-.04*sH,.06*sH,.04*sH,-.6,0,TAU);g.fill();
+  g.fillStyle=skin;g.beginPath();g.ellipse(.08*sH,0,.05*sH,.088*sH,0,0,TAU);g.fill();});
   c.drawImage(e.c,-B,-B,2*B,2*B);}
  c.restore();
 }
@@ -2015,15 +2015,15 @@ function renderCore(v,dt){
  const order=v.P.map((p,i)=>i).sort((a,b)=>v.P[a].y-v.P[b].y);
  // sombras + anillos
  for(const i of order){const p=v.P[i];const[x,y]=w2s(p.x,p.y);
-  ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*s,y+.13*s,.36*s,.28*s,0,0,TAU);ctx.fill();
+  {const sk=s*(G.kidK||1);ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*sk,y+.13*sk,.36*sk,.28*sk,0,0,TAU);ctx.fill();}
   if(p.ctrl!=null){const me=p.ctrl===G.myHid;const r=G.roster[i];const HMr=(G.match?G.match.homes:G.homes)||{};if(me&&HMr[p.ctrl]===i){ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,.62*s,.52*s,0,0,TAU);ctx.stroke();}
    ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
  // pelota (sombra)
  const[bx,by]=w2s(v.b.x,v.b.y);{const zz=v.b.z,a=zz<.3?.38:Math.max(.14,.3-zz*.03),k=1+Math.min(zz,4)*.06;ctx.fillStyle=`rgba(0,0,0,${a})`;ctx.beginPath();ctx.ellipse(bx+.06*s+zz*.25*s0,by+.08*s+zz*.15*s0,.2*s*k,.11*s*k,0,0,TAU);ctx.fill();}// sombrita (también con la pelota en el piso)
  const thrI=v.P.findIndex(p=>p.thr),holdI=v.P.findIndex(p=>p.hold),ballLow=v.b.z<.35&&thrI<0&&holdI<0;
  if(ballLow)drawBall(bx,by,v.b.z,s);
- for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
-  drawPlayer(ctx,s,p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}
+ G.kidHead=G.kidH||1;for(const i of order){const p=v.P[i],r=G.roster[i];const[x,y]=w2s(p.x,p.y);ctx.save();ctx.translate(x,y);
+  drawPlayer(ctx,s*(G.kidK||1),p,G.kits[r.team],G.gk[r.team],r.i,G.vis[i],r.role==='gk',r.team);ctx.restore();}G.kidHead=1;
  if(v.gh&&v.gh.length){G.ghv=G.ghv||{};for(const g of v.gh){const[x,y]=w2s(g.x,g.y),key=g.team+':'+g.i,gv=G.ghv[key]=G.ghv[key]||{run:0,spd:0};gv.run+=dt*14;gv.spd=8;
   ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*s,y+.13*s,.36*s,.28*s,0,0,TAU);ctx.fill();ctx.save();ctx.translate(x,y);drawPlayer(ctx,s,{dir:g.dir},G.kits[g.team],G.gk[g.team],g.i,gv,g.gk,g.team);ctx.restore();
   ctx.font='700 10px Inter, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText('⬇ '+g.nm,x+1,y-.62*s-5);ctx.fillStyle='#ff9b9b';ctx.fillText('⬇ '+g.nm,x,y-.62*s-6);}
@@ -2596,7 +2596,7 @@ function hostStartMatch(){
  validateSlots();
  const humans=Lobby.players.map(p=>({id:p.hid,name:(p.slot!=null&&st.lineupT[p.team][p.slot])||p.name,team:p.team,slot:p.slot,onebtn:p.hid===0?!!st.onebtn:!!p.onebtn}));
  G.names=Object.fromEntries(humans.map(h=>[h.id,h.name]));
- const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,halves:st.mode!=='cole'&&st.halves!=='no',diff:'normal',ctrl:st.ctrl,mode:st.mode,sensible:false,dts:st.mode==='cole'||st.mode==='entre'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,halves:st.mode!=='cole'&&st.halves!=='no',diff:'normal',ctrl:st.ctrl,mode:st.mode,cat:st.cat,sensible:false,dts:st.mode==='cole'||st.mode==='entre'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),humans,solo:false};
  Lobby.state='game';broadcastLobby();
  G.mode='host';G.local=null;G.twoP=G.hid2!=null;G.match=new Match(cfg);G.myTeam=humans.find(h=>h.id===0).team;setupView(cfg,rosterFor(R.np));
  broadcast(startMsg());goFullscreen();
@@ -2613,7 +2613,7 @@ function startSolo(){
   for(const g of pads){const v=C['p'+g];if(v!=='0'&&v!=='1')continue;const nmP=hum.length?'Jugador '+(n++):nm;hum.push({id,name:nmP,team:+v,slot:null});local.push({hid:id,src:'pad',idx:g});id++;}
   if(!hum.length){hum=[{id:0,name:nm,team:st.side,slot:me}];local=[{hid:0,src:'kb'}];}}
  const two=!!local&&local.length>1;
- const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,halves:st.mode!=='cole'&&st.halves!=='no',diff:st.diff,ctrl:S.two?st.ctrl:'libre',mode:st.mode,sensible:false,dts:st.mode==='cole'||st.mode==='entre'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:hum};
+ const cfg={map:R.map,np:R.np,ball:R.ball,weather:st.weather,dur:st.dur,halves:st.mode!=='cole'&&st.halves!=='no',diff:st.diff,ctrl:S.two?st.ctrl:'libre',mode:st.mode,cat:st.cat,sensible:false,dts:st.mode==='cole'||st.mode==='entre'?['','']:st.keyT.map(k=>st.dts[k]||''),kits:R.kits,lineups:st.lineupT.map(L=>L.slice()),forms:st.formT.slice(),solo:true,humans:hum};
  G.mode='solo';G.local=local;G.myHid=hum[0].id;G.myTeam=hum[0].team;G.twoP=two;G.names=Object.fromEntries(hum.map(h=>[h.id,h.name]));G.match=new Match(cfg);setupView(cfg,rosterFor(R.np));goFullscreen();
 }
 function showGameUI(on){
