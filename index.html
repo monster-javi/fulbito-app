@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.87.1';
+const VERSION='1.87.2';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1803,7 +1803,7 @@ function setupView(cfg,roster){
   for(let i=0;i<n;i++)G.wx.push({x:(Rr()-.5)*M.L*.9,y:(Rr()-.5)*M.W*.85,rx:.6+Rr()*1.6,ry:.4+Rr()*.9,a:Rr()*3});
   if(G.weather==='mojada')for(let i=0;i<90;i++)G.rain.push({x:Math.random(),y:Math.random(),v:.6+Math.random()*.5});}G.gk=[gkKitFor(kA,kB,0),gkKitFor(kB,kA,1)];
  G.roster=roster;G.vis=roster.map(()=>({run:0,spd:0,x:null,y:null}));
- G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lide'&&M.fmt===11;if(G.match)G.match.tsc=G.sens?2:1;/* estilo Sensible: por ahora solo en LIDE */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
+ G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lide'&&M.fmt===11;if(G.match)G.match.tsc=G.sens?1.5:1;/* estilo Sensible: por ahora solo en LIDE */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
  G.cam.x=0;G.cam.y=0;G.ended=false;G.snaps=[];G.ballPrev=null;G.lin=null;G.ph=null;{const ct=cfg&&cfg.mode==='club'?cfg.cat:null;G.kidK=ct==='semillitas'?.76:ct==='cebollitas'?.87:1;G.kidH=ct==='semillitas'?1.22:ct==='cebollitas'?1.1:1;}/* chicos más chicos: cuerpo más chico y cabeza proporcionalmente más grande */G.watch=makeWatchers(G.map);if(G.intro)endIntro();if(G.cmode==='lpf'&&G.mode==='solo')startIntro();
  $('#swA').style.background=kA.shirt;$('#swB').style.background=kB.shirt;$('#nA').textContent=kA.short;$('#nB').textContent=kB.short;
  $('#sA').textContent='0';$('#sB').textContent='0';
@@ -2828,12 +2828,12 @@ function frame(now){requestAnimationFrame(frame);try{MUS.update();}catch(e){}con
  let v=null;
  if(G.mode==='solo'||G.mode==='host'){const m=G.match;
   if(G.intro&&!G.paused){G.intro.t+=dt;if(localInp.p||localInp.k||localInp.t||localInp.x||localInp.c)introSkip();if(G.intro.t>=G.intro.T1+G.intro.T2)endIntro();}
-  if(!G.paused&&!G.intro){const TS=G.sens?2:1;acc+=dt*TS;let n=0;while(acc>=STEP&&n<8*TS){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8*TS)acc=0;if(n>0){G.stepped=true;G.knCarry=null;if(G.knC)for(const q in G.knC)G.knC[q]=null;}}
+  if(!G.paused&&!G.intro){const TS=G.sens?1.5:1;acc+=dt*TS;let n=0;while(acc>=STEP&&n<8*TS){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8*TS)acc=0;if(n>0){G.stepped=true;G.knCarry=null;if(G.knC)for(const q in G.knC)G.knC[q]=null;}}
   const ev=m.ev.splice(0);if(ev.length)handleEvents(ev);
   if(G.mode==='host'){G.pendEv.push(...ev);G.snapT+=dt;if(G.snapT>=1/SNAP_HZ){G.snapT=0;broadcast(encodeSnap(m,G.pendEv.splice(0)));}}
   v=viewFromMatch(m);
  }else if(G.mode==='client'){sendInput();G.knCarry=null;v=interpView();}
- {const t0=performance.now();render(v,G.sens?dt*2:dt);/* árbitro, cámara y animaciones al mismo ritmo */perfWatch(performance.now()-t0,now);}G.view=v;tickKeysLegend(now);
+ {const t0=performance.now();render(v,G.sens?dt*1.5:dt);/* árbitro, cámara y animaciones al mismo ritmo */perfWatch(performance.now()-t0,now);}G.view=v;tickKeysLegend(now);
 }
 requestAnimationFrame(frame);
 // evita el zoom accidental en celulares (pellizco y doble toque)
