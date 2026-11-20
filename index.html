@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.86.0';
+const VERSION='1.87.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -863,7 +863,7 @@ class Match{
   if(this.penHold){const tk=this.players[this.restart.taker];
    if(this.ball.owner!==this.restart.taker)this.penHold=false;
    else if(tk.lock<=.05){this.penShot(tk);this.penHold=false;}}
-  if(!this.koHold&&!this.penHold){this.time-=dt;if(this.time<=0){this.time=0;this.finish();return;}
+  if(!this.koHold&&!this.penHold){this.time-=dt/(this.tsc||1);/* en modo rápido el reloj sigue al ritmo real */if(this.time<=0){this.time=0;this.finish();return;}
    if(this.halves&&this.half===1&&this.time<=this.cfg.dur*30){this.halfTime();this.endInputs();return;}}
   this.updateControl();this.computeChasers();
   const C0=this.players.map(p=>p.ctrl);// quién maneja a quién al empezar el paso: si se cambió de jugador en este paso, el nuevo no vuelve a leer el mismo botón
@@ -1803,7 +1803,7 @@ function setupView(cfg,roster){
   for(let i=0;i<n;i++)G.wx.push({x:(Rr()-.5)*M.L*.9,y:(Rr()-.5)*M.W*.85,rx:.6+Rr()*1.6,ry:.4+Rr()*.9,a:Rr()*3});
   if(G.weather==='mojada')for(let i=0;i<90;i++)G.rain.push({x:Math.random(),y:Math.random(),v:.6+Math.random()*.5});}G.gk=[gkKitFor(kA,kB,0),gkKitFor(kB,kA,1)];
  G.roster=roster;G.vis=roster.map(()=>({run:0,spd:0,x:null,y:null}));
- G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lide'&&M.fmt===11;/* estilo Sensible: por ahora solo en LIDE */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
+ G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lide'&&M.fmt===11;if(G.match)G.match.tsc=G.sens?2.5:1;/* estilo Sensible: por ahora solo en LIDE */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
  G.cam.x=0;G.cam.y=0;G.ended=false;G.snaps=[];G.ballPrev=null;G.lin=null;G.ph=null;{const ct=cfg&&cfg.mode==='club'?cfg.cat:null;G.kidK=ct==='semillitas'?.76:ct==='cebollitas'?.87:1;G.kidH=ct==='semillitas'?1.22:ct==='cebollitas'?1.1:1;}/* chicos más chicos: cuerpo más chico y cabeza proporcionalmente más grande */G.watch=makeWatchers(G.map);if(G.intro)endIntro();if(G.cmode==='lpf'&&G.mode==='solo')startIntro();
  $('#swA').style.background=kA.shirt;$('#swB').style.background=kB.shirt;$('#nA').textContent=kA.short;$('#nB').textContent=kB.short;
  $('#sA').textContent='0';$('#sB').textContent='0';
@@ -1941,6 +1941,10 @@ const SNS={d0:['...HH...','..HHHH..','..SSSS..','.LTTTTL.','.STTTTS.','.GTTTTG.'
  u0:['...HH...','..HHHH..','..HHHH..','.LTTTTL.','.STTTTS.','.GTTTTG.','..TTTT..','..PPPP..','..P..P..','..S..S..','..K..K..','..B..B..'],
  u1:['...HH...','..HHHH..','..HHHH..','.LTTTTL.','.GTTTTS.','..TTTTS.','..TTTTG.','..PPPP..','..P..P..','..S..S..','..B..K..','.....B..'],
  r0:['...HH...','..HHHH..','..HHSS..','...TLT..','...TLT..','...TGT..','...TTT..','...PPP..','...PPP..','...S.S..','...K.K..','...BBBB.'],
+ sl:['.HH.........','HHSS........','HSSTL.......','.GTTTTPP....','..TTTTPPSKKB','.G...PSKKB..'],/* barrida: pies adelante (a la derecha) */
+ dn:['...G........','.HHL........','HSSTTTPPSSKB','HSSTTTPP.SKB','.HHL........','...G........'],/* tirado panza arriba, brazos abiertos */
+ pr:['...G........','.HHL........','HHHTTTPPSSKB','HHHTTTPP.SKB','.HHL........','...G........'],/* tirado boca abajo */
+ dv:['........LLG.','.BKSPPTTTHHG','BKSPPTTTTHSS','.....TTLLG..'],/* arquero volando, manos adelante */
  r1:['...HH...','..HHHH..','..HHSS..','...TLT..','..STTTS.','..GTTTG.','...TTT..','...PPP..','..PP.PP.','..S...S.','..K...K.','.BB...BB']};
 const SNC=new Map();
 function sensSprite(key,rows,col,mir){let e=SNC.get(key);if(e)return e;const w=rows[0].length+2,h=rows.length+2,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
@@ -1952,8 +1956,8 @@ function sensFace(dir){const f=G.flip?-1:1,dx=f*Math.sin(dir),dy=-f*Math.cos(dir
 function drawSensPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
  const sh=isGK?gk.shirt:kit.shirt,sl=isGK?gk.sleeve:kit.sleeve,so=isGK?gk.socks:kit.socks,sr=isGK?gk.shorts:kit.shorts,skin=SKINS[(idx*7+team*3)%SKINS.length],hair=HAIR[(idx*5+team)%HAIR.length];
  const q=s*SQK,FEET=.22*s,face=sensFace(p.dir||0),ph=(vis.run||0)*3.1,mv=(vis.spd||0)>.6,sn=Math.sin(ph);
- const lying=p.slide||p.down,side=face==='r'||face==='l';let base,mir=false;
- if(lying){const f=G.flip?-1:1;mir=f*Math.sin(p.dir||0)<0;base='r0';}
+ const lying=p.slide||p.down,side=face==='r'||face==='l',sdx=(G.flip?-1:1)*Math.sin(p.dir||0);let base,mir=false;
+ if(lying){mir=sdx<0;base=p.slide?'sl':p.down&&isGK&&!p.prone?'dv':p.prone?'pr':'dn';if(base==='dn'||base==='pr')mir=false;}
  else if(side){base=mv&&sn>0?'r1':'r0';mir=face==='l';}
  else{const b=face;if(mv&&sn>.35)base=b+'1';else if(mv&&sn<-.35){base=b+'1';mir=true;}else base=b+'0';}
  const pat=!isGK&&(kit.stripes||kit.center||kit.hoop||kit.half||kit.sash||kit.vee)?kitSig(kit):'';
@@ -1963,7 +1967,8 @@ function drawSensPlayer(c,s,p,kit,gk,idx,vis,isGK,team){
   return i>=5&&j>=4?shade(k,-.2):k;};/* costado derecho del torso más oscuro */
  const e=sensSprite(key,SNS[base],col,mir),W=e.w*q,H=e.h*q;
  c.save();c.imageSmoothingEnabled=false;
- if(lying){c.translate(0,-.05*s);c.rotate(p.down?Math.PI/2*(mir?1:-1):(mir?1:-1)*Math.PI/2*.85);c.drawImage(e.c,-W/2,-H/2,W,H);}
+ if(lying){const up=base==='dv'?.35*s:0;c.drawImage(e.c,Math.round(-W/2),Math.round(FEET-H-up),W,H);/* acostado: el sprite sigue derecho, sin girar los pixeles */
+  if(base==='dn'){const t=performance.now()/180;c.fillStyle='#ffd23f';for(let k=0;k<3;k++){const a=t+k*TAU/3;c.fillRect(Math.round(-W/2+2*q+Math.cos(a)*2.2*q),Math.round(FEET-H-q+Math.sin(a)*.9*q),Math.ceil(q),Math.ceil(q));}}}/* estrellitas de mareado */
  else c.drawImage(e.c,Math.round(-W/2),Math.round(FEET-H),W,H);
  c.restore();}
 let SNPAT=null;
@@ -2083,7 +2088,7 @@ function renderCore(v,dt){
  const order=v.P.map((p,i)=>i).sort((a,b)=>v.P[a].y-v.P[b].y);
  // sombras + anillos
  for(const i of order){const p=v.P[i];const[x,y]=w2s(p.x,p.y);
-  {const sk=s*(G.kidK||1);if(G.sens){ctx.fillStyle='rgba(0,25,0,.38)';ctx.fillRect(Math.round(x-.12*sk),Math.round(y+.12*sk),Math.round(.55*sk),Math.round(.17*sk));}else{ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*sk,y+.13*sk,.36*sk,.28*sk,0,0,TAU);ctx.fill();}}
+  {const sk=s*(G.kidK||1);if(G.sens){const lo=p.slide||p.down;ctx.fillStyle='rgba(0,25,0,.38)';ctx.fillRect(Math.round(x-(lo?.6:.12)*sk),Math.round(y+.12*sk),Math.round((lo?1.35:.55)*sk),Math.round(.17*sk));}else{ctx.fillStyle='rgba(0,0,0,.26)';ctx.beginPath();ctx.ellipse(x+.1*sk,y+.13*sk,.36*sk,.28*sk,0,0,TAU);ctx.fill();}}
   if(p.ctrl!=null){const me=p.ctrl===G.myHid;const r=G.roster[i];const HMr=(G.match?G.match.homes:G.homes)||{};if(me&&HMr[p.ctrl]===i){ctx.strokeStyle='rgba(255,210,63,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,.62*s,.52*s,0,0,TAU);ctx.stroke();}
    ctx.strokeStyle=me?'#ffd23f':(r.team===(G.myTeam??-1)?'#ffffff':'#ff9b9b');ctx.lineWidth=me?3:2;ctx.beginPath();ctx.ellipse(x,y,.48*s,.4*s,0,0,TAU);ctx.stroke();}}
  // pelota (sombra)
@@ -2823,12 +2828,12 @@ function frame(now){requestAnimationFrame(frame);try{MUS.update();}catch(e){}con
  let v=null;
  if(G.mode==='solo'||G.mode==='host'){const m=G.match;
   if(G.intro&&!G.paused){G.intro.t+=dt;if(localInp.p||localInp.k||localInp.t||localInp.x||localInp.c)introSkip();if(G.intro.t>=G.intro.T1+G.intro.T2)endIntro();}
-  if(!G.paused&&!G.intro){acc+=dt;let n=0;while(acc>=STEP&&n<8){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8)acc=0;if(n>0){G.stepped=true;G.knCarry=null;if(G.knC)for(const q in G.knC)G.knC[q]=null;}}
+  if(!G.paused&&!G.intro){const TS=G.sens?2.5:1;acc+=dt*TS;let n=0;while(acc>=STEP&&n<8*TS){const H=m.humans.get(G.myHid);if(H&&!(G.local&&G.local.length))H.inp={...localInp};if(G.local&&G.local.length){for(const c of G.local){const Hc=m.humans.get(c.hid);if(Hc)Hc.inp={...(G.localInps[c.hid]||ZINP)};}}else if(G.twoP&&G.hid2!=null){const H2=m.humans.get(G.hid2);if(H2)H2.inp={...localInp2};}m.step(STEP);acc-=STEP;n++;}if(n>=8*TS)acc=0;if(n>0){G.stepped=true;G.knCarry=null;if(G.knC)for(const q in G.knC)G.knC[q]=null;}}
   const ev=m.ev.splice(0);if(ev.length)handleEvents(ev);
   if(G.mode==='host'){G.pendEv.push(...ev);G.snapT+=dt;if(G.snapT>=1/SNAP_HZ){G.snapT=0;broadcast(encodeSnap(m,G.pendEv.splice(0)));}}
   v=viewFromMatch(m);
  }else if(G.mode==='client'){sendInput();G.knCarry=null;v=interpView();}
- {const t0=performance.now();render(v,dt);perfWatch(performance.now()-t0,now);}G.view=v;tickKeysLegend(now);
+ {const t0=performance.now();render(v,G.sens?dt*2.5:dt);/* árbitro, cámara y animaciones al mismo ritmo */perfWatch(performance.now()-t0,now);}G.view=v;tickKeysLegend(now);
 }
 requestAnimationFrame(frame);
 // evita el zoom accidental en celulares (pellizco y doble toque)
