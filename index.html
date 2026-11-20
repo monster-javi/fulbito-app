@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.87.2';
+const VERSION='1.88.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1803,7 +1803,7 @@ function setupView(cfg,roster){
   for(let i=0;i<n;i++)G.wx.push({x:(Rr()-.5)*M.L*.9,y:(Rr()-.5)*M.W*.85,rx:.6+Rr()*1.6,ry:.4+Rr()*.9,a:Rr()*3});
   if(G.weather==='mojada')for(let i=0;i<90;i++)G.rain.push({x:Math.random(),y:Math.random(),v:.6+Math.random()*.5});}G.gk=[gkKitFor(kA,kB,0),gkKitFor(kB,kA,1)];
  G.roster=roster;G.vis=roster.map(()=>({run:0,spd:0,x:null,y:null}));
- G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lide'&&M.fmt===11;if(G.match)G.match.tsc=G.sens?1.5:1;/* estilo Sensible: por ahora solo en LIDE */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
+ G.sens=S.settings.sensGfx==='on'&&cfg.mode==='lpf'&&M.fmt===11;if(G.match)G.match.tsc=G.sens?1.5:1;/* estilo Sensible: solo en la LPF */freshCanvas();computePPM();makeField();G.perf={ema:0,base:0,rms:0,rbase:0,t:0,bad:0,last:0,n:0,lt:0};
  G.cam.x=0;G.cam.y=0;G.ended=false;G.snaps=[];G.ballPrev=null;G.lin=null;G.ph=null;{const ct=cfg&&cfg.mode==='club'?cfg.cat:null;G.kidK=ct==='semillitas'?.76:ct==='cebollitas'?.87:1;G.kidH=ct==='semillitas'?1.22:ct==='cebollitas'?1.1:1;}/* chicos más chicos: cuerpo más chico y cabeza proporcionalmente más grande */G.watch=makeWatchers(G.map);if(G.intro)endIntro();if(G.cmode==='lpf'&&G.mode==='solo')startIntro();
  $('#swA').style.background=kA.shirt;$('#swB').style.background=kB.shirt;$('#nA').textContent=kA.short;$('#nB').textContent=kB.short;
  $('#sA').textContent='0';$('#sB').textContent='0';
@@ -1920,7 +1920,7 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){if(G.sens)return drawSensPla
   c.drawImage(e.c,-B,-B,2*B,2*B);}
  c.restore();
 }
-// ---- estilo Sensible Soccer (opcional, solo LIDE por ahora): cancha pixelada, jugadores sprite 3/4, arco en perspectiva
+// ---- estilo Sensible Soccer (opcional, solo en la LPF): cancha pixelada, jugadores sprite 3/4, arco en perspectiva
 const SQK=.105,SQ=SQK*1.45;/* metros por pixel "Sensible" (igual en cancha y jugadores) */
 function buildSensField(M){const mg=fieldMargin(M),wM=M.L+mg*2,hM=M.W+mg*2,k=1/SQ,hl=M.L/2,hw=M.W/2,ox=hl+mg,oy=hw+mg;
  const c=document.createElement('canvas');c.width=Math.ceil(wM*k);c.height=Math.ceil(hM*k);const g=c.getContext('2d'),W=c.width,H=c.height,id=g.createImageData(W,H),d=id.data,R=mulberry(hashStr('sens'+M.id)),band=4.6;
@@ -2576,7 +2576,7 @@ function renderSettings(el,ro){
  h+=sec(n++,'Partido')+`<div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
  {const M=mapById(R.map),wo=M.surf==='cement'||/Sintético/.test(M.sub||'')?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
   h+=`<div><div class="lbl">Cancha</div><div class="chips">${wo.map(([k,l])=>chip('weather',k,(k==='mojada'?'🌧️ ':k==='barro'?'🟫 ':'☀️ ')+l)).join('')}</div></div>`;}
- if(st.mode==='lide')h+=`<div><div class="lbl">Gráficos</div><div class="chips">${chip('sensGfx','off','Actuales')}${chip('sensGfx','on','👾 Estilo Sensible (prueba)')}</div></div>`;
+ if(st.mode==='lpf')h+=`<div><div class="lbl">Gráficos</div><div class="chips">${chip('sensGfx','off','Actuales')}${chip('sensGfx','on','👾 Estilo Sensible (prueba)')}</div></div>`;
  if(st.mode!=='cole')h+=`<div><div class="lbl">Segundo tiempo</div><div class="chips">${chip('halves','si','Sí')}${chip('halves','no','No')}</div></div>`;
  if(S.mode==='solo')h+=`<div><div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div></div>`;
  if(st.mode==='cole')h+=`<div><div class="lbl">Pelota</div><div class="chips">${['comun','pulpo','goma'].map(k=>`<button class="chip ${(st.ballCole||'comun')===k?'sel':''}" data-k="ballCole" data-v="${k}" ${ro?'disabled':''}><span class="bdot" style="background:${BALLS[k].base}"></span>${BALLS[k].name}</button>`).join('')}</div></div>`;
