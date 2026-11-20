@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.89.0';
+const VERSION='1.90.0';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1870,7 +1870,16 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){if(G.sens)return drawSensPla
   const t=performance.now()/180;c.fillStyle='#ffd23f';for(let k=0;k<3;k++){const a=t+k*TAU/3;c.beginPath();c.arc((.38+Math.cos(a)*.2)*s,Math.sin(a)*.2*s,.04*s,0,TAU);c.fill();}
   c.restore();return;}
  // piernas y botines
- for(const sd of[-1,1]){const fx=p.slide?.5:sw*sd,fy=sd*.11,kx=fx*.42;
+ const SL=p.slide?((idx%2)?1:-1):0;// barrida: una pierna estirada adelante y la otra doblada abajo, el cuerpo tirado para atrás
+ if(SL){c.translate(-.1*s,0);
+  const legs=[[[0,SL*.1],[.36,SL*.085],[.7,SL*.07]],[[0,-SL*.11],[.25,-SL*.3],[-.02,-SL*.35]]];
+  for(const L of legs){const[H,K,F]=L,pl=(a,b,w,col)=>{c.strokeStyle=col;c.lineWidth=w*s;c.beginPath();c.moveTo(a[0]*s,a[1]*s);for(const q of b)c.lineTo(q[0]*s,q[1]*s);c.stroke();};
+   const M1=[H[0]+(K[0]-H[0])*.55,H[1]+(K[1]-H[1])*.55];
+   pl(H,[K,F],.16,OL);pl(H,[M1],.13,sr);pl(M1,[K,F],.105,so);
+   const ba=Math.atan2(F[1]-K[1],F[0]-K[0]);c.save();c.translate(F[0]*s,F[1]*s);c.rotate(ba);c.fillStyle='#121212';c.beginPath();c.ellipse(.05*s,0,.085*s,.055*s,0,0,TAU);c.fill();c.fillStyle='rgba(255,255,255,.55)';c.fillRect(.01*s,-.012*s,.07*s,.024*s);c.restore();}
+  {const t=performance.now()/1000,gc=G.map&&G.map.surf==='grass'?'rgba(214,240,178,.8)':'rgba(205,195,175,.7)';c.fillStyle=gc;// pasto o tierra que salta del botín
+   for(let k=0;k<6;k++){const u=(t*2.6+k*.173)%1,x=(.78+u*.4)*s,y=(SL*.07+Math.sin(k*2.1)*(.05+u*.2))*s,z=(.045*(1-u)+.02)*s;c.fillRect(x-z/2,y-z/2,z,z);}}}
+ else for(const sd of[-1,1]){const fx=sw*sd,fy=sd*.11,kx=fx*.42;
   c.strokeStyle=OL;c.lineWidth=.16*s;c.beginPath();c.moveTo(0,fy*s);c.lineTo(fx*s,fy*1.12*s);c.stroke();
   c.strokeStyle=sr;c.lineWidth=.13*s;c.beginPath();c.moveTo(0,fy*s);c.lineTo(kx*s,fy*1.06*s);c.stroke();
   c.strokeStyle=so;c.lineWidth=.105*s;c.beginPath();c.moveTo(kx*s,fy*1.06*s);c.lineTo(fx*s,fy*1.12*s);c.stroke();
@@ -1882,7 +1891,7 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){if(G.sens)return drawSensPla
  if(p.thr){// lateral: brazos arriba, la pelota sobre la cabeza (las manos se dibujan encima de la pelota)
   for(const sd of[-1,1]){c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(-.02*s,sd*.17*s);c.stroke();
    c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(0,sd*.26*s,.1*s,0,TAU);c.fill();c.stroke();}}
- else for(const sd of[-1,1]){const hd=p.hold&&isGK,ax=hd?.28:p.cel?-.04+Math.sin(ph)*.05*sd:p.push?.5:p.slide?-.22:-sw*sd*.75,ay=hd?.2:p.cel?.62:p.push?.2:.35;// arquero con la pelota en las manos: brazos adelante, abrazándola// festejo: corre con los brazos abiertos (avioncito)
+ else for(const sd of[-1,1]){const hd=p.hold&&isGK,ax=hd?.28:p.cel?-.04+Math.sin(ph)*.05*sd:p.push?.5:SL?(sd===-SL?-.34:.16):-sw*sd*.75,ay=hd?.2:p.cel?.62:p.push?.2:SL?(sd===-SL?.4:.44):.35;/* barrida: una mano apoyada atrás, la otra afuera para el equilibrio */// arquero con la pelota en las manos: brazos adelante, abrazándola// festejo: corre con los brazos abiertos (avioncito)
   c.strokeStyle=OL;c.lineWidth=.12*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.strokeStyle=skin;c.lineWidth=.085*s;c.beginPath();c.moveTo(0,sd*.24*s);c.lineTo(ax*s,sd*ay*s);c.stroke();
   c.fillStyle=sl;c.strokeStyle=OL;c.lineWidth=Math.max(1,.018*s);c.beginPath();c.arc(ax*.22*s,sd*.27*s,.1*s,0,TAU);c.fill();c.stroke();
@@ -2576,7 +2585,7 @@ function renderSettings(el,ro){
  h+=sec(n++,'Partido')+`<div class="optrow"><div><div class="lbl">Duración</div><div class="chips">${[2,3,5,8].map(d=>chip('dur',d,d+' min')).join('')}</div></div>`;
  {const M=mapById(R.map),wo=M.surf==='cement'||/Sintético/.test(M.sub||'')?[['seca','Seca'],['mojada','Mojada']]:[['seca','Seca'],['mojada','Mojada'],['barro','Embarrada']];
   h+=`<div><div class="lbl">Cancha</div><div class="chips">${wo.map(([k,l])=>chip('weather',k,(k==='mojada'?'🌧️ ':k==='barro'?'🟫 ':'☀️ ')+l)).join('')}</div></div>`;}
- if(lpfOn()&&(st.mode==='lpf'||st.mode==='lide'))h+=`<div><div class="lbl">Gráficos</div><div class="chips">${chip('sensGfx','off','Actuales')}${chip('sensGfx','on','👾 Estilo Sensible (prueba)')}</div></div>`;
+ if(lpfOn()&&(st.mode==='lpf'||st.mode==='lide'))h+=`<div><div class="lbl">Gráficos</div><div class="chips">${chip('sensGfx','off','Actuales')}${chip('sensGfx','on','👾 Estilo Sensible')}</div></div>`;
  if(st.mode!=='cole')h+=`<div><div class="lbl">Segundo tiempo</div><div class="chips">${chip('halves','si','Sí')}${chip('halves','no','No')}</div></div>`;
  if(S.mode==='solo')h+=`<div><div class="lbl">Dificultad</div><div class="chips">${chip('diff','facil','Fácil')}${chip('diff','normal','Normal')}${chip('diff','dificil','Difícil')}</div></div>`;
  if(st.mode==='cole')h+=`<div><div class="lbl">Pelota</div><div class="chips">${['comun','pulpo','goma'].map(k=>`<button class="chip ${(st.ballCole||'comun')===k?'sel':''}" data-k="ballCole" data-v="${k}" ${ro?'disabled':''}><span class="bdot" style="background:${BALLS[k].base}"></span>${BALLS[k].name}</button>`).join('')}</div></div>`;
