@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.90.0';
+const VERSION='1.90.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -1874,8 +1874,8 @@ function drawPlayer(c,s,p,kit,gk,idx,vis,isGK,team){if(G.sens)return drawSensPla
  if(SL){c.translate(-.1*s,0);
   const legs=[[[0,SL*.1],[.36,SL*.085],[.7,SL*.07]],[[0,-SL*.11],[.25,-SL*.3],[-.02,-SL*.35]]];
   for(const L of legs){const[H,K,F]=L,pl=(a,b,w,col)=>{c.strokeStyle=col;c.lineWidth=w*s;c.beginPath();c.moveTo(a[0]*s,a[1]*s);for(const q of b)c.lineTo(q[0]*s,q[1]*s);c.stroke();};
-   const M1=[H[0]+(K[0]-H[0])*.55,H[1]+(K[1]-H[1])*.55];
-   pl(H,[K,F],.16,OL);pl(H,[M1],.13,sr);pl(M1,[K,F],.105,so);
+   const lp=(A,B,t)=>[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t],M1=lp(H,K,.5),M2=lp(K,F,.22),skin=SKINS[(idx*7+team*3)%SKINS.length];
+   pl(H,[K,F],.16,OL);pl(M1,[K,M2],.085,skin);pl(M2,[F],.105,so);pl(H,[M1],.13,sr);/* short hasta medio muslo, rodilla a la vista, medias desde abajo de la rodilla */
    const ba=Math.atan2(F[1]-K[1],F[0]-K[0]);c.save();c.translate(F[0]*s,F[1]*s);c.rotate(ba);c.fillStyle='#121212';c.beginPath();c.ellipse(.05*s,0,.085*s,.055*s,0,0,TAU);c.fill();c.fillStyle='rgba(255,255,255,.55)';c.fillRect(.01*s,-.012*s,.07*s,.024*s);c.restore();}
   {const t=performance.now()/1000,gc=G.map&&G.map.surf==='grass'?'rgba(214,240,178,.8)':'rgba(205,195,175,.7)';c.fillStyle=gc;// pasto o tierra que salta del botín
    for(let k=0;k<6;k++){const u=(t*2.6+k*.173)%1,x=(.78+u*.4)*s,y=(SL*.07+Math.sin(k*2.1)*(.05+u*.2))*s,z=(.045*(1-u)+.02)*s;c.fillRect(x-z/2,y-z/2,z,z);}}}
