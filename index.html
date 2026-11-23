@@ -405,7 +405,7 @@ body.zurdo #bTouch{right:auto;left:calc(38px + env(safe-area-inset-left))}
    ========================================================= */
 const $=s=>document.querySelector(s);
 const TAU=Math.PI*2, STEP=1/60, SNAP_HZ=15;
-const VERSION='1.91.0';
+const VERSION='1.91.1';
 const PREFIX='picado-arcade-v1-';
 const QS=new URLSearchParams(location.search);
 const USE_BC=QS.has('bc');           // modo de prueba local (BroadcastChannel)
@@ -2085,7 +2085,7 @@ function drawPhotog(v,dt){const M=G.map;if(!M||!M.four||!v)return;let P=G.ph;
  else if(kneel){ctx.fillStyle='#111';ctx.fillRect(.16,-.06,.07,.13);ctx.fillStyle='rgba(140,200,255,.8)';ctx.fillRect(.175,-.045,.04,.1);}// sacando con el celular
  if(P.flash>0){ctx.fillStyle=`rgba(255,255,255,${P.flash*6})`;ctx.beginPath();ctx.arc(P.phone?.22:.55,0,.35,0,TAU);ctx.fill();}
  ctx.restore();}
-function updDove(v,dt){const M=G.map;if(!M||!M.walls||!M.th||M.th.roof||M.th.gym||!v){G.dove=null;return;}
+function updDove(v,dt){const M=G.map;if(!M||!M.walls||!M.th||M.th.gym||!v){G.dove=null;return;}/* palomas en todos los patios descubiertos (no en el gimnasio) */
  if(G.doveT==null)G.doveT=25+Math.random()*40;
  if(!G.dove){if(G.paused)return;G.doveT-=dt;if(G.doveT>0)return;G.doveT=40+Math.random()*50;/* cada 40-90 segundos */
   const a=Math.random()*TAU,c=Math.cos(a),sn=Math.sin(a),off=(Math.random()-.5)*12,D=24;
